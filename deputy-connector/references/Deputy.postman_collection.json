@@ -1,0 +1,2609 @@
+{
+	"info": {
+		"_postman_id": "d36c635d-b853-4008-8886-c66772e932c0",
+		"name": "Deputy",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20877409"
+	},
+	"item": [
+		{
+			"name": "Locations",
+			"item": [
+				{
+					"name": "Get Locations",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/resource/Company",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"resource",
+								"Company"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get simplified location list",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/company/simple",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"company",
+								"simple"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get a locations settings",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/company/{{companyid}}/settings",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"company",
+								"{{companyid}}",
+								"settings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Modify settings in all locations",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"WEEK_START\": 2}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/company/all/settings",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"company",
+								"all",
+								"settings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Modify settings in a single location",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"WEEK_START\": 2}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/company/{{companyid}}/settings",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"company",
+								"{{companyid}}",
+								"settings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Archive a location",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"WEEK_START\": 2}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/company/{{companyid}}/archive",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"company",
+								"{{companyid}}",
+								"archive"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete a location",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"WEEK_START\": 2}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/company/{{companyid}}/delete",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"company",
+								"{{companyid}}",
+								"delete"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add a location",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"strWorkplaceName\":\"Asims' Avocado's\",\"strWorkplaceCode\":\"ASI\",\"strAddress\":\"Ultimo, Sydney\",\"strAddressNotes\":\"This is an address note\",\"intParentCompany\":0,\"intIsWorkplace\":1,\"intIsPayrollEntity\":1,\"strTimezone\":\"Australia/Sydney\",\"strPayrollExportCode\":\"XYZ123\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/resource/Company",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"resource",
+								"Company"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update a location",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"strWorkplaceCode\": \"ABC\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/company/6",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"company",
+								"6"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Management",
+			"item": [
+				{
+					"name": "Add New Workplace",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"strWorkplaceName\": \"Simons Sambos - Sydney2\",\n    \"strWorkplaceTimezone\": \"Australia/Sydney\",\n    \"strAddress\": \"580 George St\",\n    \"strLat\": \"151.2093\",\n    \"strLon\": \"33.8688\",\n    \"intCountry\": 13,\n    \"arrAreaNames\": [\"Chef\", \"Cashier\"],\n    \"strWorkplaceCode\": \"SYD\",\n    \"strPayrollExportCode\": \"SYDEXPORT\",\n    \"blnIsWorkplace\": 1,\n    \"blnIsPayrollEntity\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/my/setup/addNewWorkplace",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"my",
+								"setup",
+								"addNewWorkplace"
+							]
+						},
+						"description": "This endpoint allows you to add a new workplace/location to your existing Deputy install.\n\n| **Data element** | **Requirements** | **Notes** |\n| --- | --- | --- |\n| strWorkplaceName | String naming the workplace |  |\n| stWorkplaceTimezone | Timezone for the workplace using TZ database naming | See [this](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) website for information  <br> |\n| strAddress | String of the locations address |  |\n| strLat | The latitude of the location using a string |  |\n| strLon | The longitude of the location using a string |  |\n| intCountry | An integer which defines which country the location is in |  |\n| arrAreaNames | An array of the area names to add to the location | Example : \\['Chef', 'Cashier'\\] |\n| strWorkplaceCode | A string with a length of 3 allowing you to define a short code for the location |  |\n| strParentCompany | Name or integer id of the company the location belongs to | Optional |\n| strPayrollExportCode | String naming what to use as a code for payroll exports to applications such as Xero | Optional |\n| blnIsWorkplace | Whether the location is considered a workplace | Boolean  <br>1 - True  <br>0 - False |\n| blnIsPayrollEntity | Whether the location has payroll setup | Boolean  <br>1- True  <br>0 - False |\n\n**Example**\n\n``` json\n{\n    \"strWorkplaceName\": \"Simons Sambos - Sydney\",\n    \"strWorkplaceTimezone\": \"Australia/Sydney\",\n    \"strAddress\": \"580 George St\",\n    \"strLat\": \"151.2093\",\n    \"strLon\": \"33.8688\",\n    \"intCountry\": 13,\n    \"arrAreaNames\": [\"Chef\", \"Cashier\"],\n    \"strWorkplaceCode\": \"SYD\",\n    \"strPayrollExportCode\": \"SYDEXPORT\",\n    \"blnIsWorkplace\": 1,\n    \"blnIsPayrollEntity\": 1\n}\n\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Get location by id",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/my/location/{{id}}",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"my",
+								"location",
+								"{{id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create a memo",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"strContent\": \"Hello, this is a memo\",\n    \"intCompany\": 1,\n    \"blnRequireConfirm\": 0\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/memo",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"memo"
+							]
+						},
+						"description": "Example\n``` json\n{\n    \"strContent\": \"Hello, this is a memo\",\n    \"intCompany\": 1,\n    \"blnRequireConfirm\": 0\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Find out an employees status",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/empshiftinfo/{{employeeid}}",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"empshiftinfo",
+								"{{employeeid}}"
+							]
+						},
+						"description": "Example\n``` json\n{\n    \"strContent\": \"Hello, this is a memo\",\n    \"intCompany\": 1,\n    \"blnRequireConfirm\": 0\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Post a journal",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"strComment\": \"This is a journal\",\n    \"intEmployeeId\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/journal",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"journal"
+							]
+						},
+						"description": "Example\n\n``` json\n{\n    \"strComment\": \"This is a journal\",\n    \"intEmployeeId\": 1\n}\n\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Find an employees leave",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"strComment\": \"This is a journal\",\n    \"intEmployeeId\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/leave/{{employeeid}}",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"leave",
+								"{{employeeid}}"
+							]
+						},
+						"description": "Example\n``` json\n{\n    \"strContent\": \"Hello, this is a memo\",\n    \"intCompany\": 1,\n    \"blnRequireConfirm\": 0\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Add leave for a employee",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Status\": 1,\n    \"Employee\": 1,\n    \"DateStart\": \"2022/01/01\",\n    \"DateEnd\": \"2022/01/02\",\n    \"ApprovalComment\": \"Hello this is leave\",\n    \"ActionOverlappingRosters\": 0\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/leave/",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"leave",
+								""
+							]
+						},
+						"description": "Example\n\n``` json\n{\n    \"Status\": 1,\n    \"Employee\": 1,\n    \"DateStart\": \"2022/01/01\",\n    \"DateEnd\": \"2022/01/02\",\n    \"ApprovalComment\": \"Hello this is leave\",\n    \"ActionOverlappingRosters\": 0\n    }\n\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Get suggestions for roster by id",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/getRecommendation/{{rosterid}}",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"getRecommendation",
+								"{{rosterid}}"
+							]
+						},
+						"description": "Example\n``` json\n{\n    \"strContent\": \"Hello, this is a memo\",\n    \"intCompany\": 1,\n    \"blnRequireConfirm\": 0\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Get unavailability details for a employee",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/unavail/{{employeeid}}",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"unavail",
+								"{{employeeid}}"
+							]
+						},
+						"description": "Example\n``` json\n{\n    \"strContent\": \"Hello, this is a memo\",\n    \"intCompany\": 1,\n    \"blnRequireConfirm\": 0\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Add unavailability details for a employee",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{   \n    \"employee\": 1,\n    \"start\": {\n        \"timestamp\": 1657001675\n    },\n    \"end\": {\n        \"timestamp\": 1657001676\n    },\n    \"strComment\": \"Here is a note for some unavailability\",\n    \"recurrence\": {\n        \"FREQ\": \"WEEKLY\",\n        \"INTERVAL\": 2,\n        \"BYDAY\": \"MO\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/unavail/",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"unavail",
+								""
+							]
+						},
+						"description": "Example\n\n``` json\n{   \n    \"employee\": 1,\n    \"start\": {\n        \"timestamp\": 1657001675\n    },\n    \"end\": {\n        \"timestamp\": 1657001676\n    },\n    \"strComment\": \"Here is a note for some unavailability\",\n    \"recurrence\": {\n        \"FREQ\": \"WEEKLY\",\n        \"INTERVAL\": 2,\n        \"BYDAY\": \"MO\"\n    }\n}\n\n```"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Employees",
+			"item": [
+				{
+					"name": "Get details for all employees",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/employee",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"employee"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get details for a employee by id",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/employee/{{employeeid}}",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"employee",
+								"{{employeeid}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add an employee",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"strFirstName\": \"John\",\n    \"strLastName\": \"Doe\",\n    \"intCompanyId\": 1,\n    \"intGender\": 2,\n    \"strCountryCode\": \"AR\",\n    \"strDob\": \"1971-01-01\",\n    \"strStartDate\": \"2022-01-01\",\n    \"strMobilePhone\": \"0441234567\",\n    \"strPayrollId\": \"1234\",\n    \"fltWeekDayRate\": 30\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/employee",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"employee"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update an existing employee",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Phone\": \"0212345678\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/employee/ {{employeeid}}",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"employee",
+								" {{employeeid}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add a location against an employee",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/employee/{{employeeid}}/assoc/{{companyid}}",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"employee",
+								"{{employeeid}}",
+								"assoc",
+								"{{companyid}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove a location from an employee",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/employee/{{employeeid}}/unassoc/{{companyid}}",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"employee",
+								"{{employeeid}}",
+								"unassoc",
+								"{{companyid}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Terminate an employee",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/employee/{{employeeid}}/terminate",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"employee",
+								"{{employeeid}}",
+								"terminate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Re-activate a terminated employee",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/employee/{{employeeid}}/activate",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"employee",
+								"{{employeeid}}",
+								"activate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete an employees account in Deputy",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/employee/{{employeeid}}/delete",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"employee",
+								"{{employeeid}}",
+								"delete"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Invite employee to Deputy",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/employee/{{employeeid}}/invite",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"employee",
+								"{{employeeid}}",
+								"invite"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Set award for employee",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"strCountryCode\": \"au\",\r\n    \"strAwardCode\": \"casual-2021-11-01-aea-2\"\r\n\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/employee/{{employeeid}}/setAwardFromLibrary",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"employee",
+								"{{employeeid}}",
+								"setAwardFromLibrary"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Pay Rates",
+			"item": [
+				{
+					"name": "Get awards library list",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/payroll/listAwardsLibrary",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"payroll",
+								"listAwardsLibrary"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Agreed Hours by Employee ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/management/v2/agreed_hour/{{employeeid}}",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"management",
+								"v2",
+								"agreed_hour",
+								"{{employeeid}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Departments",
+			"item": [
+				{
+					"name": "Create a Department",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n        \"intCompanyId\": 1,\n        \"strOpunitName\": 'Deutsche Bank Park',\n        \"strAddress\": 'Mörfelder Landstraße 362, 60528 Frankfurt am Main',\n        \"strExportName\": 'Fußball',\n        \"intSortOrder\": 0,\n        \"intOpunitType\": 1,\n        \"LocationId\": 1\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/department",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"department"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Multiple Departments",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n        \"arrArea\": [{\n            \"intCompanyId\": 1,\n            \"strOpunitName\": \"Stamford Bridge\",\n            \"intAddressId\": 172,\n            \"arrTrainingId\": [2],\n            \"intCountry\": 222,\n            \"intOpunitType\": 1\n        },\n        {\n            \"intCompanyId\": 1,\n            \"strOpunitName\": \"Craven Cottage\",\n            \"strAddress\": \"Moor Ln, Salford M7 3BS, United Kingdom\",\n            \"strExportName\": \"Project92Ltd\",\n            \"intSortOrder\": 0,\n            \"intCountry\": 222,\n            \"intOpunitType\": 1\n        }]\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/department/create/",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"department",
+								"create",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Operational Units",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Proxy-Authorization",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/resource/OperationalUnit/",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"resource",
+								"OperationalUnit",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete a Single Operational Unit",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Proxy-Authorization",
+								"value": "",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/resource/OperationalUnit/{{opunitdelete}}",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"resource",
+								"OperationalUnit",
+								"{{opunitdelete}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update a single operational unit",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Proxy-Authorization",
+								"value": "",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"intCompanyId\": 12,\n    \"intAddressId\": 17,\n    \"strOpunitName\": \"Ibrox Stadium\",\n    \"strExportName\": \"Rangers\",\n    \"arrTrainingId\": [1, 2, 3]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/resource/OperationalUnit/20",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"resource",
+								"OperationalUnit",
+								"20"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Rosters",
+			"item": [
+				{
+					"name": "Get a list of rosters from last 12 hours, and forward 36 hours",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/roster",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"roster"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get a specific roster",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/roster",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"roster"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Roster on a specific date",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/roster",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"roster"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Roster on a specific date and location",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/roster",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"roster"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Copy a Roster",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"strFromDate\": \"2022-07-25\",\n    \"strToDate\": \"2022-07-28\",\n    \"intOperationalUnitArray\": [400],\n    \"blnRequireErrorDetails\": 1\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/roster/copy",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"roster",
+								"copy"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Publish a roster",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"intMode\": 1,\n    \"blnAllLocationsMode\": 1,\n    \"intRosterArray\": [400]\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/roster/publish",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"roster",
+								"publish"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create a new roster",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"intMode\": 1,\n    \"blnAllLocationsMode\": 1,\n    \"intRosterArray\": [400]\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/roster/publish",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"roster",
+								"publish"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Discard a roster",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"intRosterArray\": [400]\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/roster/discard",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"roster",
+								"discard"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get rosters available for swap",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"intRosterArray\": [400]\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/roster/autobuild",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"roster",
+								"autobuild"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Timesheets",
+			"item": [
+				{
+					"name": "Start an employees timesheet (Clock On)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/timesheet/start",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"timesheet",
+								"start"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Stop an employees timesheet (Clock Off)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"intTimesheetId\": 65,\n    \"intMealbreakMinute\": 0\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/timesheet/end",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"timesheet",
+								"end"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Pause or unpause employees time sheet (take a break/finish break)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"intTimesheetId\": 65,\n    \"intMealbreakMinute\": 0\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/timesheet/pause",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"timesheet",
+								"pause"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "View a timesheet by id",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/supervise/timesheet/{{timesheetid}}/details",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"supervise",
+								"timesheet",
+								"{{timesheetid}}",
+								"details"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Sales",
+			"item": [
+				{
+					"name": "Add a sale to sales metrics",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data\": [\n        {\n            \"timestamp\": 1660272300,\n            \"area\": 2,\n            \"type\": \"Sales\",\n            \"reference\": \"API-Sales-Entry-1660272300\",\n            \"value\": 100.30,\n            \"employee\": 1,\n            \"location\": 1\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v2/metrics",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"metrics"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Retrieve Sales Data",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v2/metrics/raw?areas=1&types=Sales&start=1626203567&end=1657775576",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"metrics",
+								"raw"
+							],
+							"query": [
+								{
+									"key": "areas",
+									"value": "1"
+								},
+								{
+									"key": "types",
+									"value": "Sales"
+								},
+								{
+									"key": "start",
+									"value": "1626203567"
+								},
+								{
+									"key": "end",
+									"value": "1657775576"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Resource API",
+			"item": [
+				{
+					"name": "Example - Search for unapproved timesheets",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"search\": {\n        \"field\": \"Id\",\n        \"type\": \"eq\",\n        \"data\": 1\n    },\n    \"join\": [\"TimesheetObject\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/resource/Timesheet/{{timesheetid}}",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"resource",
+								"Timesheet",
+								"{{timesheetid}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Example - Search for employees from a location",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"search\":{\n    \"s1\":{ \"field\": \"EmployeeId\", \"data\": 1, \"type\": \"eq\"}\n}}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/resource/Employee/{{employeeid}}",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"resource",
+								"Employee",
+								"{{employeeid}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Retrieve preferred employees for Area",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"join\":[],\"assoc\":[\"RosterEmployeeOperationalUnit\"],\"search\":{\"id\":{\"field\":\"Id\",\"type\":\"eq\",\"data\":1}}}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/resource/OperationalUnit/QUERY",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"resource",
+								"OperationalUnit",
+								"QUERY"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Retrieve preferred employees for Area Copy",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"join\":[],\"assoc\":[\"RosterEmployeeOperationalUnit\"],\"search\":{\"id\":{\"field\":\"Id\",\"type\":\"eq\",\"data\":1}}}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/resource/OperationalUnit/QUERY",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"resource",
+								"OperationalUnit",
+								"QUERY"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Retrieve a specific award/agreement",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"join\":[],\"assoc\":[\"RosterEmployeeOperationalUnit\"],\"search\":{\"id\":{\"field\":\"Id\",\"type\":\"eq\",\"data\":1}}}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/resource/employmentcontract/QUERY",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"resource",
+								"employmentcontract",
+								"QUERY"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Logged in User Details",
+			"item": [
+				{
+					"name": "Who Am I",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/me",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"me"
+							]
+						},
+						"description": "Checking whether this uploads to Readme.com"
+					},
+					"response": []
+				},
+				{
+					"name": "Where can I work/What do I do",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/my/setup",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"my",
+								"setup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "What locations can i work in",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/my/location",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"my",
+								"location"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "My address on file",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/my/contactaddress",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"my",
+								"contactaddress"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "My address on file including emergency",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/my/contactaddress/all",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"my",
+								"contactaddress",
+								"all"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get my subordinate contact details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/my/contactaddress/subordinate",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"my",
+								"contactaddress",
+								"subordinate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update my address",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "   {\n        \"ContactName\": \"A Person\",\n        \"UnitNo\": \"2\",\n        \"Street1\": \"580 George Street\",\n        \"City\": \"Sydney\",\n        \"State\": \"150\",\n        \"Postcode\": \"2000\",\n        \"Country\": 13,\n        \"Notes\": \"A note\"\n\n   }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/my/contactaddress",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"my",
+								"contactaddress"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Who do I work with?",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/my/colleague",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"my",
+								"colleague"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "When Am I Next Working",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/my/roster",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"my",
+								"roster"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "My Leave Requests",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/my/leave",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"my",
+								"leave"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "When Am I Unavailable",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/my/unavail",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"my",
+								"unavail"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Notifications",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/my/notification",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"my",
+								"notification"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get my training",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/my/training",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"my",
+								"training"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get my newsfeed",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/my/memo",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"my",
+								"memo"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get my tasks",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/my/tasks",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"my",
+								"tasks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Do a task",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/my/tasks/{{id}}/do",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"my",
+								"tasks",
+								"{{id}}",
+								"do"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get my timesheets",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/my/timesheets",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"my",
+								"timesheets"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get my individual timesheet",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/my/timesheets/{timesheetid}/detail",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"my",
+								"timesheets",
+								"{timesheetid}",
+								"detail"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "# All about \"Me\"\n\nThis set of API endpoints allow you to retrieve data about the authenticated user the API token relates too. You can find information out such as locations the user is able to work, their contact details, current rosters and timesheets just to name a few options.\n\nIn many cases you can also provide updates to this profile via the API. For example there are endpoints which allow you to update a contact address or photo."
+		},
+		{
+			"name": "Utility request",
+			"item": [
+				{
+					"name": "Retrieve Current System Time",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/time",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"time"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Retrieve current system time of a location",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/time/{{companyid}}",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"time",
+								"{{companyid}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Webhooks",
+			"item": [
+				{
+					"name": "Add a webhook (URL)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{depApiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Topic\": \"Timesheet.Insert\",\n    \"Enabled\": 1,\n    \"Type\": \"URL\",\n    \"Address\": \"https://webhook.site/a90b0a6b-43e9-4755-8bf5-3518980d373a\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{depBaseUrl}}/api/v1/resource/Webhook",
+							"host": [
+								"{{depBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"resource",
+								"Webhook"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "id",
+			"value": "1"
+		},
+		{
+			"key": "companyid",
+			"value": "1"
+		},
+		{
+			"key": "opunitid",
+			"value": "1"
+		},
+		{
+			"key": "opunitdelete",
+			"value": "21"
+		},
+		{
+			"key": "opunitupdate",
+			"value": "22"
+		},
+		{
+			"key": "rosterid",
+			"value": "400"
+		},
+		{
+			"key": "rosterdate",
+			"value": "2022-07-28"
+		},
+		{
+			"key": "startDate",
+			"value": "2022-07-01"
+		},
+		{
+			"key": "endDate",
+			"value": "2022-07-30"
+		},
+		{
+			"key": "timesheetid",
+			"value": "65"
+		}
+	]
+}
