@@ -22,6 +22,25 @@ Requires: Deputy (subdomain + token) + Shopify (store domain + Admin API token).
 
 ---
 
+### Paperclip SEO skill set
+
+Imported/adapted from the CSTMR SEO specialist workflows for use in Paperclip:
+
+- analytics-reporting
+- backlink-management
+- competitor-analysis
+- content-strategy
+- copywriter-handoff
+- keyword-research
+- local-seo
+- on-page-specs
+- rank-tracking
+- site-architecture
+- task-tracker
+- technical-audit
+
+---
+
 ## Installation
 
 ```
