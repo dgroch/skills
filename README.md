@@ -43,10 +43,3 @@ Paperclip-adapted SEO specialist workflows:
 - `seo/task-tracker`: Maintain persistent SEO operating state, tasks, alerts, and run metadata.
 - `seo/technical-audit`: Run technical SEO audits for crawl/index/performance issues and remediation priorities.
 
-## Installation
-
-```bash
-clawhub install <skill-name>
-```
-
-Or copy the required skill directory directly into an agent's `skills/` folder.
