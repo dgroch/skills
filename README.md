@@ -1,50 +1,52 @@
 # OpenClaw Skills
 
-A shared collection of agent skills for OpenClaw deployments. Each skill is self-contained and designed to be installed into an agent's `skills/` directory.
+A shared collection of agent skills for OpenClaw and Paperclip-style deployments.
+
+## Repository Layout
+
+Skills are grouped by domain:
+
+- `creative/`
+- `human-resources/`
+- `seo/`
+
+Each skill is self-contained and includes a `SKILL.md` file (plus optional `scripts/`, `references/`, and templates).
 
 ## Skills
 
-### deputy-connector
+### Creative
 
-A general-purpose connector for the Deputy staff rostering platform. Provides helper scripts and API reference for working with Deputy's full resource model — employees, rosters, timesheets, leave, locations, and more.
+- `creative/add-creative-builder` (`ad-creative-builder`): Build production-ready static and carousel ad creatives from existing photography, copy, and brand assets.
+- `creative/asset-adapter` (`asset-adapter`): Reformat a hero creative into platform-specific variants using deterministic crop/safe-zone rules.
+- `creative/brand-guidelines-manager` (`brand-guidelines-manager`): Enforce and maintain Fig & Bloom brand rules for visual and tonal consistency.
+- `creative/copywriting-qa` (`copy-qa`): QA customer-facing copy against brand voice and messaging standards.
 
-Requires: Deputy subdomain + API token (from the Deputy web interface).
+### Human Resources
 
----
+- `human-resources/deputy-connector` (`deputy-connector`): General-purpose Deputy API connector for employees, rosters, timesheets, leave, and related resources.
+- `human-resources/fig-bloom-rostering` (`fig-bloom-rostering`): Build and optimize weekly rosters using Deputy + Shopify inputs and labour budget constraints.
 
-### fig-bloom-rostering
+### SEO
 
-A workflow skill for building optimised weekly staff rosters. Combines revenue data from Shopify with employee availability and leave data from Deputy to construct rosters that stay within a target labour budget (default: 8.5% of gross revenue).
+Paperclip-adapted SEO specialist workflows:
 
-The workflow follows a clear priority order: full-time staff first (fixed hours), then part-time minimums, then casuals to fill remaining gaps. The skill includes scripts for fetching the necessary data and a reference guide for the business rules.
-
-Requires: Deputy (subdomain + token) + Shopify (store domain + Admin API token).
-
----
-
-### Paperclip SEO skill set
-
-Imported/adapted from the CSTMR SEO specialist workflows for use in Paperclip:
-
-- analytics-reporting
-- backlink-management
-- competitor-analysis
-- content-strategy
-- copywriter-handoff
-- keyword-research
-- local-seo
-- on-page-specs
-- rank-tracking
-- site-architecture
-- task-tracker
-- technical-audit
-
----
+- `seo/analytics-reporting`
+- `seo/backlink-management`
+- `seo/competitor-analysis`
+- `seo/content-strategy`
+- `seo/copywriter-handoff`
+- `seo/keyword-research`
+- `seo/local-seo`
+- `seo/on-page-specs`
+- `seo/rank-tracking`
+- `seo/site-architecture`
+- `seo/task-tracker`
+- `seo/technical-audit`
 
 ## Installation
 
-```
+```bash
 clawhub install <skill-name>
 ```
 
-Or copy the skill directory directly into your agent's `skills/` folder.
+Or copy the required skill directory directly into an agent's `skills/` folder.
