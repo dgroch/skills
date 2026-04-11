@@ -1,7 +1,8 @@
 ---
 name: rank-tracking
-description: Paperclip SEO workflow for Rank Tracking. Use this skill when you need to run structured work for Rank Tracking, including planning, monitoring, analysis, and execution handoffs.
+description: Paperclip SEO workflow for Rank Tracking. Use this skill when you need to monitor keyword rankings, SERP features, and movement trends.
 ---
+
 
 # Rank Tracking (Paperclip)
 

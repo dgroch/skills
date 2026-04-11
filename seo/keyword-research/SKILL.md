@@ -1,7 +1,8 @@
 ---
 name: keyword-research
-description: Paperclip SEO workflow for Keyword Research. Use this skill when you need to run structured work for Keyword Research, including planning, monitoring, analysis, and execution handoffs.
+description: Paperclip SEO workflow for Keyword Research. Use this skill when you need to discover, cluster, and prioritize keyword opportunities by intent and impact.
 ---
+
 
 # Keyword Research (Paperclip)
 

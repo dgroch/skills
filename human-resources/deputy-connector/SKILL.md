@@ -1,7 +1,8 @@
 ---
 name: deputy-connector
-description: General-purpose connector for the Deputy staff rostering system API. Use this skill to interact with Deputy for tasks involving employee management, rostering, timesheets, locations, and other API-accessible resources. Supports authentication, paginated data retrieval, and provides a comprehensive reference to all available endpoints.
+description: Paperclip operations workflow for Deputy Connector. Use this skill when you need to access Deputy API data for employees, rosters, timesheets, leave, and related HR operations.
 ---
+
 
 # Deputy API Connector
 

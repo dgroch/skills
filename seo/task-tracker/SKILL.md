@@ -1,7 +1,8 @@
 ---
 name: task-tracker
-description: Paperclip SEO workflow for Task Tracker. Use this skill when you need to run structured work for Task Tracker, including planning, monitoring, analysis, and execution handoffs.
+description: Paperclip SEO workflow for Task Tracker. Use this skill when you need to manage persistent SEO tasks, alerts, and run-state coordination.
 ---
+
 
 # Task Tracker (Paperclip)
 

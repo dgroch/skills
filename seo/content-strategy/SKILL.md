@@ -1,7 +1,8 @@
 ---
 name: content-strategy
-description: Paperclip SEO workflow for Content Strategy. Use this skill when you need to run structured work for Content Strategy, including planning, monitoring, analysis, and execution handoffs.
+description: Paperclip SEO workflow for Content Strategy. Use this skill when you need to plan and prioritize an SEO content roadmap and publishing pipeline.
 ---
+
 
 # Content Strategy (Paperclip)
 

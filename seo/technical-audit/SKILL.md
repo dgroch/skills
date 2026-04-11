@@ -1,7 +1,8 @@
 ---
 name: technical-audit
-description: Paperclip SEO workflow for Technical Audit. Use this skill when you need to run structured work for Technical Audit, including planning, monitoring, analysis, and execution handoffs.
+description: Paperclip SEO workflow for Technical Audit. Use this skill when you need to audit crawl, indexation, and performance issues and prioritize technical fixes.
 ---
+
 
 # Technical Audit (Paperclip)
 

@@ -1,7 +1,8 @@
 ---
 name: site-architecture
-description: Paperclip SEO workflow for Site Architecture. Use this skill when you need to run structured work for Site Architecture, including planning, monitoring, analysis, and execution handoffs.
+description: Paperclip SEO workflow for Site Architecture. Use this skill when you need to design or optimize URL hierarchy, internal linking, and redirect strategy.
 ---
+
 
 # Site Architecture (Paperclip)
 
