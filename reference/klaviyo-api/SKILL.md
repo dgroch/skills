@@ -1,20 +1,9 @@
 ---
 name: klaviyo-api
-description: >
-  Reference skill for interacting with Klaviyo's API. Provides authentication
-  patterns, endpoint documentation, request/response formats, error handling,
-  rate limiting, and known gotchas for all Klaviyo API domains. Use this skill
-  whenever an agent needs to make any Klaviyo API call — creating templates,
-  campaigns, flows, pulling metrics, managing profiles, lists, segments, or
-  any other Klaviyo operation. Also use when debugging Klaviyo API errors,
-  choosing between MCP and direct API access, or checking whether a Klaviyo
-  capability is API-accessible. This is a reference skill — it teaches the
-  agent how to talk to Klaviyo, not what to build. Consuming skills (like
-  email-template-builder) define the "what".
-version: 1.0.0
+description: Provides authentication patterns, endpoint documentation, request/response formats, error handling, rate limiting, and known gotchas for all Klaviyo API domains. version: 1.0.0
 source_api_revision: "2026-01-15"
 openapi_spec_repo: "https://github.com/klaviyo/openapi"
-author: CSTMR
+author: Dan Groch
 license: MIT
 metadata:
   tags: [API, Klaviyo, Email, Marketing, Integration, Reference]
@@ -32,6 +21,8 @@ skills that build on Klaviyo (email campaigns, flows, analytics, etc.).
 This skill targets **Klaviyo API revision `2026-01-15`**. See "Version
 Management" at the end of this document for how to detect and handle
 API version drift.
+
+Use this skill whenever an agent needs to make any Klaviyo API call — creating templates, campaigns, flows, pulling metrics, managing profiles, lists, segments, or any other Klaviyo operation. Also use when debugging Klaviyo API errors, choosing between MCP and direct API access, or checking whether a Klaviyo capability is API-accessible. This is a reference skill — it teaches the agent how to talk to Klaviyo, not what to build. Consuming skills (like email-template-builder) define the "what".
 
 ## Access Methods
 
