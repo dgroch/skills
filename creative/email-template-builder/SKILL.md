@@ -1,8 +1,9 @@
 ---
 name: email-template-builder
-description: Create, build, and deploy email campaigns and automated flows in Klaviyo from a modular HTML/CSS component library. Use this skill whenever someone asks to: create an email campaign, build a Klaviyo email, design an email template, set up a welcome series, build an abandoned cart flow, draft a promotional email, create a Mother's Day / seasonal campaign, review email performance, analyse campaign metrics, build email flows, set up email automation, produce an EDM, or any request involving email marketing through Klaviyo. Also triggers for: "send an email to our list", "set up a drip sequence", "what's working in our emails", "build a flow for X", "create a campaign for [event/sale/launch]", or references to email components like hero blocks, product grids, CTA strips, or email layouts. This skill covers the full lifecycle: design → approval → build in Klaviyo → review → send/activate. It also covers periodic campaign performance analysis.
+description: Create, build, and deploy email campaigns and automated flows in Klaviyo
+  from a modular HTML/CSS component library. 
 version: 1.0.0
-author: CSTMR
+author: Dan Groch
 license: MIT
 metadata:
   hermes:
@@ -19,6 +20,8 @@ assembling modular HTML/CSS components, applying brand configuration,
 and managing the full approval-to-send lifecycle via Klaviyo's API.
 This skill also runs periodic campaign performance reviews to surface
 insights that improve future emails.
+
+Use this skill whenever someone asks to: create an email campaign, build a Klaviyo email, design an email template, set up a welcome series, build an abandoned cart flow, draft a promotional email, create a Mother's Day / seasonal campaign, review email performance, analyse campaign metrics, build email flows, set up email automation, produce an EDM, or any request involving email marketing through Klaviyo. Also triggers for: "send an email to our list", "set up a drip sequence", "what's working in our emails", "build a flow for X", "create a campaign for [event/sale/launch]", or references to email components like hero blocks, product grids, CTA strips, or email layouts.  This skill covers the full lifecycle: design → approval → build in Klaviyo → review → send/activate. It also covers periodic campaign performance analysis.
 
 ## Prerequisites
 
@@ -551,23 +554,16 @@ review period.
   (logo, colours, footer, legal text) must come from Brand A's config.
   Double-check before every build.
 
-## Klaviyo API Reference (Quick Reference)
+## Klaviyo API Reference
 
-| Action                     | Endpoint                                   | Method |
-| -------------------------- | ------------------------------------------ | ------ |
-| List templates             | `/api/templates/`                          | GET    |
-| Create template            | `/api/templates/`                          | POST   |
-| Update template            | `/api/templates/{id}/`                     | PATCH  |
-| Create campaign            | `/api/campaigns/`                          | POST   |
-| Assign template to message | `/api/campaign-message-assign-template/`   | POST   |
-| Estimate recipients        | `/api/campaign-recipient-estimation-jobs/` | POST   |
-| Schedule/send campaign     | `/api/campaign-send-jobs/`                 | POST   |
-| Create flow (beta)         | `/api/flows/`                              | POST   |
-| Update flow status         | `/api/flows/{id}/`                         | PATCH  |
-| Query campaign performance | `/api/campaign-values-reports/`            | POST   |
-| Query flow performance     | `/api/flow-values-reports/`                | POST   |
-| Query metric aggregates    | `/api/metric-aggregates/`                  | POST   |
-| Get metrics                | `/api/metrics/`                            | GET    |
+For all Klaviyo API details — authentication, endpoints, request
+formats, error handling, rate limiting, and known gotchas — read the
+`klaviyo-api` skill. This skill delegates all API mechanics to that
+shared reference.
 
-All endpoints require header: `Authorization: Klaviyo-API-Key {key}`
-and `revision: 2024-10-15` (or latest stable revision).
+Key reference files for this skill's use cases:
+
+- `klaviyo-api/references/templates.md` — creating and managing templates
+- `klaviyo-api/references/campaigns.md` — creating and sending campaigns
+- `klaviyo-api/references/flows.md` — creating automated flows
+- `klaviyo-api/references/reporting.md` — pulling performance metrics
