@@ -1,7 +1,6 @@
 ---
 name: email-template-builder
-description: >
-  Create, build, and deploy email campaigns and automated flows in Klaviyo
+description: Create, build, and deploy email campaigns and automated flows in Klaviyo
   from a modular HTML/CSS component library. Use this skill whenever someone
   asks to: create an email campaign, build a Klaviyo email, design an email
   template, set up a welcome series, build an abandoned cart flow, draft a
@@ -57,6 +56,7 @@ Before execution, the following must be available:
 ## Scope
 
 ### In scope
+
 - Assembling emails from modular HTML/CSS components
 - Creating and updating Klaviyo templates via API
 - Creating Klaviyo campaigns, assigning templates, scheduling sends
@@ -68,6 +68,7 @@ Before execution, the following must be available:
 - Iterating on email content based on reviewer feedback
 
 ### Out of scope — delegate or escalate
+
 - **Generating photography or illustrations** → `ai-image-generation`
 - **Building ad creatives** → `ad-creative-builder`
 - **Writing long-form copy from scratch** → copywriting skill or human brief
@@ -84,6 +85,7 @@ config variables. Components use inline CSS (email client compatibility)
 with CSS custom properties replaced at build time.
 
 ### Component structure
+
 ```
 references/components/
 ├── COMPONENTS.md          # Registry of all components
@@ -119,6 +121,7 @@ references/components/
 ```
 
 ### Component conventions
+
 - Every component accepts a `brand` object: `{colors, fonts, logo_url,
   social_urls, legal_text}`.
 - All CSS is inline. No `<style>` blocks in components (except media
@@ -132,7 +135,9 @@ references/components/
   blocks → footer, wrapped in responsive media queries.
 
 ### Initialising the component library (Phase 0)
+
 If the component library does not exist:
+
 1. Check for prior emails in Klaviyo via `GET /api/templates/` — pull
    up to 10 most recent templates as reference for the brand's style.
 2. Build each component as a parameterised HTML file using the brand
@@ -151,6 +156,7 @@ exists and has been approved.
 **Entry conditions:** A campaign or flow request has been received.
 
 1. Extract from the brief:
+   
    - **Type**: one-off campaign or automated flow
    - **Campaign purpose**: promotional, seasonal, announcement, transactional, nurture
    - **Audience**: list ID, segment ID, or flow trigger description
@@ -162,6 +168,7 @@ exists and has been approved.
 2. Identify missing required fields.
 
 **Decision tree:**
+
 - If campaign type and audience are missing → ask one clarifying question.
   Do not proceed without both.
 - If copy is missing but purpose is clear → draft copy in Phase 2 using
@@ -181,16 +188,18 @@ provided copy or enough context to generate copy are confirmed.
 **Entry conditions:** Brief is parsed and complete.
 
 1. **Select components** from the library based on the brief:
+   
    - Promotional email: hero-full-image → product-grid → cta-strip → footer
    - Announcement: hero-text-only → text-block → cta-button → footer
    - Seasonal campaign: hero-full-image → text-block → product-grid → cta-strip → social-follow → footer
    - Welcome flow (email 1): hero-split → text-block → cta-button → social-follow → footer
    - Abandoned cart: hero-text-only → product-single (dynamic) → cta-button → footer
-
+   
    These are starting patterns. Adjust based on the brief's content
    needs. If no pattern fits, compose from individual components.
 
 2. **Generate or refine copy:**
+   
    - If subject line is not provided → generate 3 options. Each must be
      under 50 characters. Apply brand voice rules from brand config.
    - If preview text is not provided → generate to complement the subject
@@ -201,6 +210,7 @@ provided copy or enough context to generate copy are confirmed.
      brand voice. Flag clearly: "Copy is agent-generated — please review."
 
 3. **Assemble the email HTML:**
+   
    - Start with `wrapper.html` and `reset.html`.
    - Insert selected components in order, populating brand config values.
    - Replace all brand variables with values from the brand config.
@@ -210,6 +220,7 @@ provided copy or enough context to generate copy are confirmed.
    - For flows: build each email in the sequence as a separate template.
 
 4. **Generate approval mockup:**
+   
    - Render the assembled HTML as a preview image (use a headless
      browser or Klaviyo's template render endpoint).
    - If rendering tools are unavailable, provide the raw HTML with a
@@ -217,11 +228,13 @@ provided copy or enough context to generate copy are confirmed.
      Klaviyo's template editor to review."
 
 5. **Present for approval:**
+   
    - Show the mockup alongside: subject line options, preview text,
      component list used, and any copy flagged as agent-generated.
    - For flows: present the full sequence with timing between emails.
 
 **Decision tree:**
+
 - If the reviewer approves → proceed to Phase 3.
 - If the reviewer requests changes → apply changes, regenerate mockup,
   re-present. Track revision count.
@@ -241,6 +254,7 @@ provided copy or enough context to generate copy are confirmed.
 **For campaigns:**
 
 1. **Create template in Klaviyo:**
+   
    ```
    POST /api/templates/
    {
@@ -254,23 +268,29 @@ provided copy or enough context to generate copy are confirmed.
      }
    }
    ```
+   
    Capture the returned `template_id`.
 
 2. **Create campaign:**
+   
    ```
    POST /api/campaigns/
    ```
+   
    Include: campaign name, audience (list/segment IDs), send strategy
    (immediate or scheduled with datetime), subject line, preview text.
    Capture the returned `campaign_id` and `campaign_message_id`.
 
 3. **Assign template to campaign message:**
+   
    ```
    POST /api/campaign-message-assign-template/
    ```
+   
    Link the `template_id` to the `campaign_message_id`.
 
 4. **Verify the build:**
+   
    - Fetch the campaign back via `GET /api/campaigns/{id}` and confirm
      template is assigned, audience is set, and status is "draft".
    - If any field is missing or incorrect → diagnose and retry.
@@ -281,15 +301,18 @@ provided copy or enough context to generate copy are confirmed.
 1. **Create templates** for each email in the sequence (same as above).
 
 2. **Build the flow definition:**
+   
    - Define the trigger (metric-triggered or date-triggered).
    - Define actions: send-email actions with template IDs, time-delay
      actions between emails.
    - Assign temporary IDs to each action.
 
 3. **Create the flow:**
+   
    ```
    POST /api/flows/
    ```
+   
    Note: this endpoint is in beta. All flows are created in "draft"
    status by default.
 
@@ -297,6 +320,7 @@ provided copy or enough context to generate copy are confirmed.
    templates are correctly linked.
 
 **Decision tree:**
+
 - If the Klaviyo API returns an error → log the error, diagnose
   (common issues: invalid list ID, malformed HTML, missing required
   fields). Fix and retry. Maximum 3 retries.
@@ -317,6 +341,7 @@ with all templates assigned and audience configured.
    reviewer to send a test from Klaviyo's UI).
 
 2. **Present for final review:**
+   
    - Provide the Klaviyo campaign/flow URL for the reviewer to inspect.
    - Summarise: audience size (via recipient estimation endpoint if
      available), subject line, send time, and any warnings.
@@ -328,6 +353,7 @@ with all templates assigned and audience configured.
    (2) request changes."
 
 **Decision tree:**
+
 - If approved to send → proceed to Phase 5.
 - If changes requested → return to Phase 2 or Phase 3 depending on
   whether the change is content (Phase 2) or configuration (Phase 3).
@@ -341,25 +367,32 @@ with all templates assigned and audience configured.
 **Entry conditions:** Send approval received.
 
 **For campaigns:**
+
 1. Schedule or send immediately:
+   
    ```
    POST /api/campaign-send-jobs/
    ```
+   
    Include the campaign ID and send strategy.
 
 2. Confirm the send job was created successfully. Fetch the campaign
    status to verify it moved from "draft" to "scheduled" or "sending".
 
 **For flows:**
+
 1. Update flow status to "live":
+   
    ```
    PATCH /api/flows/{id}/
    ```
+   
    Set status to "live".
 
 2. Confirm the status update.
 
 **Post-send:**
+
 - Log: campaign/flow name, send time, audience, template ID.
 - Report to the operator: "Campaign '[name]' has been sent to [audience]
   at [time]." or "Flow '[name]' is now live."
@@ -376,15 +409,18 @@ review period.
 1. **Pull campaign performance data:**
    Use the Reporting API (`POST /api/campaign-values-reports/`) to
    fetch statistics for campaigns sent in the last 30 days:
+   
    - Open rate, click rate, unsubscribe rate
    - Revenue attributed (if conversion metric is configured)
    - Bounce rate, spam complaint rate
 
 2. **Pull flow performance data:**
    Use `POST /api/flow-values-reports/` for active flows:
+   
    - Same metrics as above, broken down by flow and by message.
 
 3. **Analyse and surface insights.** Structure the analysis around:
+   
    - **Subject lines**: Which subject lines had the highest open rates?
      What patterns emerge (length, tone, urgency, personalisation)?
    - **CTAs**: Which CTA text/placement drove the most clicks?
@@ -396,6 +432,7 @@ review period.
    - **Audience segments**: Which segments had highest/lowest engagement?
 
 4. **Produce a performance report** with:
+   
    - Top 3 performing campaigns/flows and why
    - Bottom 3 performing and what to change
    - Recommended actions for next month's emails
@@ -406,6 +443,7 @@ review period.
    reference what has historically worked for this brand.
 
 **Decision tree:**
+
 - If no campaigns were sent in the period → report: "No campaigns
   sent in the last 30 days. No performance data to analyse."
 - If the Reporting API returns errors → fall back to the Query Metric
@@ -467,6 +505,7 @@ review period.
 ## Quality Criteria
 
 **Excellent output:**
+
 - Email renders correctly in Gmail, Apple Mail, Outlook (desktop and
   mobile) — no broken tables, no missing images, no clipped content
 - Brand is immediately recognisable (colours, typography, logo)
@@ -481,6 +520,7 @@ review period.
 - All agent-generated copy is clearly flagged for reviewer awareness
 
 **Poor output:**
+
 - Broken layout in major email clients
 - Missing or wrong brand elements (wrong logo, off-brand colours)
 - Subject line over 50 characters or generic ("Check this out!")
@@ -526,21 +566,21 @@ review period.
 
 ## Klaviyo API Reference (Quick Reference)
 
-| Action | Endpoint | Method |
-|---|---|---|
-| List templates | `/api/templates/` | GET |
-| Create template | `/api/templates/` | POST |
-| Update template | `/api/templates/{id}/` | PATCH |
-| Create campaign | `/api/campaigns/` | POST |
-| Assign template to message | `/api/campaign-message-assign-template/` | POST |
-| Estimate recipients | `/api/campaign-recipient-estimation-jobs/` | POST |
-| Schedule/send campaign | `/api/campaign-send-jobs/` | POST |
-| Create flow (beta) | `/api/flows/` | POST |
-| Update flow status | `/api/flows/{id}/` | PATCH |
-| Query campaign performance | `/api/campaign-values-reports/` | POST |
-| Query flow performance | `/api/flow-values-reports/` | POST |
-| Query metric aggregates | `/api/metric-aggregates/` | POST |
-| Get metrics | `/api/metrics/` | GET |
+| Action                     | Endpoint                                   | Method |
+| -------------------------- | ------------------------------------------ | ------ |
+| List templates             | `/api/templates/`                          | GET    |
+| Create template            | `/api/templates/`                          | POST   |
+| Update template            | `/api/templates/{id}/`                     | PATCH  |
+| Create campaign            | `/api/campaigns/`                          | POST   |
+| Assign template to message | `/api/campaign-message-assign-template/`   | POST   |
+| Estimate recipients        | `/api/campaign-recipient-estimation-jobs/` | POST   |
+| Schedule/send campaign     | `/api/campaign-send-jobs/`                 | POST   |
+| Create flow (beta)         | `/api/flows/`                              | POST   |
+| Update flow status         | `/api/flows/{id}/`                         | PATCH  |
+| Query campaign performance | `/api/campaign-values-reports/`            | POST   |
+| Query flow performance     | `/api/flow-values-reports/`                | POST   |
+| Query metric aggregates    | `/api/metric-aggregates/`                  | POST   |
+| Get metrics                | `/api/metrics/`                            | GET    |
 
 All endpoints require header: `Authorization: Klaviyo-API-Key {key}`
 and `revision: 2024-10-15` (or latest stable revision).
