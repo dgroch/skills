@@ -20,6 +20,7 @@ Each skill is self-contained and includes a `SKILL.md` file (plus optional `scri
 - `creative/asset-adapter` (`asset-adapter`): Reformat a hero creative into platform-specific variants using deterministic crop/safe-zone rules.
 - `creative/brand-guidelines-manager` (`brand-guidelines-manager`): Enforce and maintain Fig & Bloom brand rules for visual and tonal consistency.
 - `creative/copywriting-qa` (`copy-qa`): QA customer-facing copy against brand voice and messaging standards.
+- `creative/email-template-builder` (`email-template-builder`): Create, build, and deploy Klaviyo email campaigns and automated flows from a modular component library.
 
 ### Human Resources
 
