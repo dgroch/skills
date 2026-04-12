@@ -1,19 +1,6 @@
 ---
 name: email-template-builder
-description: Create, build, and deploy email campaigns and automated flows in Klaviyo
-  from a modular HTML/CSS component library. Use this skill whenever someone
-  asks to: create an email campaign, build a Klaviyo email, design an email
-  template, set up a welcome series, build an abandoned cart flow, draft a
-  promotional email, create a Mother's Day / seasonal campaign, review email
-  performance, analyse campaign metrics, build email flows, set up email
-  automation, produce an EDM, or any request involving email marketing
-  through Klaviyo. Also triggers for: "send an email to our list", "set up
-  a drip sequence", "what's working in our emails", "build a flow for X",
-  "create a campaign for [event/sale/launch]", or references to email
-  components like hero blocks, product grids, CTA strips, or email layouts.
-  This skill covers the full lifecycle: design → approval → build in
-  Klaviyo → review → send/activate. It also covers periodic campaign
-  performance analysis.
+description: Create, build, and deploy email campaigns and automated flows in Klaviyo from a modular HTML/CSS component library. Use this skill whenever someone asks to: create an email campaign, build a Klaviyo email, design an email template, set up a welcome series, build an abandoned cart flow, draft a promotional email, create a Mother's Day / seasonal campaign, review email performance, analyse campaign metrics, build email flows, set up email automation, produce an EDM, or any request involving email marketing through Klaviyo. Also triggers for: "send an email to our list", "set up a drip sequence", "what's working in our emails", "build a flow for X", "create a campaign for [event/sale/launch]", or references to email components like hero blocks, product grids, CTA strips, or email layouts. This skill covers the full lifecycle: design → approval → build in Klaviyo → review → send/activate. It also covers periodic campaign performance analysis.
 version: 1.0.0
 author: CSTMR
 license: MIT
