@@ -1,7 +1,8 @@
 ---
 name: copywriter-handoff
-description: Paperclip SEO workflow for Copywriter Handoff. Use this skill when you need to run structured work for Copywriter Handoff, including planning, monitoring, analysis, and execution handoffs.
+description: Paperclip SEO workflow for Copywriter Handoff. Use this skill when you need to create structured SEO briefs and clear handoffs for copy production.
 ---
+
 
 # Copywriter Handoff (Paperclip)
 

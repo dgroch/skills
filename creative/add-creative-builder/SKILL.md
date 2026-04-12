@@ -1,26 +1,8 @@
 ---
 name: ad-creative-builder
-description: >
-  Build production-ready static and carousel ad creatives by composing
-  photography, copy, and brand elements into Figma templates and rendering
-  final assets. Use this skill whenever someone asks to create ads, social
-  media graphics, promotional banners, campaign assets, carousel posts,
-  or any branded visual content that combines photography with graphic
-  design. Also triggers for: "make creatives for this campaign", "I need
-  Meta/Instagram/Facebook ad assets", "resize this ad for Stories",
-  "create a set of ads from these product shots", "build a carousel",
-  or any request to assemble final ad artwork from existing imagery.
-  This skill does NOT generate photographs or video — it consumes them.
-  Delegate to ai-image-generation for photographic assets and
-  ai-video-generation for video clips and timeline assembly.
-version: 1.0.0
-author: Dan Groch
-license: MIT
-metadata:
-  hermes:
-    tags: [Design, Advertising, Creative, Figma, Brand]
-    related_skills: [ai-image-generation, ai-video-generation]
+description: Paperclip creative workflow for Ad Creative Builder. Use this skill when you need to assemble production-ready static or carousel ad creatives from existing images, copy, and brand assets.
 ---
+
 
 # Ad Creative Builder
 

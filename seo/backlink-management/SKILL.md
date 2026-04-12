@@ -1,7 +1,8 @@
 ---
 name: backlink-management
-description: Paperclip SEO workflow for Backlink Management. Use this skill when you need to run structured work for Backlink Management, including planning, monitoring, analysis, and execution handoffs.
+description: Paperclip SEO workflow for Backlink Management. Use this skill when you need to monitor backlink health, identify risks, and plan outreach or disavow actions.
 ---
+
 
 # Backlink Management (Paperclip)
 

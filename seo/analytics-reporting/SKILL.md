@@ -1,7 +1,8 @@
 ---
 name: analytics-reporting
-description: Paperclip SEO workflow for Analytics & Reporting. Use this skill when you need to run structured work for Analytics & Reporting, including planning, monitoring, analysis, and execution handoffs.
+description: Paperclip SEO workflow for Analytics Reporting. Use this skill when you need to monitor organic performance, detect anomalies, and produce SEO reports with actionable insights.
 ---
+
 
 # Analytics & Reporting (Paperclip)
 

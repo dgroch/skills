@@ -1,7 +1,8 @@
 ---
 name: fig-bloom-rostering
-description: Build and optimise weekly staff rosters for Fig & Bloom's three flower studios. Use when asked to create a roster, check if rostering is on budget, forecast labour costs, adjust shifts, or review staff scheduling for the week. Fetches live data from Shopify (revenue) and Deputy (staff, leave, availability). Covers the 8.5% labour budget constraint and staff type rules (full-time, part-time, casual).
+description: Paperclip operations workflow for Fig Bloom Rostering. Use this skill when you need to build or optimize weekly staff rosters using Deputy and Shopify inputs within labour budget constraints.
 ---
+
 
 # Fig & Bloom Rostering
 

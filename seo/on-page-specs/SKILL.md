@@ -1,7 +1,8 @@
 ---
 name: on-page-specs
-description: Paperclip SEO workflow for On-Page Specs. Use this skill when you need to run structured work for On-Page Specs, including planning, monitoring, analysis, and execution handoffs.
+description: Paperclip SEO workflow for On-Page Specs. Use this skill when you need to define or audit title, meta, heading, schema, and internal linking requirements for pages.
 ---
+
 
 # On-Page Specs (Paperclip)
 

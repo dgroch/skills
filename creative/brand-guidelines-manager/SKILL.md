@@ -1,7 +1,8 @@
 ---
 name: brand-guidelines-manager
-description: Use this skill whenever you need to check, reference, apply, or update Fig & Bloom's brand guidelines. This includes: verifying logo usage rules, retrieving colour palette values, confirming typography specs, checking illustration or photography standards, validating tone of voice, reviewing any asset or copy against brand rules, or updating the living brand guidelines document with new entries (e.g. seasonal colour additions, new product photography rules, updated tone guidance). Trigger this skill any time another agent or team member asks "is this on-brand?", any time you're producing or reviewing creative work, or any time the brand guidelines document needs to be read, queried, or modified.
+description: Paperclip creative workflow for Brand Guidelines Manager. Use this skill when you need to validate or apply Fig & Bloom brand standards across design, imagery, and copy.
 ---
+
 
 # Brand Guidelines Manager
 

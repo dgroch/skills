@@ -1,7 +1,8 @@
 ---
 name: local-seo
-description: Paperclip SEO workflow for Local SEO. Use this skill when you need to run structured work for Local SEO, including planning, monitoring, analysis, and execution handoffs.
+description: Paperclip SEO workflow for Local SEO. Use this skill when you need to improve local search visibility, local pack performance, and citation consistency.
 ---
+
 
 # Local SEO (Paperclip)
 

@@ -1,25 +1,8 @@
 ---
 name: asset-adapter
-description: >
-  Take a hero ad creative and reformat it into platform-specific variants
-  with rules-based cropping, safe-zone compliance, and text resizing.
-  Use this skill whenever someone asks to resize, adapt, reformat, or
-  repurpose an existing creative for different platforms or placements.
-  Triggers include: "resize this for Stories", "I need a 728x90 version",
-  "adapt this for email", "make feed and story versions", "create display
-  banners from this ad", "reformat for Instagram/Facebook/Google Display",
-  or any request to produce multiple size variants from a single source
-  creative. This skill does NOT create original layouts or compositions —
-  it transforms existing ones. If no hero creative exists yet, delegate
-  to ad-creative-builder first.
-version: 1.0.0
-author: Dan Groch
-license: MIT
-metadata:
-  hermes:
-    tags: [Design, Advertising, Resizing, Adaptation, Multi-format]
-    related_skills: [ad-creative-builder, ai-image-generation]
+description: Paperclip creative workflow for Asset Adapter. Use this skill when you need to resize or reformat an existing hero creative into platform-specific variants with safe-zone and layout consistency.
 ---
+
 
 # Asset Adapter
 

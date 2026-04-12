@@ -1,7 +1,8 @@
 ---
 name: competitor-analysis
-description: Paperclip SEO workflow for Competitor Analysis. Use this skill when you need to run structured work for Competitor Analysis, including planning, monitoring, analysis, and execution handoffs.
+description: Paperclip SEO workflow for Competitor Analysis. Use this skill when you need to benchmark SEO competitors and identify opportunities to outperform them.
 ---
+
 
 # Competitor Analysis (Paperclip)
 

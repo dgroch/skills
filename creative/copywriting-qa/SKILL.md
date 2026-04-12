@@ -1,14 +1,8 @@
 ---
 name: copy-qa
-description: >
-  Use this skill whenever you need to review, evaluate, or QA any piece of copy against Fig & Bloom's
-  tone of voice and brand guidelines. This includes: ad copy, email subject lines and body copy, social
-  media captions, product descriptions, website copy, landing page text, campaign taglines, SMS messages,
-  card messages, or any other customer-facing text. Trigger this skill when the Copywriter submits work
-  for review, when you're self-checking your own copy output, when another agent asks "is this copy
-  on-brand?", or when conducting a brand audit that includes written content. Always use this skill
-  before approving any copy for production.
+description: Paperclip creative workflow for Copy QA. Use this skill when you need to review customer-facing copy for brand voice, clarity, and tone compliance before approval.
 ---
+
 
 # Copy QA
 
