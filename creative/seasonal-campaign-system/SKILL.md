@@ -1,17 +1,6 @@
 ---
 name: seasonal-campaign-system
-description: >
-  Produce a unified visual system for a campaign moment — colour overlays,
-  typography treatments, graphic motifs, photography direction — that spans
-  Meta ads, email, and organic/web placements. Trigger this skill when any
-  upstream agent delivers a campaign brief, or when the task involves:
-  "campaign look and feel", "seasonal visuals", "campaign style guide",
-  "visual system for [moment]", "Mother's Day / Valentine's / EOFY / launch
-  creative direction", "collab visual identity", "campaign design system",
-  or any request to define the visual language for a multi-channel campaign.
-  Also trigger when asked to "create a mood" or "set the creative direction"
-  for a marketing moment. Do NOT trigger for individual asset production
-  (use ad-creative-builder), email template builds, or copy-only tasks.
+description: Produce a unified visual system for a campaign moment — colour overlays, typography treatments, graphic motifs, photography direction — that spans ads, email, and organic/web placements.
 ---
 
 # Seasonal Campaign System
@@ -27,6 +16,8 @@ email-template-builder, etc.) consume to produce final assets.
 The system must feel emotionally specific to the moment, unmistakably
 on-brand, and robust enough to travel across Meta ads, email banners,
 organic social, and web placements without breaking.
+
+Trigger this skill when any upstream agent delivers a campaign brief, or when the task involves: "campaign look and feel", "seasonal visuals", "campaign style guide", "visual system for [moment]", "Mother's Day / Valentine's / EOFY / launch creative direction", "collab visual identity", "campaign design system", or any request to define the visual language for a multi-channel campaign. Also trigger when asked to "create a mood" or "set the creative direction" for a marketing moment. Do NOT trigger for individual asset production (use ad-creative-builder), email template builds, or copy-only tasks.
 
 ## Prerequisites
 
