@@ -1,5 +1,5 @@
 ---
-name: ugc-photo-generation
+name: creative-ugc-photo-generation
 description: Generate AI-powered UGC-style photography using Higgsfield AI (Nano Banana Pro model).
 author: Dan Groch
 ---

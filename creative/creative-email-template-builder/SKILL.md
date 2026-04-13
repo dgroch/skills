@@ -1,5 +1,5 @@
 ---
-name: email-template-builder
+name: creative-email-template-builder
 description: Create, build, and deploy email campaigns and automated flows in Klaviyo
   from a modular HTML/CSS component library. 
 version: 1.0.0

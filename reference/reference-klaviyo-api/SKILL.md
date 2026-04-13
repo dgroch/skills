@@ -1,5 +1,5 @@
 ---
-name: klaviyo-api
+name: reference-klaviyo-api
 description: Provides authentication patterns, endpoint documentation, request/response formats, error handling, rate limiting, and known gotchas for all Klaviyo API domains. version: 1.0.0
 source_api_revision: "2026-01-15"
 openapi_spec_repo: "https://github.com/klaviyo/openapi"

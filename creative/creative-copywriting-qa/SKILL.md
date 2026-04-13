@@ -1,5 +1,5 @@
 ---
-name: copy-qa
+name: creative-copy-qa
 description: Paperclip creative workflow for Copy QA. Use this skill when you need to review customer-facing copy for brand voice, clarity, and tone compliance before approval.
 ---
 

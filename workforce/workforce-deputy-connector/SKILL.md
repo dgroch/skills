@@ -1,5 +1,5 @@
 ---
-name: deputy-connector
+name: workforce-deputy-connector
 description: Paperclip operations workflow for Deputy Connector. Use this skill when you need to access Deputy API data for employees, rosters, timesheets, leave, and related HR operations.
 ---
 
