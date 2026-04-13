@@ -79,13 +79,71 @@ From brand guidelines:
 - No distracting text overlays on photography
 - Product shots: clean white/light backgrounds, product as sole subject
 
-## Hero Component
+## Cervanttis Rendering Rule
 
-- **Layout:** Text overlaid on lifestyle image
-- **Image mask:** 30% black overlay (rgba(0,0,0,.30)) to ensure text contrast
-- **Text:** White, centred, layered: subheading (Neuzeit Bold uppercase 10px) → headline (Cervanttis 44px lowercase) → subheadline (Neuzeit Light 13px) → CTA (white button)
-- **Aspect ratio:** approximately 4:3
-- **Photography brief for AI generation:** Hands holding bouquet, kraft paper wrap, subject not engaging camera, warm natural light, Australian setting
+Always set `font-synthesis:none` and explicit `font-weight:400` on every Cervanttis element to prevent browser faux-bold:
+
+```css
+font-family: 'Cervanttis', cursive;
+font-weight: 400;
+font-style: normal;
+-webkit-font-smoothing: antialiased;
+font-synthesis: none;
+```
+
+## Illustration Sizing Formula
+
+**CSS height = (container_height × visibility_pct) + bleed_offset**
+
+The bleed offset hides the origin of the linework below the section edge. Width is always `auto` — never constrain width directly.
+
+| Context | Container height | Visibility | Bleed | Total CSS height |
+|---|---|---|---|---|
+| Hero B text band | auto (min 280px) | — | 30px | width:220px, height:auto |
+| Hero C text col | 440px | 55% = 242px | 20px | 262px |
+| Hero D noir | 500px | 70% = 350px | 60px | 410px |
+| Body/copy sections | auto | — | 20px | 200–220px |
+
+**Illustration source files:** Use hi-res exports (≥500px wide). Do not use the original low-res bundle (274–400px native) — these will appear pixelated on retina screens.
+
+**Illustration opacity by background:**
+- Noir background → white variant, 25–30% left / 20–25% right (slightly less for visual balance)
+- White background → black variant, 18% left / 14% right
+- Clay (#D8CCBE) background → black variant, 18% / 14%; or white variant, 35% / 28%
+- 50% Clay (#EBE5DF) background → black variant, 14% / 11%
+
+**Non-repetition rule:** Never use the same illustration in consecutive sections. Vary across HandFlower, BodyFlower, HandRose, FrontFace etc. within a single email.
+
+## Hero Variants (v2 — Approved)
+
+All heroes share: header (logo centred, 24px height), section border `1px solid #e8e2da`, body copy section below.
+
+### Hero A — Text Over Image
+- Full-width lifestyle image (600×450px), 30% black mask overlay
+- Text centred over image: super label → Cervanttis headline 56px → subheadline → white CTA
+- **Use for:** standard campaigns, maximum visual impact
+
+### Hero B — Text Above Image
+- Text band (top) + full-bleed photo (bottom, 600×360px, no overlay)
+- Text band backgrounds: White / 50% Clay (#EBE5DF) / Clay (#D8CCBE) / Noir
+- Illustration: width:220px, height:auto, anchored right:0, bottom:-30px (base bleeds off)
+- Text/CTA colour: black on light bands, white on Noir
+- **Use for:** when the photo should be seen unobscured; editorial feel
+
+### Hero C — Split (50/50)
+- Left 300px + right 300px, fixed height 440px
+- **C1:** Photo left / Text right  **C2:** Text left / Photo right
+- Text col backgrounds: White / Clay (#D8CCBE) / Noir
+- Illustration: height:262px (55% visible + 20px bleed), bottom-right of text col, width:auto
+- Text aligned left within col; CTA left-aligned
+- **Use for:** portrait-crop photography; most editorial layout
+
+### Hero D — Dark Noir (Type-forward)
+- No photography. Full Noir (#000) background, fixed height 500px
+- Two illustrations flanking: left + mirrored right, height:410px (70% visible + 60px bleed), bottom-anchored
+- Cervanttis headline 62px; horizontal rule divider; white CTA
+- Background variants: Noir / White / Clay / 50% Clay (with matching illo colour and opacity)
+- **Use for:** high-intent sends, re-engagement, VIP, product launches; maximum brand statement
 
 ## Section Spacing
 
@@ -94,29 +152,75 @@ From brand guidelines:
 - After headline to content: 24–32px
 - Border between sections: 1px solid #e8e2da
 
-## Layout Recipes (v1)
+## Product Image Aspect Ratio
 
-### Product Layouts
-- **Full-width:** Product image spans 600px, info centred below. Use for hero product or premium/high-impact items.
-- **Two-column grid:** Two products side by side (300px each), square images, info below each. Use for mid-tier products.
+All product images use **4:5** (1000×1250px source). This matches the standard product photography format.
 
-### Section Backgrounds
-- White (#fff): default for product sections, body copy
-- 50% Clay (#EBE5DF): opt-out, testimonials, promo blocks
-- Noir (#000): upsell sections, occasional opt-out variant
+| Display context | CSS dimensions |
+|---|---|
+| Full-width | 600×750px |
+| Two-column grid | 300×375px each |
+| Horizontal card | 280×350px |
+| Single + testimonial product col | 340×425px |
+| Lifestyle + studio — lifestyle | 600×400px (3:2 crop from square, `object-position:center 25%`) |
+| Lifestyle + studio — studio | 600×500px (`object-position:center top`) |
+
+## Layout Recipes (v2)
+
+### Hero Layouts
+See Hero Variants above.
+
+### Product Layouts (v2)
+
+**Full-width** — Product image 600×750px (4:5), info centred below. Use for hero product or high-impact items.
+
+**Two-column grid** — Two products side by side (300×375px each). Use for mid-tier products.
+
+**Horizontal card** — Image left 280×350px (4:5), info right 320px, total height 350px. Alternate image-left / image-right between consecutive cards for rhythm. Use for 3–4 equal-weight products.
+
+**Single product + testimonial** — Product col 340px (image 340×425px, info below) + testimonial col 260px (50% Clay bg). Illustration: Face2, bottom-right, `height:calc(30%+30px)`, `right:-30px`, `bottom:-30px`, `width:auto`, `opacity:.12`. No quote mark. Stars rating above quote text. Use when strong review copy is available.
+
+**Lifestyle + studio stacked** — Lifestyle image 600×400px (`object-position:center 25%`) above studio shot 600×500px (`object-position:center top`), info centred below. Reserve for one hero/spotlight product per email — the most editorial format.
+
+### Section Backgrounds (v2)
+
+| Background | Hex | Illustration variant | Illustration opacity | Primary use |
+|---|---|---|---|---|
+| White | #ffffff | Black | 10–18% | Default — body copy, products |
+| 50% Clay | #EBE5DF | Black | 11–16% | Opt-out, testimonials, fine print |
+| Clay | #D8CCBE | Black or White | 13–20% | Warm hero bands, promo, rich moments |
+| Noir | #000000 | White | 20–30% | Upsell, Hero D, high-impact closing beat |
+| Campaign accent | e.g. #C4857A | White | 20–25% | Promo band OR border/CTA detail — never both in same email |
+
+**Full-bleed image as background/divider:**
+- Narrow strip (180px): lifestyle photography only, `object-fit:cover`, use as visual pause — no text
+- Taller panel (340px): can carry optional text overlay (28% black mask, white Lust headline, outline white CTA)
+- Studio shots too static at strip height — lifestyle photography only
+
+### Section Dividers (v2)
+
+**Line** — `1px solid #e8e2da`. Default. No visual weight. Use between all standard sections.
+
+**Illustration strip** — 120px tall container, `overflow:hidden`. BodyFlower at `width:100%`, `position:absolute`, `transform:translate(-50%,-35%)` (35% crop shows blooms, not stems). Match illo variant to background: black on light, white on Noir. Opacities: Clay 20%, 50% Clay 16%, White 13% (add 1px borders top+bottom), Noir 32%.
+
+**Full-bleed image** — 180px tall, lifestyle photography, `object-fit:cover`, `object-position:center 25%`. Pure visual pause — no text, no overlay. Studio photography does not work at this crop height.
+
+**Whitespace** — 48px `<div>` with matching background colour. Most editorial option. Requires strong content on both sides.
 
 ### Email Rhythm
 A well-designed email alternates visual density:
 ```
-Dense  (hero image + text overlay)
-Light  (opt-out — minimal text, beige bg)
+Dense  (hero — A/B/C/D based on campaign tone)
+Light  (opt-out — 50% Clay bg, if required)
 Medium (body copy with illustration accent)
-Dense  (full-width product image)
-Dense  (two-column product grid)
-Dense  (full-width product image)
-Light  (testimonial — beige bg, centered quote)
+[divider — illustration strip or whitespace]
+Dense  (full-width or lifestyle+studio product)
+Dense  (horizontal card stack or two-column grid)
+Dense  (full-width or single+testimonial product)
+[divider — line or full-bleed image strip]
+Light  (testimonial — 50% Clay bg)
 Medium (promo code block)
-Dense  (upsell — dark bg, illustration)
+Dense  (upsell — Noir bg, illustrations)
 Light  (cutoffs — small text)
 Light  (trust bar — icons)
 Light  (footer)
@@ -128,13 +232,23 @@ Light  (footer)
 - Code text: Lust, 20px, letter-spacing 0.08em
 - Supporting text: Neuzeit Light, 12px, colour #666
 - Section background: white (not clay — code should pop)
+- On accent background: dashed border `rgba(255,255,255,.6)`, code text white
 
-## Testimonial Styling
+## Testimonial Styling — Full-width
 
-- Large opening quotation mark: Lust, 48px, colour Clay (#D8CCBE)
-- Quote text: Neuzeit Light 14px, italic, colour #333, max-width 360px
+- Background: 50% Clay (#EBE5DF)
+- No quote mark
+- Stars: ★★★★★, colour #C8A888, 12px, letter-spacing 0.1em, above quote
+- Quote text: Neuzeit Light 14px, italic, colour #333, max-width 360px, line-height 1.7
 - Attribution: Neuzeit Bold 11px, colour #666, preceded by em dash
-- Section background: 50% Clay (#EBE5DF)
+- Illustration: Face1 or Face2, bottom-right, low opacity (10–12%), `height:200–220px`
+
+## Testimonial Styling — Alongside Product (Single + Testimonial card)
+
+- Col width: 260px, background #EBE5DF
+- No quote mark
+- Stars above quote text
+- Illustration: Face2, `height:calc(30%+30px)`, `right:-30px`, `bottom:-30px`, `width:auto`, `opacity:.12`
 
 ## Trust Bar
 

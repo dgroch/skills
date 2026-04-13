@@ -13,8 +13,8 @@ Generates complete, on-brand Klaviyo email campaigns. Walks through a structured
 1. BRIEF           → Campaign parameters (structured text)
 2. PRODUCTS        → Fetch Shopify collection, select products
 3. COPY            → Subject, preheader, body, CTAs
-4. COMPONENTS      → Select which sections to include
-5. LAYOUT          → Choose layout recipe
+4. COMPONENTS      → Select which sections and layouts to use
+5. LAYOUT          → Choose hero variant, product card mix, dividers, section backgrounds
 6. DESIGN MOCKUP   → Interactive HTML preview for approval
 7. REFINEMENT      → Human feedback loop
 8. KLAVIYO DEPLOY  → Convert to email-client HTML, push to Klaviyo
@@ -26,7 +26,7 @@ Present each step for approval before proceeding.
 
 ## Step 1: Campaign Brief
 
-The brief is structured text, not JSON. If provided by a brief-generator skill, parse it. If not, collect from the human:
+The brief is structured text. If provided by a brief-generator skill, parse it. If not, collect from the human:
 
 ```
 Campaign: Mother's Day 2026
@@ -55,7 +55,7 @@ Read `references/product-selection.md` for methodology.
 
 1. Fetch the campaign collection from Shopify (e.g. `figandbloom.com/collections/mothers-day`)
 2. Select 3–5 products optimising for price spread, visual variety, social proof density, and type mix
-3. Assign layout positions: full-width (hero + closer), two-column grid (mid-tier)
+3. Assign layout positions using the Product Layout Selection guide in `references/components.md`
 4. Present selection with rationale. Wait for human approval.
 
 ---
@@ -70,18 +70,21 @@ Generate: subject line, preheader, hero headline (Cervanttis, lowercase), hero s
 
 ## Step 4: Component Selection
 
-| Component              | Include when...                     |
-| ---------------------- | ----------------------------------- |
-| Hero (text over image) | Always                              |
-| Sensitivity opt-out    | Occasion can be painful             |
-| Body copy              | Always                              |
-| Product showcase       | Always (3–5 products)               |
-| Testimonial            | Reviews exist for featured products |
-| Promo code block       | Campaign has an offer               |
-| Card/gift upsell       | Add-on products available           |
-| Delivery cutoffs       | Hard deadline exists                |
-| Trust bar              | Always                              |
-| Footer                 | Always                              |
+Read `references/components.md` — Component Decision Matrix and Section Divider Selection.
+
+| Component           | Include when...                                                               |
+| ------------------- | ----------------------------------------------------------------------------- |
+| Hero                | Always — choose A/B/C/D based on campaign tone                                |
+| Sensitivity opt-out | Occasion can be painful (see triggers list)                                   |
+| Body copy           | Always                                                                        |
+| Section divider     | When visual rhythm benefits from a break (max one non-line divider per email) |
+| Product showcase    | Always (3–5 products, mixed layouts)                                          |
+| Testimonial         | Reviews exist for featured products                                           |
+| Promo code block    | Campaign has an offer                                                         |
+| Card/gift upsell    | Add-on products available                                                     |
+| Delivery cutoffs    | Hard deadline exists                                                          |
+| Trust bar           | Always                                                                        |
+| Footer              | Always                                                                        |
 
 ---
 
@@ -89,15 +92,31 @@ Generate: subject line, preheader, hero headline (Cervanttis, lowercase), hero s
 
 Read `references/design-system.md` for the complete specification.
 
-**Key rules:**
+**Hero selection:**
 
-- Each email should feel visually distinct from recent sends
-- Mix full-width and two-column product layouts
-- One illustration per section max, tighter crop, larger size
-- Hero: 30% black mask over lifestyle image
-- Cervanttis: lowercase only, max 3 placements per email
+- A (text over image): standard campaigns, maximum photo impact
+- B (text above image): when photo must be seen unobscured; editorial
+- C1/C2 (split 50/50): portrait photography; most editorial
+- D (dark noir): launches, VIP, re-engagement, high-intent
+
+**Product card mix** — vary layouts within the product section:
+
+- Open with full-width or lifestyle+studio for hero product
+- Horizontal cards for mid-tier equal-weight products
+- Two-column grid for remaining products
+
+**Section backgrounds** — White default; Clay/50%Clay for warm or soft moments; Noir for upsell and Hero D. Campaign accent: section bg OR border/CTA detail — never both.
+
+**Section dividers** — Line default. One non-line divider max per email. Illustration strip (BodyFlower, 100% width, 35% crop) or full-bleed lifestyle image (180px). See design-system.md.
+
+**Key typography rules:**
+
+- Cervanttis: always `font-weight:400; font-synthesis:none` — never bold
 - Lust: regular weight only, never italic
-- Neuzeit-Grotesk: Light (body) and Bold (CTAs, labels, nav)
+- Neuzeit-Grotesk: Light (body), Bold (CTAs, labels, nav)
+- Cervanttis max 3 placements per email
+
+**Illustration sizing formula:** CSS height = (container_height × visibility_pct) + bleed_offset. Width always `auto`. See design-system.md for per-context values.
 
 ---
 
@@ -109,8 +128,8 @@ Generate a complete HTML file as an interactive preview.
 
 - Fonts: base64 encode from `assets/fonts/`
 - Logo: base64 encode from `assets/logo/F_B_Logo_Horizontal_BLK.png`
-- Illustrations: base64 encode selected PNGs from `assets/illustrations/`. Use `_white.png` for dark sections, `_black.png` for light sections.
-- Product images: use Shopify CDN URLs. If sandbox blocks external URLs, use colour gradient placeholders with product names.
+- Illustrations: base64 encode from `assets/illustrations/` — use hi-res exports (≥500px wide). `_white.png` for dark sections, `_black.png` for light sections.
+- Product images: use Shopify CDN URLs at 4:5 crop (1000×1250px source). If sandbox blocks external URLs, use colour gradient placeholders with product names.
 
 Save preview to `/mnt/user-data/outputs/` for human review.
 
@@ -118,7 +137,7 @@ Save preview to `/mnt/user-data/outputs/` for human review.
 
 ## Step 7: Refinement
 
-Present mockup. Wait for feedback. Common areas: typography, illustration placement, layout balance, copy tone, product selection, section ordering. Iterate until approved.
+Present mockup. Wait for feedback. Common areas: hero variant, illustration placement/sizing, product card layout mix, section backgrounds, divider choice, copy tone, product selection, section ordering. Iterate until approved.
 
 ---
 
@@ -130,7 +149,7 @@ Once design is approved, convert and deploy. Read `references/klaviyo-html.md` f
 
 - Table-based layout (not flexbox/grid)
 - Inline styles
-- Web-safe font fallback stacks
+- Web-safe font fallback stacks (Lust → Georgia serif; Cervanttis → cursive; NeuzeitGro → Gill Sans, Helvetica Neue, sans-serif)
 - VML fallback for Outlook background images
 - Images as hosted URLs (upload illustrations and hero to Klaviyo media library)
 - Klaviyo template tags: `{{ first_name|default:'Moment Maker' }}`, `{% unsubscribe %}`
@@ -174,14 +193,6 @@ POST /api/campaigns/
           "datetime": "{scheduled_send_time_iso8601}"
         }
       }
-    },
-    "relationships": {
-      "campaign-messages": {
-        "data": [{
-          "type": "campaign-message",
-          "id": "{message_id}"
-        }]
-      }
     }
   }
 }
@@ -189,7 +200,7 @@ POST /api/campaigns/
 
 **Important:** After template creation, assign it to a campaign message. Wait 2–3 seconds before updating the cloned template (known Klaviyo 404 bug).
 
-**Confirm with human before scheduling send.** Never auto-send.
+**Confirm with human before scheduling send. Never auto-send.**
 
 ---
 
@@ -199,35 +210,45 @@ POST /api/campaigns/
 assets/
 ├── fonts/
 │   ├── Lust-Regular.otf          (display headlines)
-│   ├── Cervanttis.ttf            (script accent)
+│   ├── Cervanttis.ttf            (script accent — always weight:400, font-synthesis:none)
 │   ├── NeuzeitGro-Lig.otf        (body copy)
-│   └── NeuzeitGro-Bol.otf        (CTAs, labels)
-├── illustrations/                 (8 illustrations × 2 variants)
+│   └── NeuzeitGro-Bol.otf        (CTAs, labels, nav)
+├── illustrations/                 (8 illustrations × 2 variants — LOW RES, use hi-res for production)
 │   ├── Body_white.png / Body_black.png
-│   ├── BodyFlower_white.png / BodyFlower_black.png
-│   ├── Face1_white.png / Face1_black.png
-│   ├── Face2_white.png / Face2_black.png
+│   ├── BodyFlower_white.png / BodyFlower_black.png  ← primary divider illustration
+│   ├── Face1_white.png / Face1_black.png            ← testimonial
+│   ├── Face2_white.png / Face2_black.png            ← testimonial (product+testimonial card)
 │   ├── FrontFace_white.png / FrontFace_black.png
-│   ├── HandFlower_white.png / HandFlower_black.png
+│   ├── HandFlower_white.png / HandFlower_black.png  ← hero D, upsell
 │   ├── HandPlant_white.png / HandPlant_black.png
-│   └── HandRose_white.png / HandRose_black.png
+│   └── HandRose_white.png / HandRose_black.png      ← hero D (right), upsell
 └── logo/
     └── F_B_Logo_Horizontal_BLK.png
 ```
 
-**Illustration usage:** `_white` variants for Noir backgrounds (25–35% opacity), `_black` variants for white/clay backgrounds (10–15% opacity). One per section, tighter crop, positioned at section edge.
+**Hi-res illustration exports required for production** (≥500px wide, ideally 800px). Low-res bundle will appear pixelated on retina screens.
+
+**Illustration usage by context:**
+
+- Hero B text band: BodyFlower or HandFlower, width:220px, bottom-right, bottom:-30px
+- Hero C text col: BodyFlower or HandFlower, height:262px, bottom-right, right:-16px, bottom:-20px
+- Hero D flanking: HandFlower (left) + HandRose (right, mirrored), height:410px, bottom:-60px
+- Body/copy sections: BodyFlower or HandFlower, height:200–220px, edge-anchored, bottom:-20px
+- Testimonial full-width: Face1 or Face2, height:200px, bottom-right
+- Testimonial alongside product: Face2, height:calc(30%+30px), right:-30px, bottom:-30px
+- Illustration strip divider: BodyFlower, width:100%, 35% vertical crop
 
 ---
 
 ## Reference Files
 
-| File                              | Read before...                               |
-| --------------------------------- | -------------------------------------------- |
-| `references/brand-voice.md`       | Writing any copy                             |
-| `references/design-system.md`     | Building any layout or mockup                |
-| `references/product-selection.md` | Selecting products from Shopify              |
-| `references/components.md`        | Assembling the email structure               |
-| `references/klaviyo-html.md`      | Converting to email-client HTML or deploying |
+| File                              | Read before...                                        |
+| --------------------------------- | ----------------------------------------------------- |
+| `references/brand-voice.md`       | Writing any copy                                      |
+| `references/design-system.md`     | Building any layout or mockup                         |
+| `references/product-selection.md` | Selecting products from Shopify                       |
+| `references/components.md`        | Assembling structure, choosing layouts, HTML patterns |
+| `references/klaviyo-html.md`      | Converting to email-client HTML or deploying          |
 
 ---
 
