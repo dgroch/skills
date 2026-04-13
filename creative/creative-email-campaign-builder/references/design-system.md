@@ -10,6 +10,8 @@
 | 50% Clay | #EBE5DF | Tertiary backgrounds (opt-out, testimonial, promo sections) |
 | Campaign accent | Varies | Seasonal — must complement brand palette. Approved per campaign. |
 
+**Email preview / body background:** `#2c2825` (warm dark brown). Creates clear visual separation from email content while echoing the kraft/tan tones in product photography.
+
 **Rules:**
 - Brand is monochromatic — black and white for maximum impact
 - Borders/dividers: 1px solid #e8e2da (slightly lighter than Clay)
@@ -253,3 +255,127 @@ Light  (footer)
 ## Trust Bar
 
 5 items in a single row: Fresh Daily Flowers, Perfect for Every Occasion, Australia-Wide Service, Same Day Delivery, Order Before 1pm. SVG icons (stroke only, 26px), Neuzeit Bold 8px labels.
+
+---
+
+## Mobile Optimisation (v3)
+
+Email renders at 600px fixed width on desktop. On mobile, clients either scale the email to fit or — if media queries are supported — apply responsive rules. Outlook desktop ignores media queries; all other major clients (Apple Mail, Gmail app, Outlook mobile) support them.
+
+**Breakpoint:** `max-width:600px`
+
+### Typography — Mobile Scale
+
+| Element | Desktop | Mobile |
+|---|---|---|
+| Hero D / A headline (Cervanttis) | 62px / 56px | 40px |
+| Hero B headline | 54px | 38px |
+| Hero C headline | 44px | 32px |
+| Section headline (Lust) | 28px | 22px |
+| Product name (Lust) | 22px | 18px |
+| Body copy (NeuzeitGro Light) | 14px | 14px (unchanged) |
+| Super label | 9–10px | 9px (unchanged) |
+
+### Layout — Mobile Stacking
+
+All multi-column layouts collapse to single column at ≤600px:
+
+| Layout | Desktop | Mobile |
+|---|---|---|
+| Hero C split (50/50) | Side by side | Photo full-width, text col below |
+| Horizontal card | Image left + info right | Image full-width (240px), info below |
+| Single + testimonial | Side by side | Product full-width, testimonial below |
+| Two-column grid | 2 across | 1 across, stacked |
+
+Photo panels in stacked layouts: fix to 240px height with `object-fit:cover` to avoid portrait images becoming too tall.
+
+### Padding — Mobile Reduction
+
+| Context | Desktop | Mobile |
+|---|---|---|
+| Section horizontal | 48px | 24px |
+| Hero horizontal | 64px | 32px |
+| Product info | 28–36px | 20px |
+
+### Class Naming Convention
+
+All layout elements must carry class names so media queries can target them. The same classes apply in both preview HTML (flexbox) and production HTML (table-based). This bridges the two rendering environments.
+
+**Required classes — apply to every generated email:**
+
+```
+.email-wrap           Email container (600px)
+.hero-headline-lg     Cervanttis 56–62px headlines
+.hero-headline-md     Cervanttis 44–54px headlines
+.section-hed          Lust section headlines
+.section-pad          Standard section padding wrapper
+.hero-pad             Hero section padding wrapper
+.split-row            Any side-by-side row container
+.split-col-photo      Photo column in split layout
+.split-col-text       Text column in split layout
+.h-card               Horizontal card row container
+.h-card-img           Horizontal card image column
+.h-card-info          Horizontal card info column
+.prod-testi-split     Single+testimonial row container
+.prod-testi-prod      Product column
+.prod-testi-testi     Testimonial column
+.two-col-grid         Two-column grid container
+.two-col-item         Individual grid item
+.hero-d               Hero D fixed-height container
+.fluid-img            Any image that should scale to 100% width
+```
+
+### Standard Mobile CSS Block
+
+Include in every generated email `<style>` tag:
+
+```css
+@media only screen and (max-width:600px) {
+  /* Container */
+  .email-wrap { width:100% !important; }
+
+  /* Typography */
+  .hero-headline-lg { font-size:40px !important; line-height:1.0 !important; }
+  .hero-headline-md { font-size:38px !important; line-height:1.0 !important; }
+  .hero-headline-sm { font-size:32px !important; line-height:1.0 !important; }
+  .section-hed      { font-size:22px !important; }
+  .prod-name-lust   { font-size:18px !important; }
+
+  /* Padding */
+  .section-pad { padding-left:24px !important; padding-right:24px !important; }
+  .hero-pad    { padding-left:32px !important; padding-right:32px !important; }
+
+  /* Hero C split → stack */
+  .split-row      { display:block !important; width:100% !important; }
+  .split-col-photo { display:block !important; width:100% !important; height:260px !important; }
+  .split-col-text  { display:block !important; width:100% !important; height:auto !important;
+                     border-left:none !important; border-top:1px solid #e8e2da !important;
+                     padding:36px 24px !important; }
+
+  /* Horizontal card → stack */
+  .h-card     { display:block !important; }
+  .h-card-img { display:block !important; width:100% !important; height:240px !important; }
+  .h-card-info { display:block !important; width:100% !important;
+                 padding:24px !important; }
+
+  /* Single + testimonial → stack */
+  .prod-testi-split { display:block !important; }
+  .prod-testi-prod  { display:block !important; width:100% !important;
+                      border-right:none !important;
+                      border-bottom:1px solid #e8e2da !important; }
+  .prod-testi-testi { display:block !important; width:100% !important;
+                      padding:36px 24px !important; }
+
+  /* Two-column grid → single column */
+  .two-col-grid { display:block !important; }
+  .two-col-item { display:block !important; width:100% !important; }
+
+  /* Hero D → auto height */
+  .hero-d { height:auto !important; min-height:0 !important;
+             padding:60px 32px !important; }
+
+  /* Fluid images */
+  .fluid-img { width:100% !important; height:auto !important;
+               display:block !important; }
+}
+```

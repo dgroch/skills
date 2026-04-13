@@ -375,3 +375,72 @@ Standard ordering (adjust based on campaign needs):
     z-index:1;">— {REVIEWER_NAME}</cite>
 </div>
 ```
+
+---
+
+## Mobile HTML Patterns (v3 additions)
+
+When generating email HTML, apply the class naming convention from design-system.md to all layout elements. The mobile CSS block must be included in every email's `<style>` tag.
+
+### Table-based stacking for Klaviyo production HTML
+
+In table-based email, stacking is achieved by setting `display:block` on `<td>` elements via media queries. Apply width attributes on `<td>` at desktop size; media queries override to 100%.
+
+**Hero C — table-based split:**
+```html
+<table width="600" cellpadding="0" cellspacing="0" border="0">
+  <tr class="split-row">
+    <td class="split-col-photo" width="300" valign="top"
+        style="width:300px;height:440px;overflow:hidden;">
+      <img src="{IMAGE}" width="300" style="display:block;width:300px;
+        height:440px;object-fit:cover;" class="fluid-img" alt="">
+    </td>
+    <td class="split-col-text" width="300" valign="middle"
+        style="width:300px;padding:40px 36px 40px 40px;
+        border-left:1px solid #e8e2da;vertical-align:middle;">
+      <!-- text content -->
+    </td>
+  </tr>
+</table>
+```
+
+**Horizontal card — table-based:**
+```html
+<table width="600" cellpadding="0" cellspacing="0" border="0"
+       class="h-card" style="border-top:1px solid #e8e2da;">
+  <tr>
+    <td class="h-card-img" width="280"
+        style="width:280px;height:350px;overflow:hidden;vertical-align:top;">
+      <img src="{IMAGE}" width="280" style="display:block;width:280px;
+        height:350px;object-fit:cover;object-position:center top;"
+        class="fluid-img" alt="{PRODUCT_NAME}">
+    </td>
+    <td class="h-card-info"
+        style="padding:32px 36px 32px 32px;vertical-align:middle;">
+      <!-- product info -->
+    </td>
+  </tr>
+</table>
+```
+
+**Single + testimonial — table-based:**
+```html
+<table width="600" cellpadding="0" cellspacing="0" border="0"
+       class="prod-testi-split" style="border-top:1px solid #e8e2da;">
+  <tr>
+    <td class="prod-testi-prod" width="340"
+        style="width:340px;border-right:1px solid #e8e2da;vertical-align:top;">
+      <!-- product image + info -->
+    </td>
+    <td class="prod-testi-testi"
+        style="background:#EBE5DF;padding:36px 28px;
+        text-align:center;vertical-align:middle;position:relative;">
+      <!-- testimonial content -->
+    </td>
+  </tr>
+</table>
+```
+
+### Outlook fallback note
+
+Outlook desktop ignores media queries. All emails must be legible and functional at 600px fixed width without any responsive rules applied — this is guaranteed by the table-based base layout. Mobile optimisation is an enhancement, not a dependency.
