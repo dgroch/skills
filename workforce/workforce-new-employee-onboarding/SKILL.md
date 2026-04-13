@@ -81,6 +81,11 @@ Read `references/drive-ids.md` for all folder and file IDs used in this skill.
 The People & Culture content lives on a separate shared drive (ID: `0AEGiBwrY8uSoUk9PVA`),
 not the Paperclip shared drive.
 
+Any `gws drive` operation against this shared drive must include
+`"supportsAllDrives": true` in `--params`. This applies to `files copy`,
+`files create`, `files update`, `files delete`, and `files get`. Without this
+flag, Drive operations can return `404` even when the file or folder exists.
+
 1. Inside the **Employee Files** folder (ID: `1fep2a5Q0gpkfgMJnPRQ4N0WSH-twUXo0`),
    create a subfolder named with the employee's full name (e.g. `Sarah Chen`).
 2. If a CV was retrieved from Gmail (Step 1), upload it to this folder.
@@ -96,16 +101,42 @@ Record the new folder's ID — you'll need it in later steps.
 Select the correct template by employment type (see `references/drive-ids.md`
 for full details):
 
-| Type | Template File ID                               |
-| ---- | ---------------------------------------------- |
+| Type | Template File ID                              |
+| ---- | --------------------------------------------- |
 | CAS  | `1ElSlt6L5-vAM2n9ShyVCjstr_HshCxMT43n-Bgc3iDk` |
 | PT   | `18bf8BJ1E8r7BfXSVu4cgP26GaDeY9w6Jvwh4KTrWXAc` |
 | FT   | `1viGOPU2BfXBQ7QXKf0MfRSD5iZmofpeaqZv6wNmBtX4` |
 
-1. Create a copy of the template into the employee's folder (from Step 2).
-2. Name the copy: `Employment Contract - [Full Name]`
-3. All three templates use `{curly brace}` placeholders. Find-and-replace
-   every instance of each placeholder listed below.
+Use `gws drive` and `gws docs` for this step. Do not use MCP file-creation tools
+to copy the contract template. Uploading or recreating the document can destroy
+Google Docs-native formatting such as paragraph numbering, fonts, and layout.
+
+1. Copy the correct Google Docs template into the employee's folder using
+   `gws drive files copy` with `supportsAllDrives: true`.
+   Example:
+
+   ```bash
+   gws drive files copy \
+     --params '{"fileId": "{TEMPLATE_ID}", "supportsAllDrives": true}' \
+     --json '{"name": "Employment Contract - {Full Name}", "parents": ["{EMPLOYEE_FOLDER_ID}"]}'
+   ```
+
+   Save the returned document ID as `$CONTRACT_DOC_ID`.
+
+2. Fill placeholders using the Google Docs API via `gws docs documents batchUpdate`.
+   Use one `replaceAllText` request per placeholder so formatting is preserved.
+   Example:
+
+   ```bash
+   gws docs documents batchUpdate \
+     --params '{"documentId": "$CONTRACT_DOC_ID"}' \
+     --json '{"requests": [
+       {"replaceAllText": {"containsText": {"text": "{employee name}", "matchCase": true}, "replaceText": "Jemma Pike"}}
+     ]}'
+   ```
+
+3. All three templates use `{curly brace}` placeholders. Replace every instance
+   of each placeholder listed below.
 
 **Placeholder map — all contract types:**
 
@@ -127,40 +158,75 @@ for full details):
 | ----------------- | --------------------------------------- |
 | `{hours of work}` | Hours of work pattern (Schedule Item 8) |
 
-4. After replacement, verify that no `{` or `}` placeholder tokens remain in
-   the document. If any are found that aren't in the map above, flag them in
-   the summary with the surrounding context so the human can resolve them.
-5. If address was not provided, delete the `{employee address if known}` line
-   from Schedule Item 2 entirely rather than leaving a blank.
+4. If address was not provided, remove the full `{employee address if known}`
+   line from Schedule Item 2 entirely rather than leaving a blank.
+
+5. After placeholder replacement, clear the template's pink highlight styling so
+   the final contract does not retain human-only markup:
+
+   1. Get the document end index:
+
+      ```bash
+      gws docs documents get --params '{"documentId": "$CONTRACT_DOC_ID"}' 2>/dev/null
+      ```
+
+   2. Clear background colour across the document:
+
+      ```bash
+      gws docs documents batchUpdate \
+        --params '{"documentId": "$CONTRACT_DOC_ID"}' \
+        --json '{"requests": [{"updateTextStyle": {
+          "range": {"startIndex": 1, "endIndex": END_INDEX},
+          "textStyle": {"backgroundColor": {}},
+          "fields": "backgroundColor"
+        }}]}'
+      ```
+
+6. Verify that no `{` or `}` placeholder tokens remain in the document. If any
+   are found that aren't in the map above, flag them in the summary with the
+   surrounding context so the human can resolve them.
 
 ### Step 4 — Send platform invitations
 
 #### 4a — Deputy (API)
 
-Use the Deputy V2 Employee API to create the employee profile.
+Use Deputy as a two-step setup:
+
+1. Create the employee profile and core employment details.
+2. Apply the correct Deputy award-library pay rate for the employee's employment type.
+
+`DEPUTY_SUBDOMAIN` already contains the full hostname
+(for example `18b41717033219.au.deputy.com`). The correct base URL is:
+`https://$DEPUTY_SUBDOMAIN/api/v1`
+
+**Step 4a.1 — Create the employee**
 
 ```
-POST https://{DEPUTY_SUBDOMAIN}.deputy.com/api/v2/employees
-Authorization: Bearer {DEPUTY_API_TOKEN}
+POST https://$DEPUTY_SUBDOMAIN/api/v1/supervise/employee
+Authorization: OAuth $DEPUTY_TOKEN
 Content-Type: application/json
 
 {
-  "firstName": "{first_name}",
-  "lastName": "{last_name}",
-  "displayName": "{full_name}",
-  "primaryLocation": {
-    "id": "{location_id}"
-  },
-  "contact": {
-    "email1": "{email}",
-    "phone1": "{phone}"
-  },
-  "user": {
-    "sendInvite": true
-  },
-  "startDate": "{start_date}T00:00:00+10:00"
+  "strFirstName": "{first_name}",
+  "strLastName": "{last_name}",
+  "strEmail": "{email}",
+  "strMobile": "{phone}",
+  "intCompanyId": 1,
+  "fltPayRate": {pay_rate},
+  "strStartDate": "{start_date}",
+  "strEmploymentBasis": "{employment_type}"
 }
 ```
+
+Use Deputy employment basis values:
+
+| Skill input | Deputy value |
+| ----------- | ------------ |
+| `CAS`       | `CAS`        |
+| `PT`        | `PT`         |
+| `FT`        | `FT`         |
+
+Capture the created employee ID from the response for the award configuration step.
 
 **Location mapping:**
 
@@ -169,6 +235,39 @@ Content-Type: application/json
 | Melbourne | `1`                |
 | Sydney    | `8`                |
 | Brisbane  | `10`               |
+
+This step is responsible for:
+
+- Personal information such as first name, last name, email, and mobile
+- Employment basis (`CAS`, `PT`, `FT`)
+- Start date
+- Base pay value used during creation
+
+**Step 4a.2 — Apply the Deputy award library**
+
+Fig & Bloom uses the Deputy award library for GRIA. After the employee is created,
+apply the correct library award based on employment type:
+
+| Skill input | Deputy award library name |
+| ----------- | ------------------------- |
+| `PT`        | `TP [MA000004] GRIA - Part Time - 1-July-2025` |
+| `CAS`       | `TP [MA000004] GRIA - Casual- 1-July-2025` |
+| `FT`        | `TP [MA000004] GRIA - Full Time - 1-July-2025` |
+
+Use the Deputy pay-rate-library flow:
+
+1. Query the employment contract / award library to find the matching library record ID.
+2. Apply that library award to the employee.
+3. If the award configuration supports overriding the ordinary base hourly rate,
+   set it to the employee's agreed pay rate.
+4. If a classification / level is required for the selected award, do not guess.
+   Flag it for human confirmation unless it was explicitly provided in the onboarding brief.
+
+Also set or update the employee's Payroll ID if the workflow has a confirmed value
+to use. If no Payroll ID is available, leave it blank and note it in the summary.
+
+Do not assume the create-employee API call fully configures pay details shown in the
+Deputy UI. The award-library assignment is a separate step and must be handled explicitly.
 
 If API credentials are not configured or the call fails, log the failure and
 note that Deputy setup must be completed manually.
@@ -180,8 +279,8 @@ Invite the employee to the city-specific Trello board.
 ```
 PUT https://api.trello.com/1/boards/{board_id}/members
   ?email={email}
-  &key={TRELLO_API_KEY}
-  &token={TRELLO_API_TOKEN}
+  &key=$TRELLO_API_KEY
+  &token=$TRELLO_TOKEN
 Content-Type: application/json
 
 {
@@ -220,6 +319,14 @@ and email in the summary so the human can send the invite from Slack directly.
 
 Compose and send an email to the new employee with the following attachments.
 Use Gmail (via MCP or API) to send from the appropriate Fig & Bloom address.
+
+Before attempting to draft or send, perform a lightweight Gmail authorisation
+check such as `gmail_get_profile`.
+
+- If the check succeeds, continue with Step 5 as normal.
+- If the check fails with an auth or permissions error, skip sending. Include
+  the complete ready-to-send subject, body, recipient, and attachment list in
+  the final summary so a human can copy-paste and send it manually.
 
 **Subject:** `Welcome to Fig & Bloom — Your Employment Package`
 
@@ -314,10 +421,10 @@ integrations will be skipped and flag for manual completion.
 
 | Variable           | Description                                                              |
 | ------------------ | ------------------------------------------------------------------------ |
-| `DEPUTY_API_TOKEN` | Bearer token for Deputy API                                              |
-| `DEPUTY_SUBDOMAIN` | Deputy instance subdomain (used in URL: `{DEPUTY_SUBDOMAIN}.deputy.com`) |
+| `DEPUTY_TOKEN`     | OAuth token for Deputy V1 API                                            |
+| `DEPUTY_SUBDOMAIN` | Full Deputy hostname used in URL: `https://$DEPUTY_SUBDOMAIN/api/v1`     |
 | `TRELLO_API_KEY`   | Trello Power-Up API key                                                  |
-| `TRELLO_API_TOKEN` | Trello user token with board write access                                |
+| `TRELLO_TOKEN`     | Trello user token with board write access                                |
 
 Google Drive and Gmail access is provided via MCP connectors (Google Drive MCP,
 Gmail MCP) — these do not require separate API keys.
