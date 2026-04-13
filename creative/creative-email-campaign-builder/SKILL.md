@@ -459,12 +459,11 @@ assets/
 ## Footer Specification
 
 **Navigation:**
-- Bouquets → `figandbloom.com/collections/bouquets`
-- Vase Arrangements → `figandbloom.com/collections/vase-arrangements`
+- Flowers → `figandbloom.com/collections/flowers`
 - Plants → `figandbloom.com/collections/plants`
 - Gifts → `figandbloom.com/collections/gifts`
 - Events → `figandbloom.com/collections/events`
-- Store Finder → `figandbloom.com/pages/store-finder`
+- Flower club → `figandbloom.com/products/the-flower-club`
 
 **Social:**
 - Facebook → `facebook.com/figbloom`
