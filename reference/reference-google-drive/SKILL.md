@@ -1,4 +1,4 @@
-```yaml
+```
 name: reference-google-drive
 description: Conventions for interacting with Fig & Bloom Shared Drive.
 author: Dan Groch
