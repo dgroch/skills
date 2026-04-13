@@ -1,0 +1,449 @@
+{
+  "version": "4.0",
+  "description": "Fig & Bloom email template library. Agent selects templates and injects content tokens. No HTML is generated \u2014 only token values.",
+  "assembly": {
+    "shell_preview": "shell/shell-preview.html",
+    "shell_production": "shell/shell-production.html",
+    "shell_tokens": {
+      "CAMPAIGN_NAME": "Email subject line or campaign name",
+      "BODY_BG": "Body background colour (default: #2c2825)",
+      "FONT_CDN_LINK": "Production only: <link> tag for hosted font CSS. Omit if not configured.",
+      "COMPONENTS": "Assembled component HTML \u2014 injected between <!-- COMPONENTS_START --> and <!-- COMPONENTS_END -->"
+    },
+    "method": "1. Select components. 2. Fill all {{TOKEN}} values. 3. Read each template file. 4. Replace tokens. 5. Concatenate. 6. Inject into shell between markers. 7. Validate no {{}} remain."
+  },
+  "ordering_rules": {
+    "required": [
+      "header",
+      "hero (one)",
+      "body-copy",
+      "section-headline",
+      "products (1-5)",
+      "trust-bar",
+      "footer"
+    ],
+    "optional_positions": {
+      "opt-out": "Immediately after hero \u2014 position 3. Required for: Mothers Day, Fathers Day, Valentines Day, pregnancy/baby, memorial.",
+      "divider": "Max one non-line divider per email. Between body-copy and products.",
+      "testimonial": "After products, before promo-code.",
+      "promo-code": "After testimonial, before upsell.",
+      "upsell-noir": "Near bottom \u2014 closing beat. After promo-code.",
+      "delivery-cutoffs": "After upsell, before trust-bar."
+    }
+  },
+  "components": {
+    "header": {
+      "file": "templates/header.html",
+      "static": true,
+      "tokens": []
+    },
+    "footer": {
+      "file": "templates/footer.html",
+      "static": false,
+      "tokens": []
+    },
+    "heroes": {
+      "hero-a": {
+        "file": "templates/heroes/hero-a.html",
+        "description": "Text over lifestyle image. Maximum photo impact.",
+        "tokens": [
+          "HERO_IMAGE_URL",
+          "SUPER_LABEL",
+          "HEADLINE",
+          "SUBHEADLINE",
+          "CTA_TEXT",
+          "CTA_URL"
+        ]
+      },
+      "hero-b-white": {
+        "file": "templates/heroes/hero-b-white.html",
+        "description": "Text above image. White band.",
+        "tokens": [
+          "SUPER_LABEL",
+          "HEADLINE",
+          "SUBHEADLINE",
+          "CTA_TEXT",
+          "CTA_URL",
+          "HERO_IMAGE_URL"
+        ]
+      },
+      "hero-b-clay": {
+        "file": "templates/heroes/hero-b-clay.html",
+        "description": "Text above image. Clay band.",
+        "tokens": [
+          "SUPER_LABEL",
+          "HEADLINE",
+          "SUBHEADLINE",
+          "CTA_TEXT",
+          "CTA_URL",
+          "HERO_IMAGE_URL"
+        ]
+      },
+      "hero-b-noir": {
+        "file": "templates/heroes/hero-b-noir.html",
+        "description": "Text above image. Noir band.",
+        "tokens": [
+          "SUPER_LABEL",
+          "HEADLINE",
+          "SUBHEADLINE",
+          "CTA_TEXT",
+          "CTA_URL",
+          "HERO_IMAGE_URL"
+        ]
+      },
+      "hero-c1": {
+        "file": "templates/heroes/hero-c1.html",
+        "description": "Split: image left, text right. White col.",
+        "tokens": [
+          "HERO_IMAGE_URL",
+          "SUPER_LABEL",
+          "HEADLINE",
+          "SUBHEADLINE",
+          "CTA_TEXT",
+          "CTA_URL"
+        ]
+      },
+      "hero-c2": {
+        "file": "templates/heroes/hero-c2.html",
+        "description": "Split: text left, image right. White col.",
+        "tokens": [
+          "HERO_IMAGE_URL",
+          "SUPER_LABEL",
+          "HEADLINE",
+          "SUBHEADLINE",
+          "CTA_TEXT",
+          "CTA_URL"
+        ]
+      },
+      "hero-c1-clay": {
+        "file": "templates/heroes/hero-c1-clay.html",
+        "description": "Split: image left, text right. Clay col.",
+        "tokens": [
+          "HERO_IMAGE_URL",
+          "SUPER_LABEL",
+          "HEADLINE",
+          "SUBHEADLINE",
+          "CTA_TEXT",
+          "CTA_URL"
+        ]
+      },
+      "hero-c2-clay": {
+        "file": "templates/heroes/hero-c2-clay.html",
+        "description": "Split: text left, image right. Clay col.",
+        "tokens": [
+          "HERO_IMAGE_URL",
+          "SUPER_LABEL",
+          "HEADLINE",
+          "SUBHEADLINE",
+          "CTA_TEXT",
+          "CTA_URL"
+        ]
+      },
+      "hero-c1-noir": {
+        "file": "templates/heroes/hero-c1-noir.html",
+        "description": "Split: image left, text right. Noir col.",
+        "tokens": [
+          "HERO_IMAGE_URL",
+          "SUPER_LABEL",
+          "HEADLINE",
+          "SUBHEADLINE",
+          "CTA_TEXT",
+          "CTA_URL"
+        ]
+      },
+      "hero-c2-noir": {
+        "file": "templates/heroes/hero-c2-noir.html",
+        "description": "Split: text left, image right. Noir col.",
+        "tokens": [
+          "HERO_IMAGE_URL",
+          "SUPER_LABEL",
+          "HEADLINE",
+          "SUBHEADLINE",
+          "CTA_TEXT",
+          "CTA_URL"
+        ]
+      },
+      "hero-d-noir": {
+        "file": "templates/heroes/hero-d-noir.html",
+        "description": "Type-forward, no photo. Noir bg. Max brand statement.",
+        "tokens": [
+          "SUPER_LABEL",
+          "HEADLINE",
+          "SUBHEADLINE",
+          "CTA_TEXT",
+          "CTA_URL"
+        ]
+      },
+      "hero-d-clay": {
+        "file": "templates/heroes/hero-d-clay.html",
+        "description": "Type-forward, no photo. Clay bg.",
+        "tokens": [
+          "SUPER_LABEL",
+          "HEADLINE",
+          "SUBHEADLINE",
+          "CTA_TEXT",
+          "CTA_URL"
+        ]
+      },
+      "hero-d-white": {
+        "file": "templates/heroes/hero-d-white.html",
+        "description": "Type-forward, no photo. White bg.",
+        "tokens": [
+          "SUPER_LABEL",
+          "HEADLINE",
+          "SUBHEADLINE",
+          "CTA_TEXT",
+          "CTA_URL"
+        ]
+      }
+    },
+    "products": {
+      "card-horizontal": {
+        "file": "templates/products/card-horizontal.html",
+        "description": "Image left. Alternate with reversed for rhythm.",
+        "tokens": [
+          "PRODUCT_IMAGE_URL",
+          "PRODUCT_LABEL",
+          "PRODUCT_NAME",
+          "PRODUCT_OCCASION",
+          "PRODUCT_PRICE",
+          "PRODUCT_URL"
+        ]
+      },
+      "card-horizontal-reversed": {
+        "file": "templates/products/card-horizontal-reversed.html",
+        "description": "Image right. Pair with card-horizontal.",
+        "tokens": [
+          "PRODUCT_IMAGE_URL",
+          "PRODUCT_LABEL",
+          "PRODUCT_NAME",
+          "PRODUCT_OCCASION",
+          "PRODUCT_PRICE",
+          "PRODUCT_URL"
+        ]
+      },
+      "card-lifestyle-studio": {
+        "file": "templates/products/card-lifestyle-studio.html",
+        "description": "Hero spotlight. Lifestyle + studio stacked. One per email max.",
+        "tokens": [
+          "SECTION_SUPER",
+          "SECTION_HEADLINE",
+          "LIFESTYLE_IMAGE_URL",
+          "STUDIO_IMAGE_URL",
+          "PRODUCT_LABEL",
+          "PRODUCT_NAME",
+          "PRODUCT_OCCASION",
+          "PRODUCT_DESC",
+          "PRODUCT_PRICE",
+          "CTA_TEXT",
+          "CTA_URL"
+        ]
+      },
+      "card-single-testimonial": {
+        "file": "templates/products/card-single-testimonial.html",
+        "description": "Product + review side by side. Use when strong review copy exists.",
+        "tokens": [
+          "PRODUCT_IMAGE_URL",
+          "PRODUCT_LABEL",
+          "PRODUCT_NAME",
+          "PRODUCT_OCCASION",
+          "PRODUCT_PRICE",
+          "PRODUCT_URL",
+          "REVIEW_STARS",
+          "REVIEW_TEXT",
+          "REVIEWER_NAME"
+        ]
+      }
+    },
+    "sections": {
+      "body-copy": {
+        "file": "templates/sections/body-copy.html",
+        "tokens": [
+          "SUPER_LABEL",
+          "HEADLINE",
+          "BODY_P1",
+          "BODY_P2"
+        ]
+      },
+      "section-headline": {
+        "file": "templates/sections/section-headline.html",
+        "tokens": [
+          "SUPER_LABEL",
+          "HEADLINE"
+        ]
+      },
+      "opt-out": {
+        "file": "templates/sections/opt-out.html",
+        "tokens": [
+          "OPT_OUT_HEADLINE",
+          "OPT_OUT_BODY",
+          "UNSUBSCRIBE_URL"
+        ]
+      },
+      "promo-code": {
+        "file": "templates/sections/promo-code.html",
+        "tokens": [
+          "PROMO_LABEL",
+          "PROMO_CODE",
+          "PROMO_TERMS",
+          "CTA_TEXT",
+          "CTA_URL"
+        ]
+      },
+      "testimonial": {
+        "file": "templates/sections/testimonial.html",
+        "tokens": [
+          "REVIEW_STARS",
+          "REVIEW_TEXT",
+          "REVIEWER_NAME"
+        ]
+      },
+      "upsell-noir": {
+        "file": "templates/sections/upsell-noir.html",
+        "tokens": [
+          "SUPER_LABEL",
+          "HEADLINE",
+          "BODY",
+          "CTA_TEXT",
+          "CTA_URL"
+        ]
+      },
+      "delivery-cutoffs": {
+        "file": "templates/sections/delivery-cutoffs.html",
+        "tokens": [
+          "REGION_1",
+          "CUTOFF_1",
+          "REGION_2",
+          "CUTOFF_2",
+          "CUTOFF_NOTE"
+        ]
+      },
+      "trust-bar": {
+        "file": "templates/sections/trust-bar.html",
+        "static": true,
+        "tokens": []
+      }
+    },
+    "dividers": {
+      "divider-line": {
+        "file": "templates/dividers/divider-line.html",
+        "static": true,
+        "tokens": [],
+        "description": "Default between all sections."
+      },
+      "divider-whitespace": {
+        "file": "templates/dividers/divider-whitespace.html",
+        "static": true,
+        "tokens": [],
+        "description": "48px gap. Most editorial. Between two text-heavy sections."
+      },
+      "divider-illo-clay": {
+        "file": "templates/dividers/divider-illo-clay.html",
+        "static": true,
+        "tokens": [],
+        "description": "BodyFlower strip. Clay bg."
+      },
+      "divider-illo-50clay": {
+        "file": "templates/dividers/divider-illo-50clay.html",
+        "static": true,
+        "tokens": [],
+        "description": "BodyFlower strip. 50% Clay bg."
+      },
+      "divider-illo-white": {
+        "file": "templates/dividers/divider-illo-white.html",
+        "static": true,
+        "tokens": [],
+        "description": "BodyFlower strip. White bg. Has 1px borders."
+      },
+      "divider-illo-noir": {
+        "file": "templates/dividers/divider-illo-noir.html",
+        "static": true,
+        "tokens": [],
+        "description": "BodyFlower strip. Noir bg. Max once per email."
+      },
+      "divider-image": {
+        "file": "templates/dividers/divider-image.html",
+        "static": false,
+        "tokens": [
+          "DIVIDER_IMAGE_URL"
+        ],
+        "description": "180px lifestyle photo strip. No text."
+      }
+    }
+  },
+  "token_rules": {
+    "HEADLINE": "ALWAYS write in lowercase. Cervanttis renders lowercase only. Never title case or sentence case.",
+    "OPT_OUT_HEADLINE": "ALWAYS write in lowercase.",
+    "UNSUBSCRIBE_URL": "Use exact Klaviyo syntax: {{ unsubscribe_url }} \u2014 single braces, with spaces inside.",
+    "REVIEW_STARS": "Use actual Unicode star characters: \u2605\u2605\u2605\u2605\u2605",
+    "PRODUCT_IMAGE_URL": "Must be 4:5 ratio (1000\u00d71250px source min). Hosted on Klaviyo media library.",
+    "HERO_IMAGE_URL": "Hosted on Klaviyo media library. Lifestyle photography preferred.",
+    "BODY_P2": "Leave empty string if only one paragraph needed."
+  },
+  "locked_styles": {
+    "note": "The following are baked into templates. Do not attempt to override via tokens.",
+    "font_lust": "font-family:'Lust',Georgia,'Times New Roman',serif;font-weight:normal;font-style:normal;",
+    "font_cervanttis": "font-family:'Cervanttis','Palatino Linotype',Palatino,Georgia,serif;font-weight:400;font-synthesis:none;",
+    "font_nz_light": "font-family:'NeuzeitGro','Gill Sans','Gill Sans MT',Calibri,sans-serif;font-weight:300;",
+    "font_nz_bold": "font-family:'NeuzeitGro','Gill Sans','Gill Sans MT',Calibri,sans-serif;font-weight:700;",
+    "colours": {
+      "primary": "#000000",
+      "body": "#444444",
+      "secondary": "#666666",
+      "fine_print": "#aaaaaa",
+      "stars": "#C8A888",
+      "clay": "#D8CCBE",
+      "clay_50": "#EBE5DF",
+      "border": "#e8e2da"
+    },
+    "body_background": "#2c2825"
+  },
+  "font_cdn": {
+    "status": "complete \u2014 all fonts confirmed on Shopify CDN",
+    "cervanttis": {
+      "url": "https://cdn.shopify.com/s/files/1/0657/8723/2489/files/cervanttis.ttf",
+      "format": "truetype",
+      "weight": 400,
+      "status": "confirmed"
+    },
+    "lust": {
+      "url": "https://cdn.shopify.com/s/files/1/0657/8723/2489/files/Lust-Regular.woff2",
+      "format": "woff2",
+      "weight": "normal",
+      "status": "confirmed"
+    },
+    "neuzeit_grotesk_light": {
+      "url": "https://cdn.shopify.com/s/files/1/0657/8723/2489/files/NeuzeitGro-Lig.otf",
+      "format": "opentype",
+      "weight": 300,
+      "status": "confirmed"
+    },
+    "neuzeit_grotesk_bold": {
+      "url": "https://cdn.shopify.com/s/files/1/0657/8723/2489/files/NeuzeitGro-Bol.otf",
+      "format": "opentype",
+      "weight": 700,
+      "status": "confirmed"
+    },
+    "note": "All 7 @font-face rules are live in shell-production.html. No further action needed.",
+    "gill_sans": {
+      "light": {
+        "url": "https://cdn.shopify.com/s/files/1/0657/8723/2489/files/Gill%20Sans%20Light.otf",
+        "weight": 300,
+        "status": "confirmed"
+      },
+      "regular": {
+        "url": "https://cdn.shopify.com/s/files/1/0657/8723/2489/files/Gill%20Sans.otf",
+        "weight": 400,
+        "status": "confirmed"
+      },
+      "bold": {
+        "url": "https://cdn.shopify.com/s/files/1/0657/8723/2489/files/Gill%20Sans%20Bold.otf",
+        "weight": 700,
+        "status": "confirmed"
+      },
+      "purpose": "Web-loaded fallback for NeuzeitGro. Ensures correct rendering in Android/Samsung Mail where Gill Sans is not a system font."
+    }
+  },
+  "logo_cdn_url": "https://cdn.shopify.com/s/files/1/0657/8723/2489/files/F_B_Logo_Horizontal_BLK_914x200_0eb09d11-e91b-4f05-8ef4-9e54a99cb903.png",
+  "logo_dimensions": "914\u00d7200px source, displayed at 120\u00d726px in email"
+}
