@@ -186,6 +186,35 @@ Google Docs-native formatting such as paragraph numbering, fonts, and layout.
    are found that aren't in the map above, flag them in the summary with the
    surrounding context so the human can resolve them.
 
+### Step 3b — Copy ancillary onboarding documents into the employee folder
+
+Copy the standard onboarding documents into the employee's folder so the folder
+contains a complete onboarding pack for that employee. Use `gws drive files copy`
+with `supportsAllDrives: true` for each document.
+
+Required source documents:
+
+| Document                        | Source File ID                           |
+| ------------------------------- | ---------------------------------------- |
+| Payroll Information Form        | `1TchMO5lP1Yv0HnYjKQRN6gq3Ba1KkGh4`        |
+| Fair Work Information Statement | `11txwv4dHDHslHkRzh0DoO0ny-OGpsLwR`        |
+| Employee Handbook               | `17UpA0Msl7G_0YRkYBldil4gKDs4kZmPl`        |
+| Health & Safety Handbook        | `17VF3zyohOAN80d9aSMG0KvX_Oo2GhVl_`        |
+
+For each file:
+
+1. Copy it into the employee folder from Step 2.
+2. Keep the original document name unless there is a naming conflict.
+3. Record the copied file ID for later attachment and verification steps.
+
+Example:
+
+```bash
+gws drive files copy \
+  --params '{"fileId": "{SOURCE_FILE_ID}", "supportsAllDrives": true}' \
+  --json '{"parents": ["{EMPLOYEE_FOLDER_ID}"]}'
+```
+
 ### Step 4 — Send platform invitations
 
 #### 4a — Deputy (API)
@@ -355,19 +384,19 @@ Fig & Bloom
 
 **Attachments — source file IDs (People & Culture shared drive):**
 
-| Document                        | File ID                                        |
-| ------------------------------- | ---------------------------------------------- |
+| Document                        | Attachment source                             |
+| ------------------------------- | --------------------------------------------- |
 | Employment contract             | The copy created in Step 3 (employee's folder) |
-| Payroll Information Form        | `1TchMO5lP1Yv0HnYjKQRN6gq3Ba1KkGh4`            |
-| Fair Work Information Statement | `11txwv4dHDHslHkRzh0DoO0ny-OGpsLwR`            |
-| Employee Handbook               | `17UpA0Msl7G_0YRkYBldil4gKDs4kZmPl`            |
-| Health & Safety Handbook        | `17VF3zyohOAN80d9aSMG0KvX_Oo2GhVl_`            |
+| Payroll Information Form        | The copy created in Step 3b (employee's folder) |
+| Fair Work Information Statement | The copy created in Step 3b (employee's folder) |
+| Employee Handbook               | The copy created in Step 3b (employee's folder) |
+| Health & Safety Handbook        | The copy created in Step 3b (employee's folder) |
 
 See `references/drive-ids.md` for the full file inventory.
 
 To attach Drive files to the email:
 
-1. Download each PDF from Google Drive using the file IDs above.
+1. Download or export the employee-folder copies of each required document.
 2. Export the employment contract from Google Docs as PDF.
 3. Attach all to the outgoing Gmail message.
 
@@ -381,6 +410,10 @@ Ensure the employee's folder (from Step 2) contains:
 - CV (if found in Step 1)
 - Hiring correspondence (saved in Step 2)
 - Employment contract (already there from Step 3)
+- Payroll Information Form copy (saved in Step 3b)
+- Fair Work Information Statement copy (saved in Step 3b)
+- Employee Handbook copy (saved in Step 3b)
+- Health & Safety Handbook copy (saved in Step 3b)
 - A record of the welcome email sent (save as PDF or note the Gmail message ID)
 
 This step is mostly a verification pass — confirm the folder has what it should.
