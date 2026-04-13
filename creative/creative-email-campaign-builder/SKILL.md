@@ -68,7 +68,10 @@ Present selection with rationale. Wait for approval.
 Read `references/brand-voice.md` before writing any copy.
 
 Write values for every token that will be used. Key rules:
-- `HEADLINE`, `OPT_OUT_HEADLINE`, upsell `HEADLINE` → **ALWAYS lowercase**. Write the value in lowercase. Do not rely on CSS to enforce this.
+- `HEADLINE` case **depends on the font used in the selected template** — check the template comment block:
+  - **Cervanttis templates** (hero-a, hero-b, hero-c, hero-d, upsell-noir, opt-out) → **MUST be lowercase**. e.g. `"for the one who does it all"`
+  - **Lust templates** (body-copy, section-headline, all product cards) → **Sentence case**. e.g. `"Some gestures speak before words do."`
+- `OPT_OUT_HEADLINE` → always lowercase (Cervanttis)
 - `UNSUBSCRIBE_URL` token value → `{{ unsubscribe_url }}` (single braces, spaces inside — exact Klaviyo syntax)
 - `REVIEW_STARS` → use Unicode star characters: `★★★★★`
 - `BODY_P2` → empty string `""` if only one paragraph needed

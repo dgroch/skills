@@ -372,13 +372,14 @@
     }
   },
   "token_rules": {
-    "HEADLINE": "ALWAYS write in lowercase. Cervanttis renders lowercase only. Never title case or sentence case.",
-    "OPT_OUT_HEADLINE": "ALWAYS write in lowercase.",
+    "HEADLINE": "Case depends on font: CERVANTTIS templates (heroes, upsell-noir, opt-out) \u2192 MUST be lowercase. LUST templates (body-copy, section-headline, products) \u2192 Sentence case. Check the template comment to confirm which font is used before writing the value.",
+    "OPT_OUT_HEADLINE": "Cervanttis font \u2014 MUST be lowercase. e.g. 'a gentle note'.",
     "UNSUBSCRIBE_URL": "Use exact Klaviyo syntax: {{ unsubscribe_url }} \u2014 single braces, with spaces inside.",
     "REVIEW_STARS": "Use actual Unicode star characters: \u2605\u2605\u2605\u2605\u2605",
     "PRODUCT_IMAGE_URL": "Must be 4:5 ratio (1000\u00d71250px source min). Hosted on Klaviyo media library.",
     "HERO_IMAGE_URL": "Hosted on Klaviyo media library. Lifestyle photography preferred.",
-    "BODY_P2": "Leave empty string if only one paragraph needed."
+    "BODY_P2": "Leave empty string if only one paragraph needed.",
+    "PRODUCT_NAME": "Lust font \u2014 sentence case. e.g. 'Blush & Wild', 'Garden Natives'."
   },
   "locked_styles": {
     "note": "The following are baked into templates. Do not attempt to override via tokens.",
