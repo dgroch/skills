@@ -27,7 +27,7 @@ Every layout decision, style rule, illustration, icon, and colour is already bak
 4. SELECT        → Choose components from references/manifest.json
 5. ASSEMBLE      → Read templates, replace tokens, concatenate into shell
 6. VALIDATE      → Check all tokens filled, no {{}} remain, pre-flight checks
-7. PREVIEW       → Save preview HTML to outputs + Google Drive. Wait for approval.
+7. PREVIEW       → Save preview HTML to Google Drive only. Wait for approval.
 8. PRODUCTION    → Re-assemble with shell-production (no base64 fonts)
 9. KLAVIYO       → Upload template + create campaign. Wait for approval before scheduling.
 ```
@@ -157,8 +157,7 @@ Run every check before presenting the preview:
 ## Step 7: Preview
 
 1. Assemble using `references/shell/shell-preview.html` (base64 fonts for correct browser rendering)
-2. Save to `/mnt/user-data/outputs/{YYYY-MM-DD}-{campaign-slug}-preview.html`
-3. Save to Google Drive — read `reference-google-drive` skill for conventions:
+2. Save to Google Drive only — do not write preview HTML to local disk. Read `reference-google-drive` skill for conventions:
    - Folder: `03 - Marketing > Email Marketing > Campaign Drafts` (folder ID: `14SJXWGGrZAoJUmkEb0FlBDSHHNyf_bIj`)
    - Title: `{YYYY-MM-DD} {Campaign Name} — Design Preview`
    - mimeType: `text/html`, disableConversionToGoogleType: `true`
@@ -181,8 +180,8 @@ Re-assemble using `references/shell/shell-production.html`:
 - `{{FONT_CDN_LINK}}` = `<link href="[CDN_URL]" rel="stylesheet" type="text/css">` if configured, otherwise empty string
 
 Save to:
-- `/mnt/user-data/outputs/{YYYY-MM-DD}-{campaign-slug}-production.html`
-- Google Drive: `{YYYY-MM-DD} {Campaign Name} — Production HTML` in same Campaign Drafts folder
+- Google Drive only: `{YYYY-MM-DD} {Campaign Name} — Production HTML` in `03 - Marketing > Email Marketing > Campaign Drafts` (folder ID: `14SJXWGGrZAoJUmkEb0FlBDSHHNyf_bIj`)
+- Do not write production HTML to local disk
 
 Run font check: grep for `base64` inside `<style>` blocks. If found → wrong shell used → fix before proceeding.
 
