@@ -10,7 +10,26 @@
       "FONT_CDN_LINK": "Production only: <link> tag for hosted font CSS. Omit if not configured.",
       "COMPONENTS": "Assembled component HTML \u2014 injected between <!-- COMPONENTS_START --> and <!-- COMPONENTS_END -->"
     },
-    "method": "1. Select components. 2. Fill all {{TOKEN}} values. 3. Read each template file. 4. Replace tokens. 5. Concatenate. 6. Inject into shell between markers. 7. Validate no {{}} remain."
+    "method": "1. Select components. 2. Fill all {{TOKEN}} values. 3. Read each template file. 4. Replace tokens. 5. Concatenate. 6. Inject into shell between markers. 7. Validate no {{}} remain.",
+    "html_only_components": [
+      "opt-out",
+      "section-headline",
+      "delivery-cutoffs",
+      "footer",
+      "divider-line",
+      "divider-whitespace"
+    ],
+    "slice_components": [
+      "header",
+      "all hero variants",
+      "all product cards",
+      "body-copy",
+      "testimonial",
+      "upsell-noir",
+      "trust-bar",
+      "divider-illo-*"
+    ],
+    "note": "body-copy is sliced (not HTML) because it contains a position:absolute illustration that does not render in email clients as inline HTML. Slicing captures it correctly."
   },
   "ordering_rules": {
     "required": [

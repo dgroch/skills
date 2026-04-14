@@ -3,7 +3,7 @@ name: creative-email-campaign-builder
 description: Build complete Klaviyo email campaigns for Fig & Bloom using the v4 template library. Use this skill whenever someone asks to create an email campaign, email design, Klaviyo email, marketing email, promotional email, newsletter, or EDM for Fig & Bloom.
 ---
 
-# Email Campaign Builder — Fig & Bloom (v5)
+# Email Campaign Builder — Fig & Bloom (v4)
 
 Builds production-ready Klaviyo emails by assembling pre-built, locked templates. The agent selects components and injects content. It does not write HTML or make design decisions.
 
@@ -124,12 +124,14 @@ This step fills tokens into templates and renders visual components as PNG slice
 Divide the selected component list into two groups:
 
 **Slice to PNG** (visual — render via Puppeteer):
-- header, all hero variants, all product cards, testimonial, upsell-noir, trust-bar, divider-illo-*
+- header, all hero variants, all product cards, body-copy, testimonial, upsell-noir, trust-bar, divider-illo-*
 
 **Keep as HTML** (text-only — safe in all email clients):
-- opt-out, body-copy, section-headline, delivery-cutoffs, footer, divider-line, divider-whitespace
+- opt-out, section-headline, delivery-cutoffs, footer, divider-line, divider-whitespace
 
 ### 5b. Prepare component HTML files
+
+> **Note on template size:** Templates contain `{{ASSETS_BASE}}` tokens instead of base64 illustration data. This keeps each template file under 5KB so the agent can read them without context window pressure. The `slice.js` script resolves `{{ASSETS_BASE}}` to the absolute assets path at render time — the agent never handles image data directly.
 
 For each **visual** component:
 1. Read the template from `references/templates/[path].html`
@@ -185,7 +187,7 @@ Assemble a preview email that mixes local slice paths (for review) with the text
 [header slice img — local path]
 [hero slice img — local path]
 [opt-out HTML — if required]
-[body-copy HTML]
+[body-copy slice img — local path]
 [section-headline HTML]
 [product card slices — local paths, wrapped in <a href>]
 [testimonial slice — local path]
