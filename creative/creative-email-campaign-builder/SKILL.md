@@ -222,11 +222,29 @@ Assemble a preview email that mixes local slice paths (for review) with the text
 For preview, slice `<img>` tags use `file://` local paths. These will be replaced with Klaviyo CDN URLs in Step 9.
 
 Save preview HTML to Google Drive only — do not write preview HTML to local disk. Read `reference-google-drive` skill for conventions:
-- Folder: Campaign Drafts (ID: `14SJXWGGrZAoJUmkEb0FlBDSHHNyf_bIj`)
+- Folder: use the Step 7a run folder (`Campaign Drafts/{YYYYMMDDhhmm}/{campaign-slug}-{run-id}`)
 - Title: `{YYYY-MM-DD} {Campaign Name} — Design Preview`
 - mimeType: `text/html`, disableConversionToGoogleType: `true`
 
 State: *"Preview uses locally-rendered PNG slices — fonts, illustrations, and layout are browser-rendered and pixel-accurate. Review at 600px width."*
+
+### Step 7a: Create deterministic run-scoped Drive folders
+
+Before uploading any preview/production artifacts, create and use nested subfolders under the Campaign Drafts parent:
+
+1. Compute `TIMESTAMP_YYYYMMDDHHMM` in UTC by default (`YYYYMMDDhhmm`, 24-hour clock).
+2. If the caller explicitly provides a timezone override, compute the same format in that timezone.
+3. Under parent `Campaign Drafts` (`14SJXWGGrZAoJUmkEb0FlBDSHHNyf_bIj`), create/use:
+   - timestamp folder: `{TIMESTAMP_YYYYMMDDHHMM}`
+   - run folder inside timestamp folder: `{campaign-slug}-{run-id}`
+4. Save all campaign artifacts (preview HTML, production HTML, and any optional packaging files) into this run folder.
+5. In run comments, always include links to:
+   - Campaign Drafts parent folder
+   - timestamp folder
+   - run folder
+   - uploaded artifact files
+
+This structure is required to avoid destination collisions across concurrent runs and to keep outputs traceable.
 
 **Wait for explicit human approval before proceeding to Step 8.**
 
@@ -270,7 +288,7 @@ Assemble the final email HTML using Klaviyo CDN slice URLs (replacing local file
 - Unsubscribe: `{{ unsubscribe_url }}` in footer — exact Klaviyo syntax
 
 Save to Google Drive only — do not write production HTML to local disk:
-- Folder: Campaign Drafts (ID: `14SJXWGGrZAoJUmkEb0FlBDSHHNyf_bIj`)
+- Folder: use the Step 7a run folder (`Campaign Drafts/{YYYYMMDDhhmm}/{campaign-slug}-{run-id}`)
 - Title: `{YYYY-MM-DD} {Campaign Name} — Production HTML`
 - mimeType: `text/html`, disableConversionToGoogleType: `true`
 
