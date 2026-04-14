@@ -16,6 +16,7 @@
       "section-headline",
       "delivery-cutoffs",
       "footer",
+      "body-copy-plain",
       "divider-line",
       "divider-whitespace"
     ],
@@ -29,7 +30,7 @@
       "trust-bar",
       "divider-illo-*"
     ],
-    "note": "body-copy is sliced (not HTML) because it contains a position:absolute illustration that does not render in email clients as inline HTML. Slicing captures it correctly."
+    "note": "body-copy (with HandRose illustration) is sliced because the position:absolute illustration does not render in email clients as inline HTML. For pure typographic body copy without an illustration, use body-copy-plain (HTML-safe). Prefer body-copy-plain when no accent illustration is desired — keeps text selectable, accessible, and responsive."
   },
   "ordering_rules": {
     "required": [
@@ -277,6 +278,17 @@
     "sections": {
       "body-copy": {
         "file": "templates/sections/body-copy.html",
+        "description": "Body copy with HandRose accent illustration (bottom-right, 10% opacity). Rendered as a sliced PNG because the position:absolute illustration does not survive inline HTML in email clients.",
+        "tokens": [
+          "SUPER_LABEL",
+          "HEADLINE",
+          "BODY_P1",
+          "BODY_P2"
+        ]
+      },
+      "body-copy-plain": {
+        "file": "templates/sections/body-copy-plain.html",
+        "description": "Body copy without illustration. Rendered as inline HTML — text stays selectable, accessible, and responsive. Preferred when no accent illustration is needed.",
         "tokens": [
           "SUPER_LABEL",
           "HEADLINE",
