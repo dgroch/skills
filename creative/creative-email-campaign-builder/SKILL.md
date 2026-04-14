@@ -129,14 +129,31 @@ Divide the selected component list into two groups:
 **Keep as HTML** (text-only — safe in all email clients):
 - opt-out, section-headline, delivery-cutoffs, footer, divider-line, divider-whitespace
 
-### 5b. Prepare component HTML files
+### 5b. Pre-download product images
+
+Shopify CDN URLs are flaky when fetched concurrently during slicing. Download every `{{PRODUCT_IMAGE_URL}}`, `{{LIFESTYLE_IMAGE_URL}}`, and `{{STUDIO_IMAGE_URL}}` value to local disk before rendering, and use local `file://` paths in the token values.
+
+```bash
+mkdir -p /tmp/[campaign-slug]/product-images
+# For each product image:
+curl -sL "[shopify-url]" -o /tmp/[campaign-slug]/product-images/[slug].jpg
+```
+
+Then in Step 5c token values, use `file://` paths instead of Shopify URLs:
+- `{{PRODUCT_IMAGE_URL}}` = `file:///tmp/[campaign-slug]/product-images/[slug].jpg`
+- `{{LIFESTYLE_IMAGE_URL}}` = `file:///tmp/[campaign-slug]/product-images/[slug]-lifestyle.jpg`
+- `{{STUDIO_IMAGE_URL}}` = `file:///tmp/[campaign-slug]/product-images/[slug]-studio.jpg`
+
+The product photos are baked into the slice PNGs during rendering — Step 8 uploads the composited slices to Klaviyo, so the original URLs aren't needed downstream.
+
+### 5c. Prepare component HTML files
 
 > **Note on template size:** Templates contain `{{ASSETS_BASE}}` tokens instead of base64 illustration data. This keeps each template file under 5KB so the agent can read them without context window pressure. The `slice.js` script resolves `{{ASSETS_BASE}}` to the absolute assets path at render time — the agent never handles image data directly.
 
 For each **visual** component:
 1. Read the template from `references/templates/[path].html`
 2. Wrap it in `references/shell/shell-preview.html` (base64 fonts for correct Puppeteer render)
-3. Replace every `{{TOKEN}}` with its value
+3. Replace every `{{TOKEN}}` with its value (product images use `file://` paths from 5b)
 4. Verify no `{{` or `}}` remain
 5. Save as a standalone HTML file in a working directory: `/tmp/[campaign-slug]/components/[name].html`
 
@@ -146,7 +163,7 @@ For each **text** component:
 3. Verify no `{{` or `}}` remain
 4. Hold in memory — these go directly into the final email HTML
 
-### 5c. Slice visual components
+### 5d. Slice visual components
 
 Call the `puppeteer` skill's `slice.js` on the components directory:
 
@@ -154,7 +171,7 @@ Call the `puppeteer` skill's `slice.js` on the components directory:
 node [puppeteer-skill-path]/references/scripts/slice.js   --input /tmp/[campaign-slug]/components/   --output /tmp/[campaign-slug]/slices/   --width 600   --scale 2   --verbose
 ```
 
-Parse the `__SLICE_MANIFEST__` from stdout to get the list of produced PNG files.
+Parse the `__SLICE_MANIFEST__` from stdout to get the list of produced PNG files. The manifest includes a `broken_images` array per slice — if any entry is non-empty, the slice has failed image loads and must be re-rendered (check the file:// path exists and the pre-download in 5b succeeded).
 
 If any slice fails → fix the component HTML and re-run before proceeding.
 
@@ -166,6 +183,7 @@ If any slice fails → fix the component HTML and re-run before proceeding.
 - [ ] `__SLICE_MANIFEST__` parsed — all expected PNG files are listed
 - [ ] Every visual component has a corresponding PNG in `/tmp/[campaign-slug]/slices/`
 - [ ] No slice errors in the Puppeteer output
+- [ ] Every manifest entry has `broken_images: []` — any failures mean a pre-downloaded image is missing or `file://` path is wrong
 
 **Token validation (text components):**
 - [ ] No `{{` or `}}` characters remain in any text component HTML

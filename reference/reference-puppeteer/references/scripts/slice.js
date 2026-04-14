@@ -11,7 +11,7 @@
  *   --assets  <dir>     Absolute path to assets folder containing illustration PNGs (required)
  *   --width   <px>      Email width in CSS pixels (default: 600)
  *   --scale   <n>       Device scale factor for retina output (default: 2)
- *   --timeout <ms>      Max wait time per render in ms (default: 10000)
+ *   --timeout <ms>      Max wait time per render in ms (default: 30000)
  *   --verbose           Log detailed progress
  *
  * The --assets flag replaces {{ASSETS_BASE}} tokens in template HTML with the
@@ -48,8 +48,13 @@ const OUTPUT       = args.output;
 const ASSETS_DIR   = args.assets;
 const WIDTH        = parseInt(args.width   || 600,   10);
 const SCALE        = parseInt(args.scale   || 2,     10);
-const TIMEOUT      = parseInt(args.timeout || 10000, 10);
+const TIMEOUT      = parseInt(args.timeout || 30000, 10);
 const VERBOSE      = !!args.verbose;
+
+// Render viewport is WIDTH + 40 so `@media (max-width:600px)` mobile-stack
+// rules in email shells don't trigger at the slicing width. The screenshot
+// is clipped back to the WIDTH-wide content table, so output is unaffected.
+const RENDER_WIDTH = WIDTH + 40;
 
 const ASSETS_TOKEN = '{{ASSETS_BASE}}';
 
@@ -118,46 +123,101 @@ async function renderFile(page, htmlFile) {
     log(`  Injected assets path (${(html.match(/ASSETS_ABS/g) || []).length} replacements)`);
   }
 
-  // Use setContent rather than goto — avoids file:// URL issues with inline content
-  // Use a base URL so any remaining relative paths still resolve
-  await page.setContent(html, {
-    waitUntil: 'networkidle0',
-    timeout: TIMEOUT,
-  });
+  // Write to a temp file and navigate via file:// so sub-resources (file://
+  // illustrations, pre-downloaded product images) load under a file:// origin.
+  // page.setContent() uses about:blank, which blocks file:// sub-resources.
+  const tmpHtml = path.join(OUTPUT, `.${basename}.render.html`);
+  fs.writeFileSync(tmpHtml, html);
 
-  // Wait for fonts to load — critical for Cervanttis, Lust, NeuzeitGro
-  await page.evaluate(() => document.fonts.ready);
+  try {
+    await page.goto(`file://${path.resolve(tmpHtml)}`, {
+      waitUntil: 'domcontentloaded',
+      timeout: TIMEOUT,
+    });
 
-  // Wait one animation frame to ensure illustrations are painted
-  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(resolve)));
+    // Wait for fonts to load — critical for Cervanttis, Lust, NeuzeitGro
+    await page.evaluate(() => document.fonts.ready);
 
-  // Get exact content height — auto-crops to component, no whitespace
-  const contentHeight = await page.evaluate(() => {
-    const body = document.body;
-    const html = document.documentElement;
-    return Math.max(
-      body.scrollHeight, body.offsetHeight,
-      html.clientHeight, html.scrollHeight, html.offsetHeight
-    );
-  });
+    // Wait for every <img> to finish loading (success or error). networkidle0
+    // alone is unreliable for slow CDN responses — we explicitly await each image.
+    const imageReport = await page.evaluate(async () => {
+      const imgs = Array.from(document.images);
+      await Promise.all(imgs.map(img => {
+        if (img.complete) return null;
+        return new Promise(resolve => {
+          img.addEventListener('load', resolve, { once: true });
+          img.addEventListener('error', resolve, { once: true });
+        });
+      }));
+      return {
+        total: imgs.length,
+        broken: imgs
+          .filter(img => !img.complete || img.naturalWidth === 0)
+          .map(img => img.src),
+      };
+    });
 
-  // Resize viewport to exact content height before screenshotting
-  await page.setViewport({
-    width: WIDTH,
-    height: contentHeight,
-    deviceScaleFactor: SCALE,
-  });
+    if (imageReport.broken.length > 0) {
+      err(`  ${basename}: ${imageReport.broken.length}/${imageReport.total} image(s) failed to load:`);
+      imageReport.broken.forEach(src => err(`    - ${src}`));
+    } else if (imageReport.total > 0) {
+      log(`  ${imageReport.total} image(s) loaded OK`);
+    }
 
-  await page.screenshot({
-    path: outputFile,
-    fullPage: true,
-    type: 'png',
-  });
+    // One animation frame to ensure painting
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(resolve)));
 
-  const stat = fs.statSync(outputFile);
-  info(`✓ ${basename}.png — ${contentHeight}px tall, ${Math.round(stat.size / 1024)}KB`);
+    // Measure content height from the 600px content table (the email canvas),
+    // not body/html — those are padded to the viewport and produce slices with
+    // dark body-background bleeding below the component.
+    const contentHeight = await page.evaluate(() => {
+      const table = document.querySelector('table.ew')
+                 || document.querySelector('table[width="600"]');
+      if (table) {
+        return Math.ceil(table.getBoundingClientRect().height);
+      }
+      // Fallback for HTML without the standard shell wrapper
+      return document.body.scrollHeight;
+    });
 
-  return outputFile;
+    // Resize viewport to exact content height (keep RENDER_WIDTH so desktop
+    // layout is preserved — we clip to the WIDTH-wide content table below).
+    await page.setViewport({
+      width: RENDER_WIDTH,
+      height: contentHeight,
+      deviceScaleFactor: SCALE,
+    });
+
+    // Clip to the content table so any body background outside the 600px canvas
+    // is excluded from the screenshot.
+    const clip = await page.evaluate(() => {
+      const table = document.querySelector('table.ew')
+                 || document.querySelector('table[width="600"]');
+      if (!table) return null;
+      const rect = table.getBoundingClientRect();
+      return {
+        x: Math.max(0, Math.floor(rect.left)),
+        y: Math.max(0, Math.floor(rect.top)),
+        width: Math.ceil(rect.width),
+        height: Math.ceil(rect.height),
+      };
+    });
+
+    const screenshotOpts = { path: outputFile, type: 'png' };
+    if (clip) {
+      screenshotOpts.clip = clip;
+    } else {
+      screenshotOpts.fullPage = true;
+    }
+    await page.screenshot(screenshotOpts);
+
+    const stat = fs.statSync(outputFile);
+    info(`✓ ${basename}.png — ${contentHeight}px tall, ${Math.round(stat.size / 1024)}KB${imageReport.broken.length ? ` (⚠ ${imageReport.broken.length} broken image${imageReport.broken.length > 1 ? 's' : ''})` : ''}`);
+
+    return { outputFile, brokenImages: imageReport.broken };
+  } finally {
+    try { fs.unlinkSync(tmpHtml); } catch (_) { /* best effort */ }
+  }
 }
 
 async function main() {
@@ -180,9 +240,12 @@ async function main() {
 
   const page = await browser.newPage();
 
+  // Start with a minimal viewport so html.clientHeight can't contaminate
+  // any downstream height measurement. Use RENDER_WIDTH so desktop media
+  // queries apply (see RENDER_WIDTH comment above).
   await page.setViewport({
-    width: WIDTH,
-    height: 800,
+    width: RENDER_WIDTH,
+    height: 10,
     deviceScaleFactor: SCALE,
   });
 
@@ -190,11 +253,15 @@ async function main() {
 
   const results = [];
   const errors  = [];
+  const brokenImagesByFile = {};
 
   for (const htmlFile of htmlFiles) {
     try {
-      const outFile = await renderFile(page, htmlFile);
-      results.push(outFile);
+      const { outputFile, brokenImages } = await renderFile(page, htmlFile);
+      results.push(outputFile);
+      if (brokenImages.length > 0) {
+        brokenImagesByFile[path.basename(htmlFile)] = brokenImages;
+      }
     } catch (e) {
       err(`Failed to render ${path.basename(htmlFile)}: ${e.message}`);
       errors.push({ file: htmlFile, error: e.message });
@@ -203,7 +270,8 @@ async function main() {
 
   await browser.close();
 
-  info(`\nDone. ${results.length} slice(s) created, ${errors.length} error(s).`);
+  const brokenCount = Object.keys(brokenImagesByFile).length;
+  info(`\nDone. ${results.length} slice(s) created, ${errors.length} error(s)${brokenCount ? `, ${brokenCount} slice(s) with broken images` : ''}.`);
 
   if (errors.length > 0) {
     err('Failed files:');
@@ -219,6 +287,7 @@ async function main() {
       width_css_px: WIDTH,
       scale: SCALE,
       width_actual_px: WIDTH * SCALE,
+      broken_images: brokenImagesByFile[path.basename(f, '.png') + '.html'] || [],
     })),
   };
   process.stdout.write('\n__SLICE_MANIFEST__\n');
