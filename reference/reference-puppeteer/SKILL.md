@@ -1,6 +1,6 @@
 ---
 name: reference-puppeteer
-description: Headless browser utilities — screenshot, slice HTML components to PNG, render PDFs. Use this skill whenever an agent needs to: capture a screenshot of a URL, render an HTML file to PNG, slice HTML email components into image files, or generate a PDF from an HTML document.
+description: "Headless browser utilities — screenshot, slice HTML to PNG, render PDFs. Use when an agent needs to capture a screenshot, render email component slices, or generate a PDF from HTML."
 ---
 
 # Puppeteer Skill
