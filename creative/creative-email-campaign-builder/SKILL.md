@@ -3,7 +3,7 @@ name: creative-email-campaign-builder
 description: Build complete Klaviyo email campaigns for Fig & Bloom using the v4 template library. Use this skill whenever someone asks to create an email campaign, email design, Klaviyo email, marketing email, promotional email, newsletter, or EDM for Fig & Bloom.
 ---
 
-# Email Campaign Builder — Fig & Bloom (v4)
+# Email Campaign Builder — Fig & Bloom (v5)
 
 Builds production-ready Klaviyo emails by assembling pre-built, locked templates. The agent selects components and injects content. It does not write HTML or make design decisions.
 
@@ -25,14 +25,17 @@ Every layout decision, style rule, illustration, icon, and colour is already bak
 2. PRODUCTS      → Fetch from Shopify, select 3–5
 3. COPY          → Write all token values (headlines, body, CTAs)
 4. SELECT        → Choose components from references/manifest.json
-5. ASSEMBLE      → Read templates, replace tokens, concatenate into shell
-6. VALIDATE      → Check all tokens filled, no {{}} remain, pre-flight checks
-7. PREVIEW       → Save preview HTML to Google Drive only. Wait for approval.
-8. PRODUCTION    → Re-assemble with shell-production (no base64 fonts)
-9. KLAVIYO       → Upload template + create campaign. Wait for approval before scheduling.
+5. RENDER        → Fill tokens into templates → slice visual components to PNG via puppeteer skill
+6. VALIDATE      → Check all tokens filled, all slices produced, pre-flight checks
+7. PREVIEW       → Assemble preview email (slices + HTML text blocks). Save + Google Drive. Wait for approval.
+8. UPLOAD        → Upload approved slices to Klaviyo media library. Get hosted URLs.
+9. PRODUCTION    → Assemble final email HTML (Klaviyo slice URLs + text block HTML)
+10. KLAVIYO      → Upload template + create campaign. Wait for approval before scheduling.
 ```
 
 **Every numbered step is a gate. Do not skip ahead.**
+
+**Dependency:** This skill requires the `puppeteer` skill to be installed and configured on the VPS. Verify with `node -e "require('puppeteer'); console.log('OK')"` before first use.
 
 ---
 
@@ -112,84 +115,149 @@ footer                       ← always last
 
 ---
 
-## Step 5: Assembly
+## Step 5: Render (token injection + slicing)
 
-For each selected component in order:
-1. Read the template file from `references/templates/[path].html`
-2. Replace every `{{TOKEN}}` with its value from Step 3
-3. Verify no `{{` or `}}` characters remain in the output
+This step fills tokens into templates and renders visual components as PNG slices using the `puppeteer` skill.
 
-Shell files are at:
-- Preview: `references/shell/shell-preview.html`
-- Production: `references/shell/shell-production.html`
+### 5a. Classify components
 
-Inject assembled components into the shell between `<!-- COMPONENTS_START -->` and `<!-- COMPONENTS_END -->`.
+Divide the selected component list into two groups:
 
-Fill shell tokens:
-- `{{CAMPAIGN_NAME}}` → campaign name / email subject
-- `{{BODY_BG}}` → `#2c2825` (default — do not change without approval)
-- `{{FONT_CDN_LINK}}` → leave empty for preview; add `<link>` tag for production if CDN is configured
-- `{{COMPONENTS}}` → assembled component HTML
+**Slice to PNG** (visual — render via Puppeteer):
+- header, all hero variants, all product cards, testimonial, upsell-noir, trust-bar, divider-illo-*
+
+**Keep as HTML** (text-only — safe in all email clients):
+- opt-out, body-copy, section-headline, delivery-cutoffs, footer, divider-line, divider-whitespace
+
+### 5b. Prepare component HTML files
+
+For each **visual** component:
+1. Read the template from `references/templates/[path].html`
+2. Wrap it in `references/shell/shell-preview.html` (base64 fonts for correct Puppeteer render)
+3. Replace every `{{TOKEN}}` with its value
+4. Verify no `{{` or `}}` remain
+5. Save as a standalone HTML file in a working directory: `/tmp/[campaign-slug]/components/[name].html`
+
+For each **text** component:
+1. Read the template from `references/templates/[path].html`
+2. Replace every `{{TOKEN}}` with its value
+3. Verify no `{{` or `}}` remain
+4. Hold in memory — these go directly into the final email HTML
+
+### 5c. Slice visual components
+
+Call the `puppeteer` skill's `slice.js` on the components directory:
+
+```bash
+node [puppeteer-skill-path]/references/scripts/slice.js   --input /tmp/[campaign-slug]/components/   --output /tmp/[campaign-slug]/slices/   --width 600   --scale 2   --verbose
+```
+
+Parse the `__SLICE_MANIFEST__` from stdout to get the list of produced PNG files.
+
+If any slice fails → fix the component HTML and re-run before proceeding.
 
 ---
 
 ## Step 6: Validation
 
-Run every check before presenting the preview:
+**Slice validation:**
+- [ ] `__SLICE_MANIFEST__` parsed — all expected PNG files are listed
+- [ ] Every visual component has a corresponding PNG in `/tmp/[campaign-slug]/slices/`
+- [ ] No slice errors in the Puppeteer output
 
-**Token validation:**
-- [ ] No `{{` or `}}` characters remain anywhere in the assembled HTML
-- [ ] `{{ unsubscribe_url }}` appears exactly once in the footer with single braces and internal spaces
+**Token validation (text components):**
+- [ ] No `{{` or `}}` characters remain in any text component HTML
+- [ ] `{{ unsubscribe_url }}` is present in footer with single braces and internal spaces
 
 **Content checks:**
-- [ ] All Cervanttis headlines (`HEADLINE` in hero, `OPT_OUT_HEADLINE`, upsell `HEADLINE`) are lowercase in their token values
-- [ ] `REVIEW_STARS` uses `★` Unicode characters, not asterisks or text
-
-**Image checks:**
-- [ ] All `_IMAGE_URL` tokens are filled — no token placeholders remain
-- [ ] Images are Klaviyo media library hosted URLs (not local paths)
-
-**Font check (production only):**
-- [ ] Grep the production HTML for `base64` inside `<style>` blocks — if found, the wrong shell was used. Strip it.
+- [ ] Cervanttis headlines (hero, upsell-noir, opt-out) are lowercase in token values
+- [ ] Lust headlines (body-copy, section-headline, product cards) are sentence case
+- [ ] `REVIEW_STARS` uses `★` Unicode characters
 
 ---
 
 ## Step 7: Preview
 
-1. Assemble using `references/shell/shell-preview.html` (base64 fonts for correct browser rendering)
-2. Save to Google Drive only — do not write preview HTML to local disk. Read `reference-google-drive` skill for conventions:
-   - Folder: `03 - Marketing > Email Marketing > Campaign Drafts` (folder ID: `14SJXWGGrZAoJUmkEb0FlBDSHHNyf_bIj`)
-   - Title: `{YYYY-MM-DD} {Campaign Name} — Design Preview`
-   - mimeType: `text/html`, disableConversionToGoogleType: `true`
+Assemble a preview email that mixes local slice paths (for review) with the text HTML blocks.
 
-State: *"Preview assembled from locked templates. Styles, illustrations, icons, and layout are baked in. Please review at 600px (desktop) and 375px (mobile)."*
+**Preview assembly structure** (table-based, 600px wide):
+```
+[header slice img — local path]
+[hero slice img — local path]
+[opt-out HTML — if required]
+[body-copy HTML]
+[section-headline HTML]
+[product card slices — local paths, wrapped in <a href>]
+[testimonial slice — local path]
+[upsell slice — local path, wrapped in <a href>]
+[delivery-cutoffs HTML — if required]
+[trust-bar slice — local path]
+[footer HTML]
+```
+
+For preview, slice `<img>` tags use `file://` local paths. These will be replaced with Klaviyo CDN URLs in Step 9.
+
+Save preview HTML to:
+- `/mnt/user-data/outputs/{YYYY-MM-DD}-{campaign-slug}-preview.html`
+- Google Drive (read `reference-google-drive` skill):
+  - Folder: Campaign Drafts (ID: `14SJXWGGrZAoJUmkEb0FlBDSHHNyf_bIj`)
+  - Title: `{YYYY-MM-DD} {Campaign Name} — Design Preview`
+  - mimeType: `text/html`, disableConversionToGoogleType: `true`
+
+State: *"Preview uses locally-rendered PNG slices — fonts, illustrations, and layout are browser-rendered and pixel-accurate. Review at 600px width."*
 
 **Wait for explicit human approval before proceeding to Step 8.**
 
 If edits are requested:
-- Content/copy changes → update token values, re-assemble from Step 5
-- Component changes → update selection, re-assemble from Step 5
-- Design changes → these require a template file update, not token changes. Flag to human.
+- **Copy changes** → update token values, re-render affected slices, re-assemble
+- **Component changes** → update selection, re-render, re-assemble
+- **Visual/design changes** → these require a template file update. Flag to human.
 
 ---
 
-## Step 8: Production HTML
+## Step 8: Upload slices to Klaviyo
 
-Re-assemble using `references/shell/shell-production.html`:
-- No base64 font data
-- `{{FONT_CDN_LINK}}` = `<link href="[CDN_URL]" rel="stylesheet" type="text/css">` if configured, otherwise empty string
+Upload each PNG slice from `/tmp/[campaign-slug]/slices/` to the Klaviyo media library.
+
+```
+POST /api/images/
+```
+
+Note the returned Klaviyo CDN URL for each slice. Store as a mapping:
+```json
+{
+  "header": "https://cdn.klaviyo.com/media/.../header.png",
+  "hero-a": "https://cdn.klaviyo.com/media/.../hero-a.png",
+  "product-card-1": "https://cdn.klaviyo.com/media/.../product-card-1.png",
+  ...
+}
+```
+
+See `references/klaviyo-html.md` for the image upload API spec.
+
+## Step 9: Production HTML
+
+Assemble the final email HTML using Klaviyo CDN slice URLs (replacing local file paths).
+
+**Production assembly rules:**
+- All slice `<img>` tags: `src` = Klaviyo CDN URL, `width="600"`, `style="display:block;width:600px;"`
+- All CTAs: slice `<img>` wrapped in `<a href="{{CTA_URL}}">`
+- Decorative slices: empty `alt=""`
+- Hero/product slices: descriptive `alt="{{HEADLINE}}"` or `alt="{{PRODUCT_NAME}}"`
+- Text components: inserted as raw HTML (no shell wrapper needed — inline styles only)
+- Unsubscribe: `{{ unsubscribe_url }}` in footer — exact Klaviyo syntax
 
 Save to:
-- Google Drive only: `{YYYY-MM-DD} {Campaign Name} — Production HTML` in `03 - Marketing > Email Marketing > Campaign Drafts` (folder ID: `14SJXWGGrZAoJUmkEb0FlBDSHHNyf_bIj`)
-- Do not write production HTML to local disk
+- `/mnt/user-data/outputs/{YYYY-MM-DD}-{campaign-slug}-production.html`
+- Google Drive: `{YYYY-MM-DD} {Campaign Name} — Production HTML` (same Campaign Drafts folder)
 
-Run font check: grep for `base64` inside `<style>` blocks. If found → wrong shell used → fix before proceeding.
+**Font check:** grep production HTML for `base64` in `<style>` blocks. Should find none — the production email has no embedded fonts, only Klaviyo-hosted slice images.
 
-**Wait for explicit human approval before proceeding to Step 9.**
+**Wait for explicit human approval before proceeding to Step 10.**
 
 ---
 
-## Step 9: Klaviyo Deployment
+## Step 10: Klaviyo Deployment
 
 Read `references/klaviyo-html.md` before making API calls.
 
@@ -227,8 +295,9 @@ Read `references/manifest.json` to confirm exact file paths and token names befo
 | `references/brand-voice.md` | Writing any copy (Step 3) |
 | `references/product-selection.md` | Selecting products (Step 2) |
 | `references/manifest.json` | Component selection and token names (Steps 4–5) |
-| `references/klaviyo-html.md` | Klaviyo API calls (Step 9) |
-| `reference-google-drive` skill | Google Drive uploads (Steps 7, 8) |
+| `references/klaviyo-html.md` | Klaviyo API calls (Steps 8, 10) |
+| `reference-google-drive` skill | Google Drive uploads (Steps 7, 9) |
+| `puppeteer` skill | Slice rendering (Step 5) — must be installed on VPS first |
 
 ---
 
