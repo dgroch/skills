@@ -8,43 +8,49 @@ license: MIT
 metadata:
   hermes:
     tags: [Onboarding, HR, People & Culture, Workforce]
-    related_skills: [reference-google-drive]
+    related_skills: [reference-google-drive, gws-shared, gws-gmail]
 ---
 
 # Employee Onboarding
 
 ## When to use this skill
-
 Use this skill whenever someone asks to onboard a new hire, add a new employee, set up a new team member, process a new starter, or any variation of "we have a new person joining." Also triggers for partial onboarding steps like "send the employment package to [name]" or "set up [name] in Deputy." If a Paperclip issue is assigned with onboarding context (name, email, employment type), treat it as a trigger.
 
-This is a multi-step process with external API calls. Steps can fail independently.
-Track progress, retry failures, and report a clear summary at the end.
+## Dependencies
+
+- **`gws` CLI** — Google Workspace CLI (`@googleworkspace/cli`). Must be on
+  PATH. Used for all Gmail operations (search, read, draft).
+- **Google Drive MCP** — used for folder creation, file copying, and downloads.
+- Read the `gws-shared` skill for auth, global flags, and security rules.
+- Read the `gws-gmail` skill for Gmail command reference.
+
 
 ## Inputs
 
 Collect all of the following before starting. If any are missing, ask for them.
 
-| Field           | Required | Format / Values                                            |
-| --------------- | -------- | ---------------------------------------------------------- |
-| Full name       | Yes      | First Last                                                 |
-| Email           | Yes      | Personal email address                                     |
-| Phone           | Yes      | Australian mobile preferred                                |
-| Address         | Optional | Residential address (used in contract if known)            |
-| Employment type | Yes      | `CAS` (casual), `PT` (part-time), `FT` (full-time)         |
-| Job title       | Yes      | Position title (e.g. "Florist", "Senior Florist")          |
+| Field           | Required | Format / Values                                          |
+|-----------------|----------|----------------------------------------------------------|
+| Full name       | Yes      | First Last                                               |
+| Email           | Yes      | Personal email address                                   |
+| Phone           | Yes      | Australian mobile preferred                              |
+| Address         | Optional | Residential address (used in contract if known)          |
+| Employment type | Yes      | `CAS` (casual), `PT` (part-time), `FT` (full-time)      |
+| Job title       | Yes      | Position title (e.g. "Florist", "Senior Florist")        |
 | Hours of work   | If PT    | Specific hours pattern (e.g. "20 hours per week, Mon–Wed") |
-| City            | Yes      | `melbourne`, `sydney`, or `brisbane`                       |
-| Pay rate        | Yes      | Hourly rate (AUD)                                          |
-| Start date      | Yes      | YYYY-MM-DD                                                 |
+| City            | Yes      | `melbourne`, `sydney`, or `brisbane`                     |
+| Pay rate        | Yes      | Hourly rate (AUD)                                        |
+| Start date      | Yes      | YYYY-MM-DD                                               |
 
 ### Auto-derived fields
 
 The following contract fields are derived from `city` — do not ask for them:
 
-| Contract placeholder | Melbourne                           | Sydney                                  | Brisbane                          |
-| -------------------- | ----------------------------------- | --------------------------------------- | --------------------------------- |
-| `{studio location}`  | 274 Wingrove St, Fairfield VIC 3078 | 62-64 Australia St, Camperdown NSW 2050 | 31 Jeays St, Bowen Hills QLD 4006 |
-| `{governing law}`    | Victoria                            | New South Wales                         | Queensland                        |
+| Contract placeholder  | Melbourne                                           | Sydney                                              | Brisbane                                            |
+|-----------------------|-----------------------------------------------------|-----------------------------------------------------|-----------------------------------------------------|
+| `{studio location}`   | 274 Wingrove St, Fairfield VIC 3078                 | 62-64 Australia St, Camperdown NSW 2050             | 31 Jeays St, Bowen Hills QLD 4006                   |
+| `{governing law}`     | Victoria                                            | New South Wales                                     | Queensland                                          |
+
 
 ## Process
 
@@ -54,22 +60,45 @@ is down. Track pass/fail per step.
 
 ### Step 1 — Retrieve hiring thread and CV from Gmail
 
-Use the Gmail MCP to search for the candidate's correspondence.
+Use the `gws` CLI to search Kellie's inbox for the candidate's correspondence.
+All Gmail commands in this skill use the `$GWS_USER_KELLIE` config directory.
+
+**Helper shorthand** — prefix all `gws` commands in this skill with:
+```
+GOOGLE_WORKSPACE_CLI_CONFIG_DIR=$GWS_USER_KELLIE
+```
 
 1. Search Gmail for messages involving the employee's email address:
-   - Query: `from:{email} OR to:{email}`
-   - Sort by most recent first.
+   ```bash
+   GOOGLE_WORKSPACE_CLI_CONFIG_DIR=$GWS_USER_KELLIE \
+     gws gmail users messages list \
+     --params '{"userId": "me", "q": "from:{email} OR to:{email}", "maxResults": 20}'
+   ```
 2. Identify the hiring/interview thread. Look for subject lines containing
    keywords like "application", "interview", "offer", "role", "position",
    the candidate's name, or job-related context. If multiple threads exist,
    prefer the most recent thread with the most messages.
-3. Read the full thread content.
+3. Read the full thread content:
+   ```bash
+   GOOGLE_WORKSPACE_CLI_CONFIG_DIR=$GWS_USER_KELLIE \
+     gws gmail users threads get \
+     --params '{"userId": "me", "id": "{thread_id}"}'
+   ```
 4. Scan all messages in the thread for attachments. Look for CV/resume files
    (typically `.pdf`, `.docx`, or `.doc` with filenames containing "cv",
-   "resume", or the candidate's name). Download any found.
+   "resume", or the candidate's name). Download any found:
+   ```bash
+   GOOGLE_WORKSPACE_CLI_CONFIG_DIR=$GWS_USER_KELLIE \
+     gws gmail users messages attachments get \
+     --params '{"userId": "me", "messageId": "{message_id}", "id": "{attachment_id}"}'
+   ```
 5. If no CV attachment is found in the thread, broaden the search:
-   - Query: `from:{email} filename:pdf OR filename:docx`
-   - Check the first few results for anything that looks like a CV.
+   ```bash
+   GOOGLE_WORKSPACE_CLI_CONFIG_DIR=$GWS_USER_KELLIE \
+     gws gmail users messages list \
+     --params '{"userId": "me", "q": "from:{email} filename:pdf OR filename:docx", "maxResults": 5}'
+   ```
+   Check the first few results for anything that looks like a CV.
 6. If still no CV is found, note this in the summary — don't block the process.
 
 Store the thread content and any downloaded attachments for use in Step 2.
@@ -80,11 +109,6 @@ Read `references/drive-ids.md` for all folder and file IDs used in this skill.
 
 The People & Culture content lives on a separate shared drive (ID: `0AEGiBwrY8uSoUk9PVA`),
 not the Paperclip shared drive.
-
-Any `gws drive` operation against this shared drive must include
-`"supportsAllDrives": true` in `--params`. This applies to `files copy`,
-`files create`, `files update`, `files delete`, and `files get`. Without this
-flag, Drive operations can return `404` even when the file or folder exists.
 
 1. Inside the **Employee Files** folder (ID: `1fep2a5Q0gpkfgMJnPRQ4N0WSH-twUXo0`),
    create a subfolder named with the employee's full name (e.g. `Sarah Chen`).
@@ -101,202 +125,79 @@ Record the new folder's ID — you'll need it in later steps.
 Select the correct template by employment type (see `references/drive-ids.md`
 for full details):
 
-| Type | Template File ID                              |
-| ---- | --------------------------------------------- |
-| CAS  | `1ElSlt6L5-vAM2n9ShyVCjstr_HshCxMT43n-Bgc3iDk` |
-| PT   | `18bf8BJ1E8r7BfXSVu4cgP26GaDeY9w6Jvwh4KTrWXAc` |
-| FT   | `1viGOPU2BfXBQ7QXKf0MfRSD5iZmofpeaqZv6wNmBtX4` |
+| Type  | Template File ID                                         |
+|-------|----------------------------------------------------------|
+| CAS   | `1ElSlt6L5-vAM2n9ShyVCjstr_HshCxMT43n-Bgc3iDk`        |
+| PT    | `18bf8BJ1E8r7BfXSVu4cgP26GaDeY9w6Jvwh4KTrWXAc`        |
+| FT    | `1viGOPU2BfXBQ7QXKf0MfRSD5iZmofpeaqZv6wNmBtX4`        |
 
-Use `gws drive` and `gws docs` for this step. Do not use MCP file-creation tools
-to copy the contract template. Uploading or recreating the document can destroy
-Google Docs-native formatting such as paragraph numbering, fonts, and layout.
-
-1. Copy the correct Google Docs template into the employee's folder using
-   `gws drive files copy` with `supportsAllDrives: true`.
-   Example:
-
-   ```bash
-   gws drive files copy \
-     --params '{"fileId": "{TEMPLATE_ID}", "supportsAllDrives": true}' \
-     --json '{"name": "Employment Contract - {Full Name}", "parents": ["{EMPLOYEE_FOLDER_ID}"]}'
-   ```
-
-   Save the returned document ID as `$CONTRACT_DOC_ID`.
-
-2. Fill placeholders using the Google Docs API via `gws docs documents batchUpdate`.
-   Use one `replaceAllText` request per placeholder so formatting is preserved.
-   Example:
-
-   ```bash
-   gws docs documents batchUpdate \
-     --params '{"documentId": "$CONTRACT_DOC_ID"}' \
-     --json '{"requests": [
-       {"replaceAllText": {"containsText": {"text": "{employee name}", "matchCase": true}, "replaceText": "Jemma Pike"}}
-     ]}'
-   ```
-
-3. All three templates use `{curly brace}` placeholders. Replace every instance
-   of each placeholder listed below.
+1. Create a copy of the template into the employee's folder (from Step 2).
+2. Name the copy: `Employment Contract - [Full Name]`
+3. All three templates use `{curly brace}` placeholders. Find-and-replace
+   every instance of each placeholder listed below.
 
 **Placeholder map — all contract types:**
 
-| Placeholder                   | Source                                                      |
-| ----------------------------- | ----------------------------------------------------------- |
-| `{employee name}`             | Full name (appears in header AND Schedule)                  |
-| `{employee email}`            | Email (Schedule Item 2)                                     |
-| `{employee phone}`            | Phone (Schedule Item 2)                                     |
-| `{employee address if known}` | Address if provided, otherwise remove line                  |
-| `{job title}`                 | Job title (Schedule Item 3)                                 |
-| `{commencement date}`         | Start date (header AND Schedule Item 4)                     |
-| `{studio location}`           | Auto-derived from city (see Inputs table)                   |
-| `{pay rate}`                  | Pay rate in AUD (Schedule — "per hour plus superannuation") |
-| `{governing law}`             | Auto-derived from city (see Inputs table)                   |
+| Placeholder                    | Source                                         |
+|--------------------------------|------------------------------------------------|
+| `{employee name}`              | Full name (appears in header AND Schedule)      |
+| `{employee email}`             | Email (Schedule Item 2)                         |
+| `{employee phone}`             | Phone (Schedule Item 2)                         |
+| `{employee address if known}`  | Address if provided, otherwise remove line      |
+| `{job title}`                  | Job title (Schedule Item 3)                     |
+| `{commencement date}`          | Start date (header AND Schedule Item 4)         |
+| `{studio location}`            | Auto-derived from city (see Inputs table)       |
+| `{pay rate}`                   | Pay rate in AUD (Schedule — "per hour plus superannuation") |
+| `{governing law}`              | Auto-derived from city (see Inputs table)       |
 
 **PT only — additional placeholder:**
 
-| Placeholder       | Source                                  |
-| ----------------- | --------------------------------------- |
-| `{hours of work}` | Hours of work pattern (Schedule Item 8) |
+| Placeholder                    | Source                                         |
+|--------------------------------|------------------------------------------------|
+| `{hours of work}`              | Hours of work pattern (Schedule Item 8)         |
 
-4. If address was not provided, remove the full `{employee address if known}`
-   line from Schedule Item 2 entirely rather than leaving a blank.
-
-5. After placeholder replacement, clear the template's pink highlight styling so
-   the final contract does not retain human-only markup:
-
-   1. Get the document end index:
-
-      ```bash
-      gws docs documents get --params '{"documentId": "$CONTRACT_DOC_ID"}' 2>/dev/null
-      ```
-
-   2. Clear background colour across the document:
-
-      ```bash
-      gws docs documents batchUpdate \
-        --params '{"documentId": "$CONTRACT_DOC_ID"}' \
-        --json '{"requests": [{"updateTextStyle": {
-          "range": {"startIndex": 1, "endIndex": END_INDEX},
-          "textStyle": {"backgroundColor": {}},
-          "fields": "backgroundColor"
-        }}]}'
-      ```
-
-6. Verify that no `{` or `}` placeholder tokens remain in the document. If any
-   are found that aren't in the map above, flag them in the summary with the
-   surrounding context so the human can resolve them.
-
-### Step 3b — Copy ancillary onboarding documents into the employee folder
-
-Copy the standard onboarding documents into the employee's folder so the folder
-contains a complete onboarding pack for that employee. Use `gws drive files copy`
-with `supportsAllDrives: true` for each document.
-
-Required source documents:
-
-| Document                        | Source File ID                           |
-| ------------------------------- | ---------------------------------------- |
-| Payroll Information Form        | `1TchMO5lP1Yv0HnYjKQRN6gq3Ba1KkGh4`        |
-| Fair Work Information Statement | `11txwv4dHDHslHkRzh0DoO0ny-OGpsLwR`        |
-| Employee Handbook               | `17UpA0Msl7G_0YRkYBldil4gKDs4kZmPl`        |
-| Health & Safety Handbook        | `17VF3zyohOAN80d9aSMG0KvX_Oo2GhVl_`        |
-
-For each file:
-
-1. Copy it into the employee folder from Step 2.
-2. Keep the original document name unless there is a naming conflict.
-3. Record the copied file ID for later attachment and verification steps.
-
-Example:
-
-```bash
-gws drive files copy \
-  --params '{"fileId": "{SOURCE_FILE_ID}", "supportsAllDrives": true}' \
-  --json '{"parents": ["{EMPLOYEE_FOLDER_ID}"]}'
-```
+4. After replacement, verify that no `{` or `}` placeholder tokens remain in
+   the document. If any are found that aren't in the map above, flag them in
+   the summary with the surrounding context so the human can resolve them.
+5. If address was not provided, delete the `{employee address if known}` line
+   from Schedule Item 2 entirely rather than leaving a blank.
 
 ### Step 4 — Send platform invitations
 
 #### 4a — Deputy (API)
 
-Use Deputy as a two-step setup:
-
-1. Create the employee profile and core employment details.
-2. Apply the correct Deputy award-library pay rate for the employee's employment type.
-
-`DEPUTY_SUBDOMAIN` already contains the full hostname
-(for example `18b41717033219.au.deputy.com`). The correct base URL is:
-`https://$DEPUTY_SUBDOMAIN/api/v1`
-
-**Step 4a.1 — Create the employee**
+Use the Deputy V2 Employee API to create the employee profile.
 
 ```
-POST https://$DEPUTY_SUBDOMAIN/api/v1/supervise/employee
-Authorization: OAuth $DEPUTY_TOKEN
+POST https://{DEPUTY_SUBDOMAIN}.deputy.com/api/v2/employees
+Authorization: Bearer {DEPUTY_API_TOKEN}
 Content-Type: application/json
 
 {
-  "strFirstName": "{first_name}",
-  "strLastName": "{last_name}",
-  "strEmail": "{email}",
-  "strMobile": "{phone}",
-  "intCompanyId": 1,
-  "fltPayRate": {pay_rate},
-  "strStartDate": "{start_date}",
-  "strEmploymentBasis": "{employment_type}"
+  "firstName": "{first_name}",
+  "lastName": "{last_name}",
+  "displayName": "{full_name}",
+  "primaryLocation": {
+    "id": "{location_id}"
+  },
+  "contact": {
+    "email1": "{email}",
+    "phone1": "{phone}"
+  },
+  "user": {
+    "sendInvite": true
+  },
+  "startDate": "{start_date}T00:00:00+10:00"
 }
 ```
-
-Use Deputy employment basis values:
-
-| Skill input | Deputy value |
-| ----------- | ------------ |
-| `CAS`       | `CAS`        |
-| `PT`        | `PT`         |
-| `FT`        | `FT`         |
-
-Capture the created employee ID from the response for the award configuration step.
 
 **Location mapping:**
 
 | City      | Deputy Location ID |
-| --------- | ------------------ |
+|-----------|--------------------|
 | Melbourne | `1`                |
 | Sydney    | `8`                |
 | Brisbane  | `10`               |
-
-This step is responsible for:
-
-- Personal information such as first name, last name, email, and mobile
-- Employment basis (`CAS`, `PT`, `FT`)
-- Start date
-- Base pay value used during creation
-
-**Step 4a.2 — Apply the Deputy award library**
-
-Fig & Bloom uses the Deputy award library for GRIA. After the employee is created,
-apply the correct library award based on employment type:
-
-| Skill input | Deputy award library name |
-| ----------- | ------------------------- |
-| `PT`        | `TP [MA000004] GRIA - Part Time - 1-July-2025` |
-| `CAS`       | `TP [MA000004] GRIA - Casual- 1-July-2025` |
-| `FT`        | `TP [MA000004] GRIA - Full Time - 1-July-2025` |
-
-Use the Deputy pay-rate-library flow:
-
-1. Query the employment contract / award library to find the matching library record ID.
-2. Apply that library award to the employee.
-3. If the award configuration supports overriding the ordinary base hourly rate,
-   set it to the employee's agreed pay rate.
-4. If a classification / level is required for the selected award, do not guess.
-   Flag it for human confirmation unless it was explicitly provided in the onboarding brief.
-
-Also set or update the employee's Payroll ID if the workflow has a confirmed value
-to use. If no Payroll ID is available, leave it blank and note it in the summary.
-
-Do not assume the create-employee API call fully configures pay details shown in the
-Deputy UI. The award-library assignment is a separate step and must be handled explicitly.
 
 If API credentials are not configured or the call fails, log the failure and
 note that Deputy setup must be completed manually.
@@ -308,8 +209,8 @@ Invite the employee to the city-specific Trello board.
 ```
 PUT https://api.trello.com/1/boards/{board_id}/members
   ?email={email}
-  &key=$TRELLO_API_KEY
-  &token=$TRELLO_TOKEN
+  &key={TRELLO_API_KEY}
+  &token={TRELLO_API_TOKEN}
 Content-Type: application/json
 
 {
@@ -320,7 +221,7 @@ Content-Type: application/json
 **Board mapping:**
 
 | City      | Trello Board ID |
-| --------- | --------------- |
+|-----------|-----------------|
 | Melbourne | `4GWtuEoW`      |
 | Sydney    | `trCaCddH`      |
 | Brisbane  | `tXKKliCD`      |
@@ -338,85 +239,103 @@ note that the Trello invite must be sent manually.
 and email in the summary so the human can send the invite from Slack directly.
 
 **Future options** (for Dan to evaluate):
-
 - If Fig & Bloom upgrades to Enterprise Grid, use `admin.users.invite`.
 - Build a browser automation skill using Claude in Chrome to navigate to
   Slack's invite UI and submit the form.
 - Use a third-party integration (Zapier/Make) triggered by a webhook.
 
-### Step 5 — Send employment package via email
+### Step 5 — Draft employment package email
 
-Compose and send an email to the new employee with the following attachments.
-Use Gmail (via MCP or API) to send from the appropriate Fig & Bloom address.
+> **Safety mode:** This step creates a **draft** in Kellie's inbox rather than
+> sending directly. A human reviews and sends the draft manually. This will be
+> changed to auto-send once the pipeline is proven reliable.
 
-Before attempting to draft or send, perform a lightweight Gmail authorisation
-check such as `gmail_get_profile`.
+Compose a draft email in Kellie's inbox with the employment package attached.
+Before creating the draft, download all attachment files to a temporary
+directory on disk.
 
-- If the check succeeds, continue with Step 5 as normal.
-- If the check fails with an auth or permissions error, skip sending. Include
-  the complete ready-to-send subject, body, recipient, and attachment list in
-  the final summary so a human can copy-paste and send it manually.
+**Prepare attachments:**
 
-**Subject:** `Welcome to Fig & Bloom — Your Employment Package`
+1. Export the employment contract from Google Docs as PDF (use Google Drive
+   MCP to download). Save to `/tmp/onboarding-{name}/contract.pdf`.
+2. Download the remaining PDFs from Google Drive by file ID:
 
-**Body template:**
+   | Document                        | File ID                                          |
+   |---------------------------------|--------------------------------------------------|
+   | Employment contract             | The copy created in Step 3 (export as PDF)       |
+   | Payroll Information Form        | `1TchMO5lP1Yv0HnYjKQRN6gq3Ba1KkGh4`            |
+   | Fair Work Information Statement | `11txwv4dHDHslHkRzh0DoO0ny-OGpsLwR`              |
+   | Employee Handbook               | `17UpA0Msl7G_0YRkYBldil4gKDs4kZmPl`              |
+   | Health & Safety Handbook        | `17VF3zyohOAN80d9aSMG0KvX_Oo2GhVl_`              |
 
+   See `references/drive-ids.md` for the full file inventory.
+
+3. Save all files to `/tmp/onboarding-{name}/`.
+
+**Create the draft:**
+
+Build a multipart MIME message with attachments and create a draft via the
+Gmail API. Use `gws schema gmail.users.drafts.create` to inspect the method
+if needed.
+
+```bash
+GOOGLE_WORKSPACE_CLI_CONFIG_DIR=$GWS_USER_KELLIE \
+  gws gmail users drafts create \
+  --params '{"userId": "me"}' \
+  --json '{
+    "message": {
+      "raw": "<base64-encoded MIME message>"
+    }
+  }'
 ```
-Hi {first_name},
 
-Welcome to Fig & Bloom! We're thrilled to have you joining the team.
+The MIME message must include:
+- **To:** `{email}`
+- **Subject:** `Welcome to Fig & Bloom — Your Employment Package`
+- **Body:**
+  ```
+  Hi {first_name},
 
-Please find your employment package attached. This includes:
+  Welcome to Fig & Bloom! We're thrilled to have you joining the team.
 
-- Your employment contract — please review, sign, and return
-- Payroll information form — please complete and return
-- Fair Work Information Statement
-- Employee handbook
-- Health & safety handbook
+  Please find your employment package attached. This includes:
 
-If you have any questions, don't hesitate to reach out.
+  - Your employment contract — please review, sign, and return
+  - Payroll information form — please complete and return
+  - Fair Work Information Statement
+  - Employee handbook
+  - Health & safety handbook
 
-We look forward to working with you.
+  If you have any questions, don't hesitate to reach out.
 
-Warm regards,
-Fig & Bloom
-```
+  We look forward to working with you.
 
-**Attachments — source file IDs (People & Culture shared drive):**
+  Warm regards,
+  Kellie
+  Fig & Bloom
+  ```
+- **Attachments:** All five PDFs from the temp directory, each as a MIME part
+  with `Content-Disposition: attachment` and the correct filename.
 
-| Document                        | Attachment source                             |
-| ------------------------------- | --------------------------------------------- |
-| Employment contract             | The copy created in Step 3 (employee's folder) |
-| Payroll Information Form        | The copy created in Step 3b (employee's folder) |
-| Fair Work Information Statement | The copy created in Step 3b (employee's folder) |
-| Employee Handbook               | The copy created in Step 3b (employee's folder) |
-| Health & Safety Handbook        | The copy created in Step 3b (employee's folder) |
+To construct the base64-encoded raw message, build the MIME multipart message
+programmatically (e.g. with Python's `email` module or a shell-based approach),
+then base64url-encode the result.
 
-See `references/drive-ids.md` for the full file inventory.
-
-To attach Drive files to the email:
-
-1. Download or export the employee-folder copies of each required document.
-2. Export the employment contract from Google Docs as PDF.
-3. Attach all to the outgoing Gmail message.
-
-If any attachment cannot be found or downloaded, send the email with whatever
+If any attachment cannot be found or downloaded, create the draft with whatever
 attachments are available and note the missing items in the summary.
+
+Clean up the temp directory after the draft is created.
 
 ### Step 6 — Save documents to Google Drive
 
 Ensure the employee's folder (from Step 2) contains:
-
 - CV (if found in Step 1)
 - Hiring correspondence (saved in Step 2)
 - Employment contract (already there from Step 3)
-- Payroll Information Form copy (saved in Step 3b)
-- Fair Work Information Statement copy (saved in Step 3b)
-- Employee Handbook copy (saved in Step 3b)
-- Health & Safety Handbook copy (saved in Step 3b)
-- A record of the welcome email sent (save as PDF or note the Gmail message ID)
+- A note of the draft email ID (from Step 5) for reference
 
 This step is mostly a verification pass — confirm the folder has what it should.
+
 
 ## Post-Process Summary
 
@@ -435,10 +354,11 @@ After all steps complete, produce a summary like this:
 | Deputy profile              | ✅      | Employee ID: {id}             |
 | Trello board invite         | ✅      | {city} board                  |
 | Slack invite                | ⏳      | Manual — send to {email}      |
-| Employment package email    | ✅      | Sent {timestamp}              |
+| Employment package email    | ✅      | Draft created — review in Kellie's inbox |
 | Drive folder verification   | ✅      |                               |
 
 **Action required:**
+- [ ] Review and send the welcome email draft in Kellie's inbox
 - [ ] Send Slack workspace invite to {email}
 - [ ] Confirm contract is signed and returned
 ```
@@ -446,21 +366,32 @@ After all steps complete, produce a summary like this:
 Adapt the table to reflect actual outcomes — use ✅ for success, ❌ for failure
 (with error detail), and ⏳ for manual steps.
 
+
 ## Configuration
 
 This skill requires the following secrets/environment variables to be available
 to the agent at runtime. If any are missing, the agent should note which
 integrations will be skipped and flag for manual completion.
 
-| Variable           | Description                                                              |
-| ------------------ | ------------------------------------------------------------------------ |
-| `DEPUTY_TOKEN`     | OAuth token for Deputy V1 API                                            |
-| `DEPUTY_SUBDOMAIN` | Full Deputy hostname used in URL: `https://$DEPUTY_SUBDOMAIN/api/v1`     |
-| `TRELLO_API_KEY`   | Trello Power-Up API key                                                  |
-| `TRELLO_TOKEN`     | Trello user token with board write access                                |
+| Variable                                  | Description                                                  |
+|-------------------------------------------|--------------------------------------------------------------|
+| `GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND`    | Must be set to `file` (global)                               |
+| `GWS_USER_KELLIE`                         | Path to gws config dir for kellie@figandbloom.com            |
+| `GWS_USER_ADMIN`                          | Path to gws config dir for admin@figandbloom.com.au          |
+| `GWS_USER_EVENTS`                         | Path to gws config dir for events@figandbloom.com            |
+| `GWS_USER_SERVICE`                        | Path to gws config dir for service@figandbloom.com           |
+| `DEPUTY_API_TOKEN`                        | Bearer token for Deputy API                                  |
+| `DEPUTY_SUBDOMAIN`                        | Deputy instance subdomain (`{DEPUTY_SUBDOMAIN}.deputy.com`)  |
+| `TRELLO_API_KEY`                          | Trello Power-Up API key                                      |
+| `TRELLO_API_TOKEN`                        | Trello user token with board write access                    |
 
-Google Drive and Gmail access is provided via MCP connectors (Google Drive MCP,
-Gmail MCP) — these do not require separate API keys.
+**This skill uses `$GWS_USER_KELLIE` for all Gmail operations** (searching for
+hiring threads and drafting the welcome email). Other skills may use different
+inbox env vars as needed.
+
+Google Drive access is provided via the Google Drive MCP connector — no
+separate API key required.
+
 
 ## Error Handling
 
@@ -476,9 +407,10 @@ Gmail MCP) — these do not require separate API keys.
 - **Partial completion:** Always produce the summary table even if some steps
   failed. The human needs to know what's done and what isn't.
 
+
 ## Anti-Patterns
 
-- **Don't send the email before the contract is generated.** The contract is
+- **Don't draft the email before the contract is generated.** The contract is
   an attachment — wait for Step 3 to complete before Step 5.
 - **Don't assume folder IDs.** Always search for folders by name within the
   shared drive. Folder IDs can change if someone moves things around.
