@@ -27,7 +27,7 @@ Every layout decision, style rule, illustration, icon, and colour is already bak
 4. SELECT        → Choose components from references/manifest.json
 5. RENDER        → Fill tokens into templates → slice visual components to PNG via puppeteer skill
 6. VALIDATE      → Check all tokens filled, all slices produced, pre-flight checks
-7. PREVIEW       → Assemble preview email (slices + HTML text blocks). Save + Google Drive. Wait for approval.
+7. PREVIEW       → Assemble preview email (slices + HTML text blocks). Save to Google Drive only. Wait for approval.
 8. UPLOAD        → Upload approved slices to Klaviyo media library. Get hosted URLs.
 9. PRODUCTION    → Assemble final email HTML (Klaviyo slice URLs + text block HTML)
 10. KLAVIYO      → Upload template + create campaign. Wait for approval before scheduling.
@@ -199,12 +199,10 @@ Assemble a preview email that mixes local slice paths (for review) with the text
 
 For preview, slice `<img>` tags use `file://` local paths. These will be replaced with Klaviyo CDN URLs in Step 9.
 
-Save preview HTML to:
-- `/mnt/user-data/outputs/{YYYY-MM-DD}-{campaign-slug}-preview.html`
-- Google Drive (read `reference-google-drive` skill):
-  - Folder: Campaign Drafts (ID: `14SJXWGGrZAoJUmkEb0FlBDSHHNyf_bIj`)
-  - Title: `{YYYY-MM-DD} {Campaign Name} — Design Preview`
-  - mimeType: `text/html`, disableConversionToGoogleType: `true`
+Save preview HTML to Google Drive only — do not write preview HTML to local disk. Read `reference-google-drive` skill for conventions:
+- Folder: Campaign Drafts (ID: `14SJXWGGrZAoJUmkEb0FlBDSHHNyf_bIj`)
+- Title: `{YYYY-MM-DD} {Campaign Name} — Design Preview`
+- mimeType: `text/html`, disableConversionToGoogleType: `true`
 
 State: *"Preview uses locally-rendered PNG slices — fonts, illustrations, and layout are browser-rendered and pixel-accurate. Review at 600px width."*
 
@@ -249,9 +247,10 @@ Assemble the final email HTML using Klaviyo CDN slice URLs (replacing local file
 - Text components: inserted as raw HTML (no shell wrapper needed — inline styles only)
 - Unsubscribe: `{{ unsubscribe_url }}` in footer — exact Klaviyo syntax
 
-Save to:
-- `/mnt/user-data/outputs/{YYYY-MM-DD}-{campaign-slug}-production.html`
-- Google Drive: `{YYYY-MM-DD} {Campaign Name} — Production HTML` (same Campaign Drafts folder)
+Save to Google Drive only — do not write production HTML to local disk:
+- Folder: Campaign Drafts (ID: `14SJXWGGrZAoJUmkEb0FlBDSHHNyf_bIj`)
+- Title: `{YYYY-MM-DD} {Campaign Name} — Production HTML`
+- mimeType: `text/html`, disableConversionToGoogleType: `true`
 
 **Font check:** grep production HTML for `base64` in `<style>` blocks. Should find none — the production email has no embedded fonts, only Klaviyo-hosted slice images.
 
