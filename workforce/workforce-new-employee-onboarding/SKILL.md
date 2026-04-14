@@ -63,14 +63,18 @@ is down. Track pass/fail per step.
 Use the `gws` CLI to search Kellie's inbox for the candidate's correspondence.
 All Gmail commands in this skill use the `$GWS_USER_KELLIE` config directory.
 
-**Helper shorthand** — prefix all `gws` commands in this skill with:
-```
-GOOGLE_WORKSPACE_CLI_CONFIG_DIR=$GWS_USER_KELLIE
+**Important:** The `GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE` env var is set globally and takes precedence over `GOOGLE_WORKSPACE_CLI_CONFIG_DIR`. Always unset it when using a profile-based config:
+
+```bash
+env -u GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE \
+  GOOGLE_WORKSPACE_CLI_CONFIG_DIR=$GWS_USER_KELLIE \
+  gws gmail ...
 ```
 
 1. Search Gmail for messages involving the employee's email address:
    ```bash
-   GOOGLE_WORKSPACE_CLI_CONFIG_DIR=$GWS_USER_KELLIE \
+   env -u GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE \
+     GOOGLE_WORKSPACE_CLI_CONFIG_DIR=$GWS_USER_KELLIE \
      gws gmail users messages list \
      --params '{"userId": "me", "q": "from:{email} OR to:{email}", "maxResults": 20}'
    ```
@@ -80,7 +84,8 @@ GOOGLE_WORKSPACE_CLI_CONFIG_DIR=$GWS_USER_KELLIE
    prefer the most recent thread with the most messages.
 3. Read the full thread content:
    ```bash
-   GOOGLE_WORKSPACE_CLI_CONFIG_DIR=$GWS_USER_KELLIE \
+   env -u GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE \
+     GOOGLE_WORKSPACE_CLI_CONFIG_DIR=$GWS_USER_KELLIE \
      gws gmail users threads get \
      --params '{"userId": "me", "id": "{thread_id}"}'
    ```
@@ -88,13 +93,15 @@ GOOGLE_WORKSPACE_CLI_CONFIG_DIR=$GWS_USER_KELLIE
    (typically `.pdf`, `.docx`, or `.doc` with filenames containing "cv",
    "resume", or the candidate's name). Download any found:
    ```bash
-   GOOGLE_WORKSPACE_CLI_CONFIG_DIR=$GWS_USER_KELLIE \
+   env -u GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE \
+     GOOGLE_WORKSPACE_CLI_CONFIG_DIR=$GWS_USER_KELLIE \
      gws gmail users messages attachments get \
      --params '{"userId": "me", "messageId": "{message_id}", "id": "{attachment_id}"}'
    ```
 5. If no CV attachment is found in the thread, broaden the search:
    ```bash
-   GOOGLE_WORKSPACE_CLI_CONFIG_DIR=$GWS_USER_KELLIE \
+   env -u GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE \
+     GOOGLE_WORKSPACE_CLI_CONFIG_DIR=$GWS_USER_KELLIE \
      gws gmail users messages list \
      --params '{"userId": "me", "q": "from:{email} filename:pdf OR filename:docx", "maxResults": 5}'
    ```
@@ -244,15 +251,11 @@ and email in the summary so the human can send the invite from Slack directly.
   Slack's invite UI and submit the form.
 - Use a third-party integration (Zapier/Make) triggered by a webhook.
 
-### Step 5 — Draft employment package email
+### Step 5 — Send employment package email
 
-> **Safety mode:** This step creates a **draft** in Kellie's inbox rather than
-> sending directly. A human reviews and sends the draft manually. This will be
-> changed to auto-send once the pipeline is proven reliable.
-
-Compose a draft email in Kellie's inbox with the employment package attached.
-Before creating the draft, download all attachment files to a temporary
-directory on disk.
+Compose and send the employment package email from Kellie's inbox using the
+`gws` CLI. Download all attachment files to a temporary directory first, then
+build the MIME message as a file and send via upload.
 
 **Prepare attachments:**
 
@@ -272,21 +275,20 @@ directory on disk.
 
 3. Save all files to `/tmp/onboarding-{name}/`.
 
-**Create the draft:**
+**Build and send the email:**
 
-Build a multipart MIME message with attachments and create a draft via the
-Gmail API. Use `gws schema gmail.users.drafts.create` to inspect the method
-if needed.
+Build the MIME message as a `.eml` file using Python's `email.mime.*` modules
+(multipart/mixed with all PDF attachments), then send directly via the Gmail
+API using `--upload`. This approach avoids the OS argument length limit that
+occurs when a large base64 body is passed inline via `--json`.
 
 ```bash
-GOOGLE_WORKSPACE_CLI_CONFIG_DIR=$GWS_USER_KELLIE \
-  gws gmail users drafts create \
+env -u GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE \
+  GOOGLE_WORKSPACE_CLI_CONFIG_DIR=$GWS_USER_KELLIE \
+  gws gmail users messages send \
   --params '{"userId": "me"}' \
-  --json '{
-    "message": {
-      "raw": "<base64-encoded MIME message>"
-    }
-  }'
+  --upload "/tmp/onboarding-{name}/welcome_email.eml" \
+  --upload-content-type "message/rfc822"
 ```
 
 The MIME message must include:
@@ -317,14 +319,10 @@ The MIME message must include:
 - **Attachments:** All five PDFs from the temp directory, each as a MIME part
   with `Content-Disposition: attachment` and the correct filename.
 
-To construct the base64-encoded raw message, build the MIME multipart message
-programmatically (e.g. with Python's `email` module or a shell-based approach),
-then base64url-encode the result.
-
-If any attachment cannot be found or downloaded, create the draft with whatever
+If any attachment cannot be found or downloaded, send the email with whatever
 attachments are available and note the missing items in the summary.
 
-Clean up the temp directory after the draft is created.
+Clean up the temp directory after sending.
 
 ### Step 6 — Save documents to Google Drive
 
@@ -332,7 +330,7 @@ Ensure the employee's folder (from Step 2) contains:
 - CV (if found in Step 1)
 - Hiring correspondence (saved in Step 2)
 - Employment contract (already there from Step 3)
-- A note of the draft email ID (from Step 5) for reference
+- A note of the sent email message ID (from Step 5) for reference
 
 This step is mostly a verification pass — confirm the folder has what it should.
 
@@ -354,11 +352,10 @@ After all steps complete, produce a summary like this:
 | Deputy profile              | ✅      | Employee ID: {id}             |
 | Trello board invite         | ✅      | {city} board                  |
 | Slack invite                | ⏳      | Manual — send to {email}      |
-| Employment package email    | ✅      | Draft created — review in Kellie's inbox |
+| Employment package email    | ✅      | Sent from Kellie's inbox      |
 | Drive folder verification   | ✅      |                               |
 
 **Action required:**
-- [ ] Review and send the welcome email draft in Kellie's inbox
 - [ ] Send Slack workspace invite to {email}
 - [ ] Confirm contract is signed and returned
 ```
@@ -386,8 +383,16 @@ integrations will be skipped and flag for manual completion.
 | `TRELLO_API_TOKEN`                        | Trello user token with board write access                    |
 
 **This skill uses `$GWS_USER_KELLIE` for all Gmail operations** (searching for
-hiring threads and drafting the welcome email). Other skills may use different
+hiring threads and sending the welcome email). Other skills may use different
 inbox env vars as needed.
+
+**Note on `GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE`:** If this env var is set in
+the agent environment (e.g. pointing to a default credentials file), it takes
+precedence over `GOOGLE_WORKSPACE_CLI_CONFIG_DIR`. All `gws` commands in this
+skill use `env -u GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE` to ensure the correct
+profile-based credentials are used. If you want to remove this workaround
+permanently, unset `GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE` from the agent's
+environment config.
 
 Google Drive access is provided via the Google Drive MCP connector — no
 separate API key required.
@@ -420,3 +425,6 @@ separate API key required.
   this skill (1, 8, 10) are confirmed as of April 2026. If a call returns
   a location error, query the Deputy API for the current location list
   before assuming the IDs are wrong.
+- **Don't pass large base64 payloads inline via `--json`.** Use `--upload`
+  with a `.eml` file for Gmail sends with attachments to avoid OS argument
+  length limits.
