@@ -124,10 +124,14 @@ This step fills tokens into templates and renders visual components as PNG slice
 Divide the selected component list into two groups:
 
 **Slice to PNG** (visual — render via Puppeteer):
-- header, all hero variants, all product cards, body-copy, testimonial, upsell-noir, trust-bar, divider-illo-*
+- header, all hero variants, all product cards, body-copy (illustrated variant), testimonial, upsell-noir, trust-bar, divider-illo-*
 
-**Keep as HTML** (text-only — safe in all email clients):
-- opt-out, section-headline, delivery-cutoffs, footer, divider-line, divider-whitespace
+**Keep as HTML** (text-only — safe in all email clients, stays selectable/responsive):
+- opt-out, section-headline, delivery-cutoffs, footer, body-copy-plain, divider-line, divider-whitespace
+
+**Body-copy variant selection:**
+- `body-copy` (sliced) — includes the HandRose accent illustration (bottom-right, 10% opacity). Use when you want the illustration.
+- `body-copy-plain` (HTML) — no illustration, pure typography. **Prefer this by default** — text stays selectable, accessible, and responsive in email clients.
 
 ### 5b. Pre-download product images
 
