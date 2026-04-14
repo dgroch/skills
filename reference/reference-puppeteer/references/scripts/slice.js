@@ -3,25 +3,36 @@
  * slice.js — Render HTML component files to PNG image slices
  *
  * Usage:
- *   node slice.js --input <file_or_dir> --output <dir> [options]
+ *   node slice.js --input <file_or_dir> --output <dir> --assets <dir> [options]
  *
  * Options:
  *   --input   <path>    Single HTML file or directory of HTML files (required)
  *   --output  <dir>     Output directory for PNG files (required)
+ *   --assets  <dir>     Absolute path to assets folder containing illustration PNGs (required)
  *   --width   <px>      Email width in CSS pixels (default: 600)
  *   --scale   <n>       Device scale factor for retina output (default: 2)
  *   --timeout <ms>      Max wait time per render in ms (default: 10000)
  *   --verbose           Log detailed progress
  *
+ * The --assets flag replaces {{ASSETS_BASE}} tokens in template HTML with the
+ * absolute path to the assets folder, so Puppeteer can resolve illustration images.
+ *
  * Output:
  *   One PNG per input HTML file, named identically (hero-a.html → hero-a.png)
  *   At scale:2 and width:600, output images are 1200px wide (retina-ready)
- *   Height is auto-cropped to exact content height — no fixed height required
+ *   Height is auto-cropped to exact content height
  *
  * Examples:
- *   node slice.js --input ./components/hero-a.html --output ./slices/
- *   node slice.js --input ./components/ --output ./slices/ --verbose
- *   node slice.js --input ./components/ --output ./slices/ --width 600 --scale 2
+ *   node slice.js \
+ *     --input ./components/hero-a.html \
+ *     --output ./slices/ \
+ *     --assets /path/to/email-campaign-builder/references/assets
+ *
+ *   node slice.js \
+ *     --input ./components/ \
+ *     --output ./slices/ \
+ *     --assets /path/to/email-campaign-builder/references/assets \
+ *     --width 600 --scale 2 --verbose
  */
 
 'use strict';
@@ -32,21 +43,24 @@ const fs = require('fs');
 const args = require('minimist')(process.argv.slice(2));
 
 // ── Config ────────────────────────────────────────────────────────────────────
-const INPUT   = args.input;
-const OUTPUT  = args.output;
-const WIDTH   = parseInt(args.width   || 600, 10);
-const SCALE   = parseInt(args.scale   || 2,   10);
-const TIMEOUT = parseInt(args.timeout || 10000, 10);
-const VERBOSE = !!args.verbose;
+const INPUT        = args.input;
+const OUTPUT       = args.output;
+const ASSETS_DIR   = args.assets;
+const WIDTH        = parseInt(args.width   || 600,   10);
+const SCALE        = parseInt(args.scale   || 2,     10);
+const TIMEOUT      = parseInt(args.timeout || 10000, 10);
+const VERBOSE      = !!args.verbose;
+
+const ASSETS_TOKEN = '{{ASSETS_BASE}}';
 
 function log(...msg)  { if (VERBOSE) console.log('[slice]', ...msg); }
 function info(...msg) { console.log('[slice]', ...msg); }
 function err(...msg)  { console.error('[slice] ERROR:', ...msg); }
 
 // ── Validation ────────────────────────────────────────────────────────────────
-if (!INPUT || !OUTPUT) {
-  err('--input and --output are required.');
-  err('Usage: node slice.js --input <file_or_dir> --output <dir>');
+if (!INPUT || !OUTPUT || !ASSETS_DIR) {
+  err('--input, --output, and --assets are required.');
+  err('Usage: node slice.js --input <file_or_dir> --output <dir> --assets <dir>');
   process.exit(1);
 }
 
@@ -54,6 +68,15 @@ if (!fs.existsSync(INPUT)) {
   err(`Input not found: ${INPUT}`);
   process.exit(1);
 }
+
+if (!fs.existsSync(ASSETS_DIR)) {
+  err(`Assets directory not found: ${ASSETS_DIR}`);
+  process.exit(1);
+}
+
+// Resolve assets path to absolute — Puppeteer needs file:// absolute paths
+const ASSETS_ABS = `file://${path.resolve(ASSETS_DIR)}`;
+log(`Assets path: ${ASSETS_ABS}`);
 
 // Collect HTML files to process
 function collectHtmlFiles(inputPath) {
@@ -65,7 +88,6 @@ function collectHtmlFiles(inputPath) {
     }
     return [inputPath];
   }
-  // Directory — collect all .html files, sorted for predictable order
   return fs.readdirSync(inputPath)
     .filter(f => f.endsWith('.html'))
     .sort()
@@ -79,7 +101,6 @@ if (htmlFiles.length === 0) {
   process.exit(1);
 }
 
-// Ensure output directory exists
 fs.mkdirSync(OUTPUT, { recursive: true });
 
 // ── Render ────────────────────────────────────────────────────────────────────
@@ -89,9 +110,17 @@ async function renderFile(page, htmlFile) {
 
   log(`Rendering ${basename}.html...`);
 
-  // Load HTML as file:// URL so relative paths resolve correctly
-  const fileUrl = `file://${path.resolve(htmlFile)}`;
-  await page.goto(fileUrl, {
+  // Read the template HTML and inject the assets base path
+  let html = fs.readFileSync(htmlFile, 'utf8');
+
+  if (html.includes(ASSETS_TOKEN)) {
+    html = html.replaceAll(ASSETS_TOKEN, ASSETS_ABS);
+    log(`  Injected assets path (${(html.match(/ASSETS_ABS/g) || []).length} replacements)`);
+  }
+
+  // Use setContent rather than goto — avoids file:// URL issues with inline content
+  // Use a base URL so any remaining relative paths still resolve
+  await page.setContent(html, {
     waitUntil: 'networkidle0',
     timeout: TIMEOUT,
   });
@@ -99,31 +128,26 @@ async function renderFile(page, htmlFile) {
   // Wait for fonts to load — critical for Cervanttis, Lust, NeuzeitGro
   await page.evaluate(() => document.fonts.ready);
 
-  // Wait one more frame to ensure illustrations and images have rendered
+  // Wait one animation frame to ensure illustrations are painted
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(resolve)));
 
-  // Get exact content height — no fixed height, no clipping, no whitespace
+  // Get exact content height — auto-crops to component, no whitespace
   const contentHeight = await page.evaluate(() => {
-    // Get the tallest element — handles both <table> and <div> root structures
     const body = document.body;
     const html = document.documentElement;
     return Math.max(
-      body.scrollHeight,
-      body.offsetHeight,
-      html.clientHeight,
-      html.scrollHeight,
-      html.offsetHeight
+      body.scrollHeight, body.offsetHeight,
+      html.clientHeight, html.scrollHeight, html.offsetHeight
     );
   });
 
-  // Set viewport to exact content height to avoid any scrollbar or clipping
+  // Resize viewport to exact content height before screenshotting
   await page.setViewport({
     width: WIDTH,
     height: contentHeight,
     deviceScaleFactor: SCALE,
   });
 
-  // Screenshot the full page
   await page.screenshot({
     path: outputFile,
     fullPage: true,
@@ -138,29 +162,30 @@ async function renderFile(page, htmlFile) {
 
 async function main() {
   info(`Processing ${htmlFiles.length} file(s) at ${WIDTH}px × ${SCALE}x scale...`);
-  info(`Output → ${path.resolve(OUTPUT)}`);
+  info(`Output   → ${path.resolve(OUTPUT)}`);
+  info(`Assets   → ${path.resolve(ASSETS_DIR)}`);
 
   const browser = await puppeteer.launch({
     headless: 'new',
     args: [
-      '--no-sandbox',                     // Required for VPS/Docker environments
+      '--no-sandbox',
       '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',          // Avoids /dev/shm issues on Linux VPS
-      '--disable-gpu',                    // Headless doesn't need GPU
-      '--font-render-hinting=none',       // Prevents font antialiasing inconsistencies
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+      '--font-render-hinting=none',
+      // Allow file:// access to local assets
+      '--allow-file-access-from-files',
     ],
   });
 
   const page = await browser.newPage();
 
-  // Set initial viewport — will be adjusted per-file for exact height
   await page.setViewport({
     width: WIDTH,
     height: 800,
     deviceScaleFactor: SCALE,
   });
 
-  // Disable navigation timeout globally (content may be heavy)
   page.setDefaultNavigationTimeout(TIMEOUT);
 
   const results = [];
@@ -178,7 +203,6 @@ async function main() {
 
   await browser.close();
 
-  // Summary
   info(`\nDone. ${results.length} slice(s) created, ${errors.length} error(s).`);
 
   if (errors.length > 0) {
@@ -187,7 +211,7 @@ async function main() {
     process.exit(1);
   }
 
-  // Output JSON manifest of produced files (useful for agent to parse)
+  // Output JSON manifest for agent parsing
   const manifest = {
     slices: results.map(f => ({
       file: path.basename(f),

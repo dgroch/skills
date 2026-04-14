@@ -35,12 +35,14 @@ Renders one or more HTML component files to PNG images. Each HTML file becomes o
 # Single file
 node references/scripts/slice.js \
   --input ./components/hero-a.html \
-  --output ./slices/
+  --output ./slices/ \
+  --assets /path/to/email-campaign-builder/references/assets
 
 # Directory of files (processes all .html files)
 node references/scripts/slice.js \
   --input ./components/ \
   --output ./slices/ \
+  --assets /path/to/email-campaign-builder/references/assets \
   --width 600 \
   --scale 2 \
   --verbose
@@ -52,6 +54,7 @@ node references/scripts/slice.js \
 | ----------- | -------- | ------------------------------------------------------ |
 | `--input`   | required | HTML file or directory                                 |
 | `--output`  | required | Output directory                                       |
+| `--assets`  | required | Absolute path to assets folder (illustrations)         |
 | `--width`   | `600`    | CSS pixel width (use 600 for email)                    |
 | `--scale`   | `2`      | Device scale factor (2 = retina, 1200px actual output) |
 | `--timeout` | `10000`  | Max render time per file in ms                         |
