@@ -1,0 +1,16 @@
+{
+  "name": "paperclip-puppeteer",
+  "version": "1.0.0",
+  "description": "Headless browser utilities for Paperclip agents — screenshot, slice, and PDF rendering.",
+  "private": true,
+  "scripts": {
+    "install-check": "node -e \"require('puppeteer'); console.log('Puppeteer OK');\""
+  },
+  "dependencies": {
+    "puppeteer": "^22.0.0",
+    "minimist": "^1.2.8"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
