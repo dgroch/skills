@@ -138,6 +138,24 @@ async function renderFile(page, htmlFile) {
     // Wait for fonts to load — critical for Cervanttis, Lust, NeuzeitGro
     await page.evaluate(() => document.fonts.ready);
 
+    // Verify each font family actually loaded. Fonts may silently fall back to
+    // system serif/sans if @font-face src paths are wrong or blocked.
+    const fontReport = await page.evaluate(() => {
+      const results = [];
+      document.fonts.forEach(face => {
+        results.push({ family: face.family, status: face.status });
+      });
+      return results;
+    });
+
+    const failedFonts = fontReport.filter(f => f.status !== 'loaded');
+    if (failedFonts.length > 0) {
+      err(`  ${basename}: ${failedFonts.length} font(s) failed to load:`);
+      failedFonts.forEach(f => err(`    - "${f.family}" status: ${f.status}`));
+    } else if (fontReport.length > 0) {
+      log(`  ${fontReport.length} font face(s) loaded OK`);
+    }
+
     // Wait for every <img> to finish loading (success or error). networkidle0
     // alone is unreliable for slow CDN responses — we explicitly await each image.
     const imageReport = await page.evaluate(async () => {
@@ -227,13 +245,16 @@ async function main() {
 
   const browser = await puppeteer.launch({
     headless: 'new',
+    // Use system Chromium — the default Puppeteer browser path does not exist
+    // in this container environment (/usr/bin/chromium-browser is absent).
+    executablePath: '/usr/bin/chromium',
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
       '--disable-dev-shm-usage',
       '--disable-gpu',
       '--font-render-hinting=none',
-      // Allow file:// access to local assets
+      // Required for @font-face to load from file:// URLs in page.goto() context
       '--allow-file-access-from-files',
     ],
   });
