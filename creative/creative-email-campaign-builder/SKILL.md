@@ -39,6 +39,22 @@ Every layout decision, style rule, illustration, icon, and colour is already bak
 
 ---
 
+## Google Workspace Credentials
+
+All Google Drive operations in this skill use the **`$GWS_USER_ADMIN`** credential (admin@figandbloom.com.au). This account has access to the Paperclip shared drive and all Marketing department folders.
+
+**Important:** The `GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE` env var is set globally and takes precedence over `GOOGLE_WORKSPACE_CLI_CONFIG_DIR`. Always unset it when using a profile-based config:
+
+```bash
+env -u GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE \
+  GOOGLE_WORKSPACE_CLI_CONFIG_DIR=$GWS_USER_ADMIN \
+  gws drive ...
+```
+
+Use this pattern for every `gws drive` command in Steps 7 and 9.
+
+---
+
 ## Step 1: Campaign Brief
 
 Collect or parse:
@@ -225,12 +241,21 @@ Save preview HTML to Google Drive only — do not write preview HTML to local di
 - Folder: use the Step 7a run folder (`Campaign Drafts/{YYYYMMDDhhmm}/{campaign-slug}-{run-id}`)
 - Title: `{YYYY-MM-DD} {Campaign Name} — Design Preview`
 - mimeType: `text/html`, disableConversionToGoogleType: `true`
+- Use `GWS_USER_ADMIN` credentials for all Drive API calls (see **Google Workspace Credentials** section above)
 
 State: *"Preview uses locally-rendered PNG slices — fonts, illustrations, and layout are browser-rendered and pixel-accurate. Review at 600px width."*
 
 ### Step 7a: Create deterministic run-scoped Drive folders
 
-Before uploading any preview/production artifacts, create and use nested subfolders under the Campaign Drafts parent:
+Before uploading any preview/production artifacts, create and use nested subfolders under the Campaign Drafts parent. Use `GWS_USER_ADMIN` for all Drive folder creation calls:
+
+```bash
+env -u GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE \
+  GOOGLE_WORKSPACE_CLI_CONFIG_DIR=$GWS_USER_ADMIN \
+  gws drive files create \
+  --json '{"name": "{TIMESTAMP_YYYYMMDDHHMM}", "mimeType": "application/vnd.google-apps.folder", "parents": ["14SJXWGGrZAoJUmkEb0FlBDSHHNyf_bIj"]}' \
+  --params '{"fields": "id,name,webViewLink", "supportsAllDrives": true}'
+```
 
 1. Compute `TIMESTAMP_YYYYMMDDHHMM` in UTC by default (`YYYYMMDDhhmm`, 24-hour clock).
 2. If the caller explicitly provides a timezone override, compute the same format in that timezone.
@@ -291,6 +316,7 @@ Save to Google Drive only — do not write production HTML to local disk:
 - Folder: use the Step 7a run folder (`Campaign Drafts/{YYYYMMDDhhmm}/{campaign-slug}-{run-id}`)
 - Title: `{YYYY-MM-DD} {Campaign Name} — Production HTML`
 - mimeType: `text/html`, disableConversionToGoogleType: `true`
+- Use `GWS_USER_ADMIN` credentials for all Drive API calls (see **Google Workspace Credentials** section above)
 
 **Font check:** grep production HTML for `base64` in `<style>` blocks. Should find none — the production email has no embedded fonts, only Klaviyo-hosted slice images.
 
@@ -337,7 +363,7 @@ Read `references/manifest.json` to confirm exact file paths and token names befo
 | `references/product-selection.md` | Selecting products (Step 2) |
 | `references/manifest.json` | Component selection and token names (Steps 4–5) |
 | `references/klaviyo-html.md` | Klaviyo API calls (Steps 8, 10) |
-| `reference-google-drive` skill | Google Drive uploads (Steps 7, 9) |
+| `reference-google-drive` skill | Google Drive uploads (Steps 7, 9) — use `$GWS_USER_ADMIN` |
 | `puppeteer` skill | Slice rendering (Step 5) — must be installed on VPS first |
 
 ---
