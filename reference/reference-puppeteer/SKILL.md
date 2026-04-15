@@ -15,6 +15,58 @@ Provides headless Chromium rendering for Paperclip agents via three scripts:
 
 ---
 
+## Critical Environment Notes
+
+These are hard-won lessons from real email renders. Skipping any of these will produce silently wrong output.
+
+### Chromium executable path
+
+Always specify `executablePath: '/usr/bin/chromium'` when launching Puppeteer. The default auto-detected path (`/usr/bin/chromium-browser`) does not exist in this environment and will cause a fatal launch error.
+
+```js
+const browser = await puppeteer.launch({
+  executablePath: '/usr/bin/chromium',
+  args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu', '--disable-dev-shm-usage'],
+});
+```
+
+### Font loading: use page.goto(), not page.setContent()
+
+When using local `@font-face` with `file://` URLs, you **must** navigate with `page.goto('file:///abs/path/to/file.html')` instead of `page.setContent(html)`.
+
+Chromium blocks `file:///` font loads when content originates from `setContent()` (no-origin context). The fonts silently fall back to system serif/sans — the render looks plausible but uses the wrong typeface.
+
+Also required: `--allow-file-access-from-files` in Chromium launch args.
+
+### Font verification
+
+After `document.fonts.ready`, enumerate `document.fonts` to confirm each family loaded:
+
+```js
+await page.evaluate(() => document.fonts.ready);
+const fontReport = await page.evaluate(() => {
+  const results = [];
+  document.fonts.forEach(face => {
+    results.push({ family: face.family, status: face.status });
+  });
+  return results;
+});
+const failed = fontReport.filter(f => f.status !== 'loaded');
+if (failed.length > 0) console.error('Failed fonts:', failed);
+```
+
+### Fig & Bloom brand fonts
+
+| Font | Use | Source |
+|------|-----|--------|
+| Cervanttis | Headings | [Drive fonts folder](https://drive.google.com/drive/folders/1CJRf112dOJcf2RBRMHiMsI-kWNZ9Skbc) |
+| Neuzeit Grotesk Light / Bold | Body copy | Same folder |
+| Lust | Product names | Same folder |
+
+Illustrations asset folder: https://drive.google.com/drive/folders/15u2XXZOPuIHvvIFXH8VfiQ5-chw7CF-6
+
+---
+
 ## Prerequisites
 
 One-time setup required on the VPS. Read `references/INSTALL.md` and follow all steps before first use. Key requirements:
