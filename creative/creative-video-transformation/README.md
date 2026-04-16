@@ -1,6 +1,13 @@
-# Video Remix
+---
+name: creative-video-transformation
+description: transforms an existing video into a new video with specified changes — character, scene, script, style — from a single high-level prompt.
+---
 
-An OpenClaw skill that transforms an existing video into a new video with specified changes — character, scene, script, style — from a single high-level prompt.
+# Creative Video Transformation
+
+## When to use this skill
+
+When a user has a video and wants to transform any aspect of it, eg. the talent, scene or products featured. This skill decomposes a video in shots and reassembles them using generative video AI.
 
 ## How it works
 
