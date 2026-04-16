@@ -8,7 +8,8 @@
     "art_direction": "art-direction.md",
     "colour_system": "colour-system.md",
     "grid_spec": "grid-spec.md",
-    "prompt_library": "prompt-library.json"
+    "prompt_library": "prompt-library.json",
+    "seeds_manifest": "seeds.json"
   },
   "image_backend": {
     "default": "openrouter",

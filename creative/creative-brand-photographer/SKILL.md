@@ -1,7 +1,7 @@
 ---
 name: creative-brand-photographer
-description: Generates brand-consistent AI photography for any configured brand, with an automated critique loop.
-version: 2.0.0
+description: Generates brand-consistent AI photography for any configured brand, with an automated critique loop and image-seed compositing.
+version: 3.0.0
 author: Dan Groch
 license: MIT
 metadata:
@@ -11,20 +11,19 @@ metadata:
 
 # When to Use
 
-Use this skill whenever asked to generate
-on-brand imagery ("create this week's posts", "generate 9 grid
-images", "fill the feed", "produce campaign photography",
-"Mother's Day hero shots", "lifestyle shot", "product hero"),
-run the photography lab, or produce social/ad/campaign imagery
-through AI generation. The skill is brand-agnostic — it loads a
-single brand configuration per session (from brands/<brand_id>/)
-and all prompts, critiques, and library writes are scoped to that
-brand. Also trigger when asked to "configure a new brand", "onboard
-a brand", or "switch brands".
+Use this skill whenever asked to generate on-brand imagery ("create
+this week's posts", "generate 9 grid images", "fill the feed",
+"produce campaign photography", "Mother's Day hero shots", "lifestyle
+shot", "product hero"), run the photography lab, or produce
+social/ad/campaign imagery through AI generation. The skill is
+brand-agnostic — it loads a single brand configuration per session
+(from brands/<brand_id>/) and all prompts, critiques, and library
+writes are scoped to that brand. Also trigger when asked to "configure
+a new brand", "onboard a brand", or "switch brands".
 
 This skill is **multi-brand** and **strictly brand-isolated**. You
 always work for exactly one brand at a time. You never mix prompts,
-rubrics, libraries, or critiques across brands.
+rubrics, libraries, seeds, or critiques across brands.
 
 ## Agent Identity
 
@@ -38,16 +37,19 @@ rubrics, libraries, or critiques across brands.
 
 ## Architecture
 
-Three layers, each scoped to the loaded brand:
+Four layers, each scoped to the loaded brand:
 
 1. **Brand Loader** — loads `brands/<brand_id>/brand.json` and its
    referenced files (art direction, colour system, grid spec, prompt
-   library). Validates that every required file exists. Binds all
-   subsequent operations to this brand.
-2. **Prompt Engine** — selects or constructs a prompt for the brief,
-   drawing from the loaded brand's prompt library or building from
-   its art direction rules.
-3. **Quality Gate** — generate → critique → revise loop. The critic
+   library, seed manifest). Validates that every required file exists.
+   Binds all subsequent operations to this brand.
+2. **Seed Selector** — given a brief, determines which generation mode
+   to use (text-to-image, composite, or style-reference) based on
+   available seeds. Selects the best-matching seed assets for the brief.
+3. **Prompt Engine** — selects or constructs a prompt for the brief,
+   drawing from the loaded brand's prompt library, seed assets, or
+   art direction rules.
+4. **Quality Gate** — generate → critique → revise loop. The critic
    system prompt is constructed dynamically from the brand's critic
    rubric in `brand.json`. Iterates up to the brand's configured
    iteration cap until the image meets the brand's pass threshold.
@@ -69,249 +71,505 @@ creative-brand-photographer/
         ├── colour-system.md              ← Brand-specific palette
         ├── grid-spec.md                  ← Brand-specific grid
         ├── prompt-library.json           ← Brand-specific prompts
+        ├── seeds.json                    ← Seed asset manifest
+        ├── seeds/                        ← Real brand photography
+        │   ├── logos/                    ← Logo files (wordmark, monogram, sticker)
+        │   ├── packaging/               ← Tissue, ribbon, box, sticker close-ups
+        │   ├── bouquets/                ← Real wrapped bouquets (no model)
+        │   ├── models/                  ← Model reference shots
+        │   ├── spaces/                  ← Store, warehouse, studio
+        │   ├── lifestyle/               ← Styled interiors, tablescapes
+        │   └── products/               ← Non-floral products (candles, cards, etc)
         └── outputs/                      ← Brand-scoped image output
 ```
 
 **Brand isolation guarantee:** Every file read, every critique, every
-library write uses paths under `brands/<brand_id>/` only. The Python
-API raises `BrandNotConfiguredError` if the brand doesn't exist.
-Generated image files are named with the `brand_id` prefix.
+library write uses paths under `brands/<brand_id>/` only.
 
-## Onboarding Flow (Run This First)
+## Seed System
 
-At the start of every session, run the onboarding handshake. Do not
-start generating until it's complete.
+### What seeds are
+
+Seeds are **real brand photographs** that anchor AI generation in
+brand-specific reality. No text prompt will reliably generate your
+actual packaging, your real team, or your specific wrapping style.
+Seeds solve this by providing visual truth that AI models can
+composite, reference, or extend.
+
+### The manifest: seeds.json
+
+Every seed asset is registered in `seeds.json`. The file names don't
+matter — the manifest provides all semantics. Files that aren't in
+the manifest are ignored by the skill.
+
+```json
+{
+  "version": "1.0",
+  "seeds": [
+    {
+      "id": "logo-primary-black",
+      "file": "seeds/logos/fig-and-bloom-primary-black.png",
+      "category": "logo",
+      "subcategory": "primary",
+      "variant": "black",
+      "description": "Primary horizontal wordmark in black on transparent",
+      "format": "png",
+      "background": "transparent",
+      "tags": ["wordmark", "horizontal", "noir"],
+      "use_for": ["overlay", "composite", "watermark"],
+      "never_use_for": ["style-reference"]
+    },
+    {
+      "id": "bouquet-spring-orchid-001",
+      "file": "seeds/bouquets/spring-orchid-mixed-001.jpg",
+      "category": "bouquet",
+      "subcategory": "wrapped",
+      "description": "Large spring bouquet — fuchsia orchids, amber roses, purple stock, pink gypsophila. White tissue, black ribbon.",
+      "season": "spring",
+      "flowers": ["phalaenopsis orchid", "garden rose", "stock", "gypsophila"],
+      "colour_story": "vivid pink + amber",
+      "tags": ["wrapped", "large", "hero-scale", "ribbon-visible"],
+      "use_for": ["composite", "style-reference", "product-shot"],
+      "pairs_with": ["model-*"]
+    },
+    {
+      "id": "model-vw-autumn-001",
+      "file": "seeds/models/vw-autumn-cream-skirt-001.jpg",
+      "category": "model",
+      "subcategory": "fashion-editorial",
+      "description": "Woman, late 20s, dark hair, cream linen skirt, yellow printed blouse, warm clay backdrop. Three-quarter framing. No bouquet.",
+      "source": "viktoria-and-woods-aw26",
+      "season": "autumn",
+      "outfit_colours": ["cream", "yellow", "palm-print"],
+      "tags": ["three-quarter", "fashion", "clay-backdrop", "gaze-right"],
+      "use_for": ["composite"],
+      "pairs_with": ["bouquet-*"]
+    },
+    {
+      "id": "packaging-tissue-ribbon-001",
+      "file": "seeds/packaging/tissue-ribbon-closeup-001.jpg",
+      "category": "packaging",
+      "subcategory": "detail",
+      "description": "Close-up of white tissue wrap and black satin ribbon with bow. Clean background.",
+      "tags": ["tissue", "ribbon", "detail", "clean-bg"],
+      "use_for": ["composite", "style-reference"]
+    }
+  ]
+}
+```
+
+### Seed categories
+
+| Category    | What to photograph                                         | Naming suggestion (optional)        |
+|-------------|------------------------------------------------------------|-------------------------------------|
+| `logo`      | Primary wordmark, secondary logo, monogram, sticker, favicon — on transparent or clean bg | `logo-primary-black.png`     |
+| `packaging` | Tissue paper, ribbon, box exterior, box interior, sticker close-up, branded card | `packaging-tissue-001.jpg`   |
+| `bouquet`   | Wrapped bouquets on clean background. No model. Different flower combos and seasons | `bouquet-spring-orchid-001.jpg` |
+| `model`     | Fashion model reference shots. No bouquet. The model the AI will "give" flowers to | `model-vw-autumn-001.jpg`    |
+| `spaces`    | Store interior, warehouse, studio setup, workbench, cooler room | `space-warehouse-001.jpg`    |
+| `lifestyle` | Styled interiors with arrangements, tablescapes, doorstep deliveries | `lifestyle-tablescape-001.jpg` |
+| `products`  | Non-floral products (candles, cards, styling kits) on clean background | `product-candle-oud-001.jpg` |
+
+**File naming is a suggestion, not a requirement.** The manifest
+provides all semantics. Name files however you want — just register
+them in `seeds.json` with accurate metadata.
+
+### Seed pairing
+
+The `pairs_with` field enables the seed selector to match models with
+bouquets. Use glob-style patterns:
+
+- `"pairs_with": ["bouquet-*"]` — this model pairs with any bouquet
+- `"pairs_with": ["bouquet-spring-*", "bouquet-summer-*"]` — this model pairs with spring/summer bouquets only
+- `"pairs_with": ["model-vw-*"]` — this bouquet pairs with Viktoria & Woods model shots
+
+### Gathering seeds — what to photograph
+
+**Minimum viable seed library per brand (to unlock Mode B):**
+
+| Category  | Minimum | Ideal | Notes                                         |
+|-----------|---------|-------|-----------------------------------------------|
+| Logo      | 2       | 4     | Primary + monogram minimum. Add sticker, favicon |
+| Packaging | 3       | 6     | Tissue, ribbon, box. Different angles          |
+| Bouquet   | 5       | 15    | Different compositions, seasons, colour stories|
+| Model     | 3       | 10    | Different poses, outfits, framings             |
+| Spaces    | 0       | 5     | Optional — for behind-the-scenes content       |
+| Lifestyle | 0       | 5     | Optional — for context/scene shots             |
+| Products  | 0       | 5     | Optional — for non-floral product lines        |
+
+## Generation Modes
+
+### Mode A: Text-to-Image (no seeds required)
+
+**When:** No matching seeds available, OR the shot type doesn't need
+brand-specific assets (botanical macro, texture detail, generic
+lifestyle scene).
+
+**Process:** Prompt library → quality gate → save.
+
+**Best for:** ~30% of content. Botanical close-ups, petal textures,
+generic aspirational scenes, mood content.
+
+### Mode B: Image Composite (seeds required)
+
+**When:** Both a model seed and a bouquet seed are available and
+matched via `pairs_with`.
+
+**Process:**
+1. Seed selector finds best model + bouquet pair for the brief
+2. Uploads both seed images to the image API
+3. Constructs a composite/edit prompt: "Place the bouquet from image 2
+   into the model's hands in image 1. Maintain the lighting, backdrop,
+   and styling of image 1. The bouquet should look naturally held."
+4. Runs through quality gate
+5. Saves with seed references in the library entry
+
+**Best for:** ~50% of content. Fashion editorial (the hero content),
+styled model shots, campaign assets.
+
+**API requirements:** Image-editing capable model. Gemini image edit,
+Seedream edit, or equivalent.
+
+### Mode C: Style Reference (seeds as guidance)
+
+**When:** A seed image captures the right *feel* but the output needs
+variation (different flowers, different season, different angle).
+
+**Process:**
+1. Seed selector finds the best reference seed
+2. Constructs a prompt that describes the desired variation
+3. Passes the seed as a style/composition reference to the model
+4. Runs through quality gate
+
+**Best for:** ~20% of content. Seasonal variants of proven shots,
+product photography with consistent styling, packaging shots.
+
+**API requirements:** Style-reference or image-conditioned generation.
+
+### Mode selection logic
+
+```
+IF brief requires brand-specific assets (model + bouquet, packaging, logo):
+    IF matching seeds exist in seeds.json:
+        → Mode B (composite) or Mode C (style-reference)
+    ELSE:
+        → STOP. Report: "This shot requires seed assets that aren't
+          available. Needed: [list]. Falling back to text-to-image
+          will produce generic results. Proceed anyway, or gather
+          seeds first?"
+ELSE:
+    → Mode A (text-to-image)
+```
+
+## Onboarding Flow
+
+At the start of every session, run the onboarding handshake.
 
 ### Step 1 — Identify the brand
 
-Ask the user (once, up front):
+Ask: "Which brand am I photographing for today?"
 
-> "Which brand am I photographing for today?"
+Check `BrandPhotographer.list_brands()`:
+- Configured → Step 2
+- Not configured → offer new-brand onboarding (Step 4)
 
-If the user names a brand, check whether it's configured:
-
-```python
-from brand_photographer_api import BrandPhotographer
-BrandPhotographer.list_brands()
-```
-
-- **IF the brand is configured** → proceed to Step 2.
-- **IF the brand is NOT configured** → do NOT generate. Offer to run
-  the new-brand onboarding (Step 4).
-- **IF the user hasn't picked a brand** → list the configured brands
-  and ask them to choose.
-
-### Step 2 — Load the brand and confirm
-
-Instantiate the photographer with the brand_id:
+### Step 2 — Load and confirm
 
 ```python
 photographer = BrandPhotographer(brand_id="<brand_id>")
 print(photographer.brand_summary())
 ```
 
-Read back a one-line confirmation to the user:
+Read back:
+> "Working for **{brand_name}** — {description}. Seeds: {n_seeds}
+> ({n_bouquets} bouquets, {n_models} models, {n_logos} logos).
+> Modes available: {available_modes}. Library: {n_prompts} prompts
+> ({n_proven} proven). Proceed?"
 
-> "Working for **{brand_name}** today — {description}. Backend:
-> {backend}. Pass threshold: {pass_threshold}/10. Library: {n}
-> proven prompts. Proceed?"
+### Step 3 — Load references
 
-Wait for confirmation before generating. This is the explicit
-handshake that prevents cross-contamination.
+Read these files from the brand directory:
 
-### Step 3 — Load the brand's reference docs into working context
+| File | When to read |
+|------|--------------|
+| `art-direction.md` | Always — before writing or revising prompts |
+| `colour-system.md` | When writing prompts or revising colour issues |
+| `grid-spec.md` | Before planning batch/grid content |
+| `prompt-library.json` | When selecting existing prompts or variants |
+| `seeds.json` | When selecting seeds for Mode B/C |
 
-Before producing or revising any prompt, read these files (all
-resolved from `brands/<brand_id>/` only):
+### Step 4 — New brand onboarding
 
-| File | Contents | When to read |
-|------|----------|--------------|
-| `art-direction.md` | Lighting, composition, colour grading, props, casting, always/never rules | Always — before writing or revising prompts |
-| `colour-system.md` | Primary/secondary palette, forbidden pairings, prompt colour language | When writing prompts or revising colour issues |
-| `grid-spec.md` | Content-type pattern, rhythm rules, aspect ratios, channel guidance | Before planning any batch/grid content |
-| `prompt-library.json` | Proven prompts with scores, critiques, image URLs | When selecting existing prompts or creating variants |
-| `brand.json` | Critic rubric, quality gate, grid pattern, backend config | Already loaded by the API |
+Use `references/onboarding-template.md`. Produce all required files
+plus an empty `seeds.json`:
 
-**Critical:** Never read from another brand's directory. If you catch
-yourself about to open `brands/<other_brand>/…`, stop and re-confirm
-which brand you're working for.
+```json
+{"version": "1.0", "seeds": []}
+```
 
-### Step 4 — New-brand onboarding (only if requested)
+Create the `seeds/` subdirectories. The brand starts in Mode A only
+until seeds are gathered.
 
-If the user wants to onboard a new brand, use
-`references/onboarding-template.md` as a checklist. Produce:
+## Prompt Construction
 
-1. A new directory `brands/<new_brand_id>/` with:
-   - `brand.json` (use the template)
-   - `art-direction.md` (gathered from the user)
-   - `colour-system.md` (gathered from the user)
-   - `grid-spec.md` (gathered from the user)
-   - `prompt-library.json` (can start as `[]`)
-2. Confirm the brand is discoverable:
-   ```python
-   BrandPhotographer.list_brands()  # should include new_brand_id
-   ```
-3. Validate by instantiating:
-   ```python
-   BrandPhotographer(brand_id="<new_brand_id>")
-   ```
-   Any `FileNotFoundError` or `ValueError` from this call means the
-   config is incomplete — fix before proceeding.
+When building a new prompt, use the component list from the brand's
+`prompt_construction.components` in `brand.json`. Use the brand's
+`colour_vocabulary` when describing colour.
 
-Do NOT generate for the new brand until validation passes.
+For Mode B composites, the prompt structure shifts from description
+to instruction:
 
-## Prerequisites
+```
+"Combine these two images: place the wrapped bouquet from image 2
+into the model's hands in image 1. The model holds the bouquet
+naturally at [chest/hip] height. Match the lighting and backdrop of
+image 1. The bouquet wrapping (white tissue, black ribbon) should be
+clearly visible. Both the model and bouquet remain in sharp focus.
+[Additional art direction from brand config]."
+```
 
-**Per-session credentials:**
+## Quality Gate
 
-1. **Anthropic API key** — `ANTHROPIC_API_KEY` (critic step).
-2. **Image backend credentials** — one of:
-   - OpenRouter (default): `OPENROUTER_API_KEY`
-   - Higgsfield (legacy): `HF_KEY` + `HF_SECRET`
-3. **Network access:** `openrouter.ai` and/or `platform.higgsfield.ai`,
-   plus `api.anthropic.com`.
+Brand-configured:
+- **Critic rubric:** From `brand.json` → `critic.dimensions`
+- **Pass threshold:** From `brand.json` → `quality_gate.pass_threshold`
+- **Iteration cap:** From `brand.json` → `quality_gate.max_iterations`
 
-The specific backend and model come from the brand's `brand.json`
-(under `image_backend`), but constructor args can override.
+For Mode B/C, the critic additionally checks:
+- Seed fidelity: does the composite preserve the key details from the
+  seed images (packaging, wrapping, model styling)?
+- Composite artefacts: blending seams, inconsistent shadows, scale
+  mismatches between model and bouquet?
 
 ## Modes of Operation
 
 ### Mode 1: On-Demand Single Shot
-
-**Trigger:** "Generate a product hero", "create a lifestyle shot…",
-"one hero image for X"
-
-1. Confirm brand (onboarding handshake).
-2. Identify the shot type from the user's request.
-3. Look up the shot in the brand's `prompt-library.json`. If a
-   matching proven prompt exists (score ≥ threshold), use it or
-   adapt it.
-4. If no match, construct a new prompt from the brand's art direction
-   rules and colour vocabulary.
-5. Run through the quality gate (`photographer.generate(...)`).
-6. Save the passing prompt back to the brand's library.
+"Generate a product hero", "fashion editorial shot"
 
 ### Mode 2: Batch Grid Generation
-
-**Trigger:** "Fill the grid", "generate 9 posts", "week of feed
-content"
-
-1. Confirm brand.
-2. Load the brand's `grid_pattern` from `brand.json`.
-3. For each slot: look up the mapped prompt; apply product/season
-   modifiers if provided.
-4. Run each through the quality gate
-   (`photographer.generate_grid(product=..., season=...)`).
-5. Enforce the brand's rhythm rules (from `grid-spec.md`).
-6. Save passing prompts with grid slot metadata.
+"Fill the grid", "generate 9 posts"
 
 ### Mode 3: Campaign Asset Set
-
-**Trigger:** "Mother's Day content", "seasonal campaign", "Valentine's
-hero images"
-
-1. Confirm brand.
-2. Determine the campaign moment and emotional anchor.
-3. Plan a shot list across the brand's content types
-   (`photographer.generate_campaign(...)`).
-4. Apply campaign-specific modifiers (flower swaps, product swaps,
-   emotional overlays).
-5. Run each through the quality gate.
-6. Save as a campaign set in the library.
+"Mother's Day content", "autumn campaign"
 
 ### Mode 4: New Brand Onboarding
+"Configure a new brand", "onboard Fig & Bloom"
 
-**Trigger:** "Configure a new brand", "onboard <brand>", "set up
-photography for <brand>"
+### Mode 5: Seed-Guided Composite
+"Use the Viktoria & Woods autumn model with the orchid bouquet"
+"Combine model-vw-autumn-001 with bouquet-spring-orchid-001"
 
-Follow Step 4 of the onboarding flow. Do not generate imagery until
-the brand passes validation.
+### Mode 6: Seed Management
+"Add these photos to my seeds", "register new bouquet photos",
+"show me my seed library", "what seeds am I missing", "update
+the manifest"
 
-## Prompt Construction
+## Seed Management
 
-When building a new prompt (not selecting from library), use the
-component list from the brand's `prompt_construction.components` in
-`brand.json`. The Bower brand, for example, requires all 10 of:
-shot type, subject, camera, lighting, depth of field, composition,
-colour palette, colour grade, mood, and exclusions. Other brands
-may define a different component set — always use the loaded
-brand's list.
+This mode handles all maintenance of `seeds.json`. The goal is to
+make it effortless — the user uploads images or points to files,
+the skill asks the minimum necessary questions, and writes
+well-structured manifest entries.
 
-Use the brand's colour vocabulary (`prompt_construction.colour_vocabulary`)
-when describing colour. Never use generic colour words when the brand
-defines specific substitutes.
+### Triggers
 
-## Quality Gate
+- User uploads images with intent to register as seeds
+- User asks to review, audit, or update the seed library
+- User asks what's missing or what modes are available
+- User asks to remove or reclassify a seed
 
-The quality gate loop is brand-configured:
+### Workflow: Registering New Seeds
 
-- **Critic rubric:** Dimensions come from `brand.json` →
-  `critic.dimensions`. The critic system prompt is constructed
-  dynamically. You do not write or hardcode a Bower rubric — the
-  brand config does.
-- **Pass threshold:** From `brand.json` → `quality_gate.pass_threshold`.
-- **Iteration cap:** From `brand.json` → `quality_gate.max_iterations`.
+When the user provides images to register:
 
-## Running the Skill
+**Step 1 — Look at the images.** Examine each uploaded image and
+determine its most likely category. State your assessment plainly:
 
-### Python API
+> "I can see 5 images. Here's what I think they are:
+> 1. Wrapped bouquet — orchids, roses, gypsophila
+> 2. Wrapped bouquet — blush and cream palette
+> 3. Model reference — three-quarter, black outfit, clay backdrop
+> 4. Packaging detail — tissue and ribbon close-up
+> 5. Logo — monogram, black on white background
+>
+> Does that look right, or should I reclassify any?"
 
-```python
-from brand_photographer_api import BrandPhotographer
+Wait for confirmation before proceeding.
 
-# List configured brands
-BrandPhotographer.list_brands()
-# → ["bower", ...]
+**Step 2 — Ask category-specific questions.** For each image, ask
+only the questions that category requires. Keep it tight — don't ask
+questions you can already answer from looking at the image.
 
-# Load a brand
-photographer = BrandPhotographer(
-    brand_id="bower",
-    openrouter_key="sk-or-v1-...",
-    anthropic_key="sk-ant-...",
-)
+**Step 3 — Generate manifest entries.** Write the JSON entries and
+show them to the user for confirmation. Then write to `seeds.json`.
 
-# Inspect the loaded brand — use this in the handshake
-photographer.brand_summary()
+**Step 4 — Report mode availability.** After any change to the seed
+library, report what generation modes are now unlocked.
 
-# Generate
-photographer.generate("product_hero")
-photographer.generate_grid(season="spring")
-photographer.generate_campaign("mothers_day", flowers=["garden roses", "peonies"])
+### Interview Questions by Category
+
+Each category has REQUIRED and OPTIONAL questions. Ask required
+questions. Only ask optional questions if the answer isn't obvious
+from the image itself.
+
+#### Logo
+
+Required:
+- Which logo variant? (primary wordmark / secondary / monogram / sticker / favicon)
+- Black or white? (or describe if neither)
+
+Auto-filled by the skill:
+- `format`: detected from file extension
+- `background`: "transparent" if PNG with alpha, otherwise describe
+- `use_for`: always ["overlay", "composite"]
+- `never_use_for`: always ["style-reference"]
+
+#### Bouquet
+
+Required:
+- What flowers are in this bouquet? (list the main varieties)
+
+Optional (ask only if not obvious from image):
+- What season? (spring/summer/autumn/winter/all-season)
+- How would you describe the colour story in 3–4 words?
+
+Auto-filled by the skill:
+- `subcategory`: "wrapped" if tissue/ribbon visible, "arranged" if in vase, "loose" if no wrapping
+- `tags`: derived from what's visible (ribbon, tissue, scale)
+- `pairs_with`: default ["model-*"] for wrapped bouquets
+- `use_for`: ["composite", "style-reference", "product-shot"]
+
+#### Model
+
+Required:
+- Where is this photo from? (e.g. "Viktoria & Woods AW26 lookbook", "brand shoot March 2025")
+- What season/collection? (so we can pair with right bouquets)
+
+Optional (ask only if not obvious from image):
+- What are the main outfit colours?
+
+Auto-filled by the skill:
+- `subcategory`: "fashion-editorial" (default for styled model shots)
+- `tags`: derived from what's visible (framing, backdrop, gaze direction)
+- `pairs_with`: default ["bouquet-*"]
+- `use_for`: ["composite"]
+
+#### Packaging
+
+Required: none (the skill can see what it is)
+
+Optional:
+- Any specific name for this packaging element? (e.g. "the autumn box", "limited edition ribbon")
+
+Auto-filled by the skill:
+- `subcategory`: detected (tissue/ribbon/box/sticker/card/insert)
+- `description`: written from what's visible
+- `tags`: derived from content
+- `use_for`: ["composite", "style-reference"]
+
+#### Space
+
+Required:
+- What is this space? (store/warehouse/studio/workbench)
+- Any name or location? (e.g. "Melbourne studio", "Collingwood warehouse")
+
+Auto-filled by the skill:
+- Everything else derived from the image
+
+#### Lifestyle
+
+Required:
+- What type of scene? (tablescape/interior/doorstep/bedside)
+
+Auto-filled by the skill:
+- Everything else derived from the image
+
+#### Product (non-floral)
+
+Required:
+- What is this product? (candle/card/styling kit/tea etc)
+- Product name if it has one?
+
+Auto-filled by the skill:
+- Everything else derived from the image
+
+### ID Generation
+
+The skill generates IDs automatically using this pattern:
+
+```
+<category>-<descriptor>-<3-digit-sequence>
 ```
 
-### CLI
+Examples:
+- `bouquet-orchid-amber-001`
+- `model-vw-autumn-cream-001`
+- `logo-primary-black`
+- `packaging-ribbon-detail-001`
+- `space-melbourne-studio-001`
 
-```bash
-# Interactive (picks brand, then shot)
-python3 references/brand_photographer_cli.py
+The descriptor is derived from the image content or user's answers.
+Sequence numbers are auto-incremented within each category.
 
-# Direct
-python3 references/brand_photographer_cli.py bower 1
-```
+### Workflow: Auditing the Seed Library
+
+When the user asks "what seeds do I have" or "what's missing":
+
+**Report the current state:**
+
+> **Fig & Bloom — Seed Library Status**
+>
+> | Category  | Count | Minimum | Status    |
+> |-----------|-------|---------|-----------|
+> | Logo      | 3     | 2       | ✓ Ready   |
+> | Bouquet   | 2     | 5       | ✗ Need 3+ |
+> | Packaging | 1     | 3       | ✗ Need 2+ |
+> | Model     | 0     | 3       | ✗ Need 3+ |
+> | Space     | 0     | 0       | Optional  |
+> | Lifestyle | 0     | 0       | Optional  |
+> | Product   | 0     | 0       | Optional  |
+>
+> **Modes available:** A (text-to-image) only.
+> **To unlock Mode B (composite):** Add 3+ model seeds and 3+ more bouquet seeds.
+> **To unlock Mode C (style-ref):** Add 3+ more bouquet seeds.
+>
+> **Gathering priority:**
+> 1. Bouquet photos (3 more needed — different seasons/colour stories)
+> 2. Packaging detail shots (2 more needed)
+> 3. Model references (3 needed — source from current V&W collection)
+
+### Workflow: Updating Existing Seeds
+
+When the user asks to update or reclassify:
+
+1. List the affected entries with their current metadata
+2. Ask what needs to change
+3. Show the updated JSON entry for confirmation
+4. Write to `seeds.json`
+
+### Workflow: Removing Seeds
+
+When the user asks to remove:
+
+1. Confirm: "Remove `bouquet-orchid-amber-001` from the manifest? The file stays on disk — this just deregisters it from the skill."
+2. On confirmation, remove the entry from `seeds.json`
+3. Report updated mode availability
 
 ## Brand Isolation — Non-negotiable Rules
 
-1. **One brand per photographer instance.** Never reuse a
-   `BrandPhotographer` across brands — instantiate a new one.
-2. **Never cross-read reference files.** If you are working for
-   brand A, do not open `brands/B/*` for any reason.
-3. **Never cross-write library entries.** The API saves to the
-   brand's own `prompt-library.json`. Do not patch entries into
-   another brand's library.
-4. **Never mix critic prompts.** Each brand's critic system prompt
-   is constructed fresh from its own `brand.json` on
-   photographer init.
-5. **Image files are brand-prefixed.** Saved image filenames start
-   with `<brand_id>_` to make accidental cross-use visible.
-6. **If in doubt, re-run the handshake.** Ambiguity about which
-   brand you're working for is grounds to stop and ask.
+1. One brand per photographer instance.
+2. Never cross-read reference files or seeds.
+3. Never cross-write library entries.
+4. Never mix critic prompts.
+5. Image files are brand-prefixed.
+6. Seed files are never copied between brands.
+7. If in doubt, re-run the handshake.
 
 ## What This Skill Does NOT Cover
 
-- **Graphic/text posts** for feeds (handled by other skills).
-- **Video/Reels** generation — use `creative-higgsfield-client`.
-- **UGC review** — use `creative-ugc-photo-review`.
-- **Ad creative assembly** — use `creative-add-creative-builder`.
-- **Caption writing** — use the brand's captioning skill.
-- **Brand guideline management** — use
-  `creative-brand-guidelines-manager`.
+- Graphic/text tiles for feeds (use creative-add-creative-builder)
+- Video/Reels generation (use creative-higgsfield-client)
+- UGC review (use creative-ugc-photo-review)
+- Ad creative assembly (use creative-add-creative-builder)
+- Caption writing
+- Brand guideline management (use creative-brand-guidelines-manager)
