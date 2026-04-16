@@ -1,0 +1,101 @@
+{
+  "brand_id": "fig-and-bloom",
+  "brand_name": "Fig & Bloom",
+  "description": "Premium Australian design-led floral lifestyle brand. Fashion-editorial photography — the bouquet and the woman are co-heroes.",
+  "product_category": "flowers",
+  "channels": ["instagram", "email", "social", "website"],
+  "references": {
+    "art_direction": "art-direction.md",
+    "colour_system": "colour-system.md",
+    "grid_spec": "grid-spec.md",
+    "prompt_library": "prompt-library.json"
+  },
+  "image_backend": {
+    "default": "openrouter",
+    "model": "google/gemini-3.1-flash-image-preview",
+    "hero_model": "google/gemini-3-pro-image-preview"
+  },
+  "quality_gate": {
+    "pass_threshold": 7,
+    "max_iterations": 5
+  },
+  "critic": {
+    "model": "claude-sonnet-4-20250514",
+    "dimensions": [
+      {
+        "name": "lighting",
+        "description": "Soft, even studio lighting with warm undertone. Slight directional quality from one side creating gentle dimension on face and bouquet. No harsh shadows, no flat flash. Warm colour temperature (3800-4500K). The model's skin and the flower colours should both read beautifully. Backdrop should glow warmly, not read as grey."
+      },
+      {
+        "name": "composition",
+        "description": "Model and bouquet are CO-HEROES — both must have visual presence. Three-quarter or full-body framing. Model positioned slightly off-centre. Bouquet occupies at least 30% of frame. Clean, uncluttered frame — no competing background elements. Adequate negative space for the warm backdrop to breathe. Shoot for 4:5 (feed) or 3:4 primary crop."
+      },
+      {
+        "name": "colour",
+        "description": "Brand palette is monochrome (Noir #000000, Silk White #FFFFFF, Clay #D8CCBE) — the FLOWERS provide all colour. Flower colours must be vivid and true-to-life: saturated pinks, orchid purples, amber oranges, fuchsia, coral. Backdrop reads as warm clay/terracotta neutral. White tissue wrap reads clean, not blue. No colour grading that mutes or desaturates the flowers — their vibrancy IS the brand."
+      },
+      {
+        "name": "styling",
+        "description": "Fashion-forward model styling: considered outfit that complements (not competes with) the bouquet. Clothing in brand palette — black, white, cream, or seasonal fashion pieces. Minimal jewellery (gold hoops, thin bracelet). Bouquet wrapped in white tissue with black satin ribbon. Fig & Bloom branded sticker visible where natural. Model not engaging camera — looking away, contemplative, present."
+      },
+      {
+        "name": "technical",
+        "description": "Sharp focus on both model and bouquet (both are heroes — neither can be soft). Professional camera quality, f/4-5.6 for adequate depth across both subjects. No AI artefacts on hands, face, fingers, or flower petals. Clean edges on tissue wrap and ribbon. Skin texture natural, not over-smoothed."
+      },
+      {
+        "name": "brand_alignment",
+        "description": "Feels like a fashion brand campaign that happens to feature flowers — not a florist who hired a model. The energy is editorial, intentional, refined. The image should feel at home on a fashion brand's Instagram or in a lifestyle magazine editorial. NOT: generic gift-shop photography, stock photo energy, overly sweet/romantic, stiff catalogue posing."
+      }
+    ]
+  },
+  "prompt_construction": {
+    "components": [
+      "SHOT TYPE — e.g. 'Fashion editorial photograph of...'",
+      "SUBJECT — The model description AND the specific bouquet/flowers",
+      "STYLING — Model outfit, jewellery, hair, and bouquet wrapping details",
+      "BACKDROP — Warm clay/neutral studio backdrop description",
+      "CAMERA — Angle, format, framing (three-quarter, full-body, close-crop)",
+      "LIGHTING — Soft studio with warm undertone, directional quality",
+      "DEPTH OF FIELD — f/4-5.6, both model and bouquet sharp",
+      "COLOUR — Vivid true-to-life flower colours against neutral backdrop",
+      "POSE — Model gaze direction, body angle, how bouquet is held",
+      "PACKAGING — White tissue, black satin ribbon, branded sticker",
+      "MOOD — Editorial, intentional, refined, present",
+      "EXCLUSIONS — 'No text, no logos, no watermarks. Model not looking at camera.'"
+    ],
+    "colour_vocabulary": {
+      "warm clay backdrop": "not 'beige background' or 'brown wall'",
+      "silk white": "not just 'white'",
+      "noir": "not just 'black'",
+      "vivid orchid pink": "not 'pink'",
+      "saturated amber": "not 'yellow' or 'orange'",
+      "fuchsia": "not 'bright pink'",
+      "coral anthurium": "not 'red flower'",
+      "purple stock": "not 'purple flowers'",
+      "blush rose": "not 'light pink rose'",
+      "sage eucalyptus": "not 'green leaves'"
+    }
+  },
+  "grid_pattern": [
+    {"slot": "fashion_hero",       "type": "editorial",  "ratio": "3:4"},
+    {"slot": "graphic_quote",      "type": "graphic",    "ratio": "1:1"},
+    {"slot": "product_detail",     "type": "product",    "ratio": "1:1"},
+    {"slot": "fashion_full_body",  "type": "editorial",  "ratio": "3:4"},
+    {"slot": "botanical_close",    "type": "product",    "ratio": "1:1"},
+    {"slot": "lifestyle_scene",    "type": "lifestyle",  "ratio": "3:4"},
+    {"slot": "graphic_review",     "type": "graphic",    "ratio": "1:1"},
+    {"slot": "fashion_profile",    "type": "editorial",  "ratio": "3:4"},
+    {"slot": "product_wrapped",    "type": "product",    "ratio": "3:4"}
+  ],
+  "slot_to_shot": {
+    "fashion_hero":      "fashion_hero",
+    "graphic_quote":     null,
+    "product_detail":    "bouquet_detail",
+    "fashion_full_body": "fashion_full_body",
+    "botanical_close":   "botanical_closeup",
+    "lifestyle_scene":   "lifestyle_tablescape",
+    "graphic_review":    null,
+    "fashion_profile":   "fashion_profile",
+    "product_wrapped":   "product_wrapped"
+  }
+}

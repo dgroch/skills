@@ -1,0 +1,86 @@
+[
+  {
+    "shot_id": "fashion_hero",
+    "shot_name": "Fashion Hero",
+    "prompt": "Fashion editorial photograph of a woman in her late 20s with dark hair, wearing a silk white off-shoulder blouse and noir black pleated midi skirt, holding a large abundant bouquet. The bouquet features vivid fuchsia phalaenopsis orchids cascading forward, warm amber garden roses, purple stock, coral anthurium, and pink-tinted gypsophila, wrapped in silk white tissue paper tied with a black satin ribbon. She stands slightly angled, looking to her left, contemplative and present — not engaging the camera. Three-quarter body framing from mid-thigh upward. Warm clay-toned seamless studio backdrop. Soft even studio lighting with warm undertone and gentle directional quality from the left. Both the model and bouquet are in sharp focus at f/4.5. Minimal gold hoop earrings. The image feels like a fashion campaign that features flowers, not a florist photograph. No text, no logos, no watermarks. Model not looking at camera.",
+    "image_path": "",
+    "image_url": "",
+    "score": null,
+    "iteration": 0,
+    "status": "draft — run through quality gate to verify",
+    "grid_slot": "fashion_hero",
+    "content_type": "editorial"
+  },
+  {
+    "shot_id": "fashion_full_body",
+    "shot_name": "Fashion Full Body",
+    "prompt": "Full-body fashion editorial photograph of a woman in her early 30s, wearing a flowing cream linen midi skirt and a butter-yellow printed short-sleeve blouse tied at the waist, holding a large bouquet at hip height. The bouquet features vivid orchid-pink phalaenopsis orchids, amber garden roses, purple stock, coral anthurium, and pink gypsophila wrapped in silk white tissue paper with a black satin ribbon. She stands on a polished concrete floor against a warm clay-toned studio backdrop, body angled 20 degrees from camera, gazing to her right. Full-body framing including blush pointed-toe low heels. Soft warm studio lighting creating gentle shadows. Both model and bouquet in sharp focus. Small gold hoop earrings and a thin gold bracelet. The image reads as a fashion brand campaign — editorial, intentional, refined. No text, no watermarks. Model not looking at camera.",
+    "image_path": "",
+    "image_url": "",
+    "score": null,
+    "iteration": 0,
+    "status": "draft — run through quality gate to verify",
+    "grid_slot": "fashion_full_body",
+    "content_type": "editorial"
+  },
+  {
+    "shot_id": "fashion_profile",
+    "shot_name": "Fashion Profile",
+    "prompt": "Fashion editorial photograph, profile view, of a woman with her hair pulled back in a clean low bun, wearing a noir black off-shoulder top and noir tailored trousers. She holds a large abundant bouquet at chest height, turned to show her profile. The bouquet features fuchsia orchids, warm amber roses, purple stock, pink gypsophila, and a single coral anthurium, wrapped in silk white tissue with black satin ribbon. Warm clay-toned studio backdrop. Soft studio lighting from the front-left creating gentle dimension across her profile and the bouquet. Three-quarter framing. Both model and bouquet in sharp focus. Small gold hoop earrings. Composed, confident energy — like a fashion portrait. No text, no watermarks. Model looking away from camera.",
+    "image_path": "",
+    "image_url": "",
+    "score": null,
+    "iteration": 0,
+    "status": "draft — run through quality gate to verify",
+    "grid_slot": "fashion_profile",
+    "content_type": "editorial"
+  },
+  {
+    "shot_id": "bouquet_detail",
+    "shot_name": "Bouquet Detail",
+    "prompt": "Close-up product photograph of a large Fig & Bloom bouquet, shot from slightly above at a 30-degree angle. The bouquet features vivid fuchsia phalaenopsis orchids in the foreground, warm amber garden roses, purple stock, pink-tinted gypsophila, and sage eucalyptus leaves. Wrapped in silk white tissue paper with a black satin ribbon bow visible at the stems. The bouquet rests on a warm clay-toned surface. Soft diffused studio lighting, warm colour temperature. Shallow depth of field at f/3.5 — foremost orchid petals tack-sharp, rear flowers softly blurred. True-to-life vivid flower colours, no desaturation. The image should make someone want to order this bouquet immediately. No text, no watermarks, no hands.",
+    "image_path": "",
+    "image_url": "",
+    "score": null,
+    "iteration": 0,
+    "status": "draft — run through quality gate to verify",
+    "grid_slot": "product_detail",
+    "content_type": "product"
+  },
+  {
+    "shot_id": "botanical_closeup",
+    "shot_name": "Botanical Close-Up",
+    "prompt": "Extreme close-up macro photograph of a single vivid fuchsia phalaenopsis orchid bloom, filling 80% of the square frame. Very shallow depth of field at f/2.8 — the front edge of the petal is sharp, revealing texture and colour gradation, while the rear falls to a soft warm blur of pink and green tones. Soft warm studio lighting from the left, creating gentle shadow across the petal surface. The orchid's natural colour patterns are visible — the gradient from deep fuchsia to softer pink at the edges, the speckled throat. Background is warm and neutral. The image feels tactile and luxurious — botanical photography at fashion-brand quality. No text, no watermarks.",
+    "image_path": "",
+    "image_url": "",
+    "score": null,
+    "iteration": 0,
+    "status": "draft — run through quality gate to verify",
+    "grid_slot": "botanical_close",
+    "content_type": "product"
+  },
+  {
+    "shot_id": "product_wrapped",
+    "shot_name": "Product Wrapped",
+    "prompt": "Product photograph of a large wrapped Fig & Bloom bouquet lying on a warm clay-toned linen surface, shot from directly above at 90 degrees. The bouquet is wrapped in silk white tissue paper with a black satin ribbon tied in a bow. Pink roses, cream chrysanthemums, purple stock, pink gypsophila, and sage eucalyptus are visible emerging from the tissue wrapping. A round branded sticker is visible on the tissue. The overall composition is clean and considered — the bouquet fills the lower two-thirds of the frame, with warm clay linen visible above. Soft diffused overhead light, warm colour temperature. All flower colours vivid and true-to-life. The image should feel like a premium unboxing moment. No text, no watermarks.",
+    "image_path": "",
+    "image_url": "",
+    "score": null,
+    "iteration": 0,
+    "status": "draft — run through quality gate to verify",
+    "grid_slot": "product_wrapped",
+    "content_type": "product"
+  },
+  {
+    "shot_id": "lifestyle_tablescape",
+    "shot_name": "Lifestyle Tablescape",
+    "prompt": "Lifestyle photograph of a styled dinner table with a Fig & Bloom arrangement as the centrepiece. The arrangement sits in a matte white ceramic vase, featuring blush roses, cream chrysanthemums, eucalyptus, and soft pink gypsophila. The table is set with white linen, cream ceramic plates, gold cutlery, and two lit taper candles in simple brass holders. Warm ambient lighting — a mix of natural window light from the left and candlelight. Shot from eye level or slightly above (30 degrees), with the arrangement as the focal point and the table setting giving context. Shallow depth of field — arrangement sharp, rear of table softly blurred. The mood is intimate, considered, aspirational — a dinner party you'd want to attend. No people in frame. No text, no watermarks.",
+    "image_path": "",
+    "image_url": "",
+    "score": null,
+    "iteration": 0,
+    "status": "draft — run through quality gate to verify",
+    "grid_slot": "lifestyle_scene",
+    "content_type": "lifestyle"
+  }
+]
