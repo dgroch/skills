@@ -25,6 +25,7 @@ Each skill is self-contained and includes a `SKILL.md` file (plus optional `scri
 ### Human Resources
 
 - `human-resources/deputy-connector` (`deputy-connector`): General-purpose Deputy API connector for employees, rosters, timesheets, leave, and related resources.
+- `human-resources/employee-offboarding` (`workforce-employee-offboarding`): Offboard a departing employee at Fig & Bloom — save resignation notice, send formal acknowledgement, revoke platform access, and schedule Deputy archival.
 - `human-resources/fig-bloom-rostering` (`fig-bloom-rostering`): Build and optimize weekly rosters using Deputy + Shopify inputs and labour budget constraints.
 
 ### SEO
