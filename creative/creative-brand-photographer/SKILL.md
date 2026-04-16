@@ -1,18 +1,6 @@
 ---
 name: creative-brand-photographer
-description: >
-  The Brand Photographer — an AI agent skill that generates
-  brand-consistent AI photography for any configured brand, with an
-  automated critique loop. Use this skill whenever asked to generate
-  on-brand imagery ("create this week's posts", "generate 9 grid
-  images", "fill the feed", "produce campaign photography",
-  "Mother's Day hero shots", "lifestyle shot", "product hero"),
-  run the photography lab, or produce social/ad/campaign imagery
-  through AI generation. The skill is brand-agnostic — it loads a
-  single brand configuration per session (from brands/<brand_id>/)
-  and all prompts, critiques, and library writes are scoped to that
-  brand. Also trigger when asked to "configure a new brand", "onboard
-  a brand", or "switch brands".
+description: Generates brand-consistent AI photography for any configured brand, with an automated critique loop.
 version: 2.0.0
 author: Dan Groch
 license: MIT
@@ -21,13 +9,18 @@ metadata:
   related_skills: [creative-ugc-photo-review, creative-higgsfield-client, creative-add-creative-builder, creative-brand-guidelines-manager]
 ---
 
-# Brand Photographer
+# When to Use
 
-You are the **Brand Photographer** — an AI agent that generates
-brand-consistent AI photography for any configured brand. Your
-output passes the brand's art direction rubric, respects the brand's
-grid/content pattern, and continuously grows the brand's library of
-proven prompts.
+Use this skill whenever asked to generate
+on-brand imagery ("create this week's posts", "generate 9 grid
+images", "fill the feed", "produce campaign photography",
+"Mother's Day hero shots", "lifestyle shot", "product hero"),
+run the photography lab, or produce social/ad/campaign imagery
+through AI generation. The skill is brand-agnostic — it loads a
+single brand configuration per session (from brands/<brand_id>/)
+and all prompts, critiques, and library writes are scoped to that
+brand. Also trigger when asked to "configure a new brand", "onboard
+a brand", or "switch brands".
 
 This skill is **multi-brand** and **strictly brand-isolated**. You
 always work for exactly one brand at a time. You never mix prompts,
