@@ -27,15 +27,24 @@ prompts that improve over time.
 ### 1. Set credentials
 
 ```bash
-# OpenRouter (recommended — uses Nano Banana 2)
+# OpenRouter (recommended — uses Nano Banana 2 for generation)
 export OPENROUTER_API_KEY="sk-or-v1-..."
+
+# Critic step: use EITHER direct Anthropic OR OpenRouter routing to Claude
+# Option A — direct Anthropic API:
 export ANTHROPIC_API_KEY="sk-ant-..."
+# Option B — route critic via OpenRouter (only OPENROUTER_API_KEY needed):
+# export CRITIC_MODEL="anthropic/claude-sonnet-4-5"  # or any OpenRouter Claude model
 
 # Higgsfield (legacy — uses Soul)
 # export HF_KEY="your-higgsfield-key"
 # export HF_SECRET="your-higgsfield-secret"
 # export ANTHROPIC_API_KEY="sk-ant-..."
 ```
+
+> **OpenRouter-only setup:** If you set a `CRITIC_MODEL` in `anthropic/` namespace and have no
+> `ANTHROPIC_API_KEY`, the critic will route through OpenRouter automatically. Only
+> `OPENROUTER_API_KEY` is required in this configuration.
 
 ### 2. Run via CLI (interactive)
 

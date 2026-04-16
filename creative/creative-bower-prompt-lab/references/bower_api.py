@@ -330,7 +330,20 @@ class BowerPromptLab:
             data = res.json()
 
             # Extract image from response
-            content = data["choices"][0]["message"]["content"]
+            message = data["choices"][0]["message"]
+
+            # Check message["images"] first — Gemini image models (e.g. gemini-3.1-flash-image-preview)
+            # return base64 JPEG here with content=null
+            images = message.get("images", []) or []
+            if images:
+                url = images[0].get("image_url", {}).get("url", "")
+                if url.startswith("data:image"):
+                    path = self._save_base64_image(url)
+                    return path if path else url
+                elif url.startswith("http"):
+                    return url
+
+            content = message.get("content")
 
             # Content can be a string (base64 data URL) or a list of parts
             if isinstance(content, list):
