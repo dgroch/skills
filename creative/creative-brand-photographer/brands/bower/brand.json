@@ -1,0 +1,94 @@
+{
+  "brand_id": "bower",
+  "brand_name": "Bower",
+  "description": "Premium Australian DTC floral brand. Tactile minimalism — a fashion brand that sells flowers.",
+  "product_category": "flowers",
+  "channels": ["instagram", "email", "social"],
+  "references": {
+    "art_direction": "art-direction.md",
+    "colour_system": "colour-system.md",
+    "grid_spec": "grid-spec.md",
+    "prompt_library": "prompt-library.json"
+  },
+  "image_backend": {
+    "default": "openrouter",
+    "model": "google/gemini-3.1-flash-image-preview",
+    "hero_model": "google/gemini-3-pro-image-preview"
+  },
+  "quality_gate": {
+    "pass_threshold": 7,
+    "max_iterations": 5
+  },
+  "critic": {
+    "model": "claude-sonnet-4-20250514",
+    "dimensions": [
+      {
+        "name": "lighting",
+        "description": "Warm directional natural light (3500-4500K). Soft shadows with dimension. No flat lighting, no flash, no cool/blue casts. Morning or golden hour feel."
+      },
+      {
+        "name": "composition",
+        "description": "50-60% negative space in warm linen tones. Shallow DOF (f/2.0-3.5). Eye-level or slightly below for hero shots."
+      },
+      {
+        "name": "colour",
+        "description": "Warm palette — linen (#EDE3D5), terracotta (#BF6B4A), espresso (#2B2220), eucalyptus (#7E9187). +10-15% warm shift. Greens desaturated toward sage. Shadows lifted, never crushed. No cool/blue tones."
+      },
+      {
+        "name": "styling",
+        "description": "Raw linen, warm stone, light timber, matte ceramics. Max 2 props. Never: plastic, bright coloured props, generic glass vases, confetti."
+      },
+      {
+        "name": "technical",
+        "description": "Sharp focus on subject. No AI artefacts (warped hands, impossible physics, uncanny textures). Professional camera quality."
+      },
+      {
+        "name": "brand_alignment",
+        "description": "Tactile minimalism. Feels like a fashion brand that sells flowers. Warm, considered, quietly confident. NOT: gift shop, bridal, craft market, stock photography."
+      }
+    ]
+  },
+  "prompt_construction": {
+    "components": [
+      "SHOT TYPE — e.g. 'Professional product photograph of...'",
+      "SUBJECT — The specific arrangement, flowers, and vessel",
+      "CAMERA — Angle, format, lens characteristics",
+      "LIGHTING — Warm directional natural light, colour temperature, shadow quality",
+      "DEPTH OF FIELD — f-stop, what's sharp, what's blurred",
+      "COMPOSITION — Negative space percentage, framing, rule of thirds",
+      "COLOUR PALETTE — Use brand colour language from colour-system.md",
+      "COLOUR GRADE — Warm shift, desaturated greens, lifted shadows, no crushed blacks",
+      "MOOD — The emotional quality (tactile, warm, considered, quiet, genuine)",
+      "EXCLUSIONS — 'No text, no logos, no watermarks'"
+    ],
+    "colour_vocabulary": {
+      "warm linen-cream": "not 'white'",
+      "terracotta": "not 'orange'",
+      "sage-eucalyptus green": "not 'green'",
+      "espresso": "not 'black'",
+      "sandstone": "not 'beige' or 'tan'"
+    }
+  },
+  "grid_pattern": [
+    {"slot": "product_closeup",    "type": "product",   "ratio": "1:1"},
+    {"slot": "lifestyle_wide",     "type": "lifestyle", "ratio": "3:4"},
+    {"slot": "texture_detail",     "type": "detail",    "ratio": "1:1"},
+    {"slot": "lifestyle_doorstep", "type": "lifestyle", "ratio": "3:4"},
+    {"slot": "product_hero",       "type": "product",   "ratio": "3:4"},
+    {"slot": "packaging_flat",     "type": "detail",    "ratio": "3:4"},
+    {"slot": "texture_petal",      "type": "detail",    "ratio": "1:1"},
+    {"slot": "lifestyle_table",    "type": "lifestyle", "ratio": "3:4"},
+    {"slot": "product_full",       "type": "product",   "ratio": "3:4"}
+  ],
+  "slot_to_shot": {
+    "product_closeup":    "product_closeup",
+    "lifestyle_wide":     "lifestyle_wide",
+    "texture_detail":     "texture_stems",
+    "lifestyle_doorstep": "doorstep_arrival",
+    "product_hero":       "product_hero",
+    "packaging_flat":     "packaging_flat",
+    "texture_petal":      "product_detail",
+    "lifestyle_table":    "kitchen_table",
+    "product_full":       "product_full"
+  }
+}
