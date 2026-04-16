@@ -1,0 +1,297 @@
+[
+  {
+    "shot_id": "product_hero",
+    "shot_name": "Product Hero",
+    "prompt": "Professional product photograph of a seasonal flower arrangement in a handmade matte terracotta ceramic vase, placed on a draped raw linen cloth on a wooden surface. Eye-level camera angle, shot on medium format camera. Warm directional natural light from the left side, colour temperature around 4000K, creating soft dimensional shadows. Shallow depth of field at f/2.8 \u2014 foremost petals and stems tack-sharp, background falling to a soft warm cream blur. Generous negative space above and to the right in warm linen-cream tones, approximately 55% of the frame. The arrangement features white garden roses, dried eucalyptus branches, chamomile, and dried oat grass \u2014 organic and slightly asymmetric, not overly manicured. Colour palette: warm creams, terracotta, muted sage greens, natural whites. Warm colour grade with lifted shadows, slightly desaturated greens shifted toward sage-eucalyptus tones, no crushed blacks. The image feels tactile, warm, and considered \u2014 like a premium lifestyle brand product shot. No text, no logos, no watermarks.",
+    "image_path": "",
+    "image_url": "https://d3u0tzju9qaucj.cloudfront.net/0f2b464c-103d-4f28-8ce6-a99d12bab8dc/fb5f21f4-d482-4d8c-9ab4-cdb64df23d93.png",
+    "score": 9,
+    "iteration": 1,
+    "critique": {
+      "overall_score": 9,
+      "dimensions": {
+        "lighting": {
+          "score": 9,
+          "note": "Perfect warm directional light, beautiful dimensional shadows"
+        },
+        "composition": {
+          "score": 9,
+          "note": "Excellent negative space balance, eye-level angle ideal"
+        },
+        "colour": {
+          "score": 9,
+          "note": "Spot-on warm palette, sage eucalyptus, lifted shadows"
+        },
+        "styling": {
+          "score": 9,
+          "note": "Perfect terracotta vase, raw linen, minimal props"
+        },
+        "technical": {
+          "score": 9,
+          "note": "Sharp focus on subject, professional quality"
+        },
+        "brand_alignment": {
+          "score": 9,
+          "note": "Embodies tactile minimalism, premium fashion-forward feel"
+        }
+      },
+      "verdict": "PASS",
+      "prompt_revisions": ""
+    }
+  },
+  {
+    "shot_id": "product_detail",
+    "shot_name": "Petal Detail",
+    "prompt": "Extreme close-up macro photograph of flower petals, shot with very shallow depth of field at f/2.0 on a macro lens. Natural warm sidelight from the left creating gentle shadow across the petal surface texture. A single garden rose in sharp focus showing the delicate surface texture, subtle colour gradation from cream-white to soft blush at the petal edges. Background is a soft defocused blur of warm linen and sage green tones. One small dewdrop visible on a petal edge catching the light. Colour grade: warm, gently desaturated, film-like quality with lifted shadows. The image should feel deeply tactile \u2014 the viewer should want to reach out and touch the petal. Shot on professional camera, no AI artefacts on textures or surfaces. No text, no watermarks.",
+    "image_path": "",
+    "image_url": "https://d3u0tzju9qaucj.cloudfront.net/0f2b464c-103d-4f28-8ce6-a99d12bab8dc/4b483345-5336-4c98-a6d9-a717fb2d4acc.png",
+    "score": 7,
+    "iteration": 1,
+    "critique": {
+      "overall_score": 7,
+      "dimensions": {
+        "lighting": {
+          "score": 8,
+          "note": "Beautiful warm directional light with soft shadows, perfect temperature"
+        },
+        "composition": {
+          "score": 6,
+          "note": "Good shallow DOF but lacks sufficient negative space for brand"
+        },
+        "colour": {
+          "score": 8,
+          "note": "Excellent warm palette, cream-blush tones align perfectly with brand"
+        },
+        "styling": {
+          "score": 9,
+          "note": "Pure minimalism, no props, focuses on natural beauty"
+        },
+        "technical": {
+          "score": 8,
+          "note": "Sharp focus, beautiful textures, professional quality throughout"
+        },
+        "brand_alignment": {
+          "score": 7,
+          "note": "Tactile and considered but too macro for hero shot"
+        }
+      },
+      "verdict": "ITERATE",
+      "prompt_revisions": "Change to 'close-up' instead of 'extreme close-up macro', pull back to show more negative space around flower, ensure 50-60% warm linen background visible, shoot at eye-level or slightly below angle"
+    }
+  },
+  {
+    "shot_id": "kitchen_table",
+    "shot_name": "Kitchen Table",
+    "prompt": "Lifestyle photograph of a flower arrangement as centrepiece on a kitchen table in soft morning light. Warm directional sunlight streaming from a window on the left side, creating gentle shadows across the table. A matte ceramic vase in warm clay tones holds white roses, dried eucalyptus, and chamomile on a light timber table. A ceramic coffee cup sits partially visible at the frame edge. A woman's hand and forearm reach into frame from the right, gently adjusting a stem \u2014 natural, unposed gesture. Shallow depth of field with the flowers as focal point. The kitchen is minimal and warm \u2014 not styled for a photoshoot, but naturally beautiful. Australian home interior. Colour palette: warm creams, sage green, natural timber, terracotta. The mood is quiet morning contentment \u2014 unhurried, genuine, a private moment. Warm colour grade, desaturated greens, lifted shadows, no harsh contrast. Shot at eye level on professional camera. No text, no watermarks.",
+    "image_path": "",
+    "image_url": "https://d3u0tzju9qaucj.cloudfront.net/0f2b464c-103d-4f28-8ce6-a99d12bab8dc/e064bbbe-7022-45c5-a275-7c5612daadb4.png",
+    "score": 8,
+    "iteration": 1,
+    "critique": {
+      "overall_score": 8,
+      "dimensions": {
+        "lighting": {
+          "score": 9,
+          "note": "Excellent warm directional light with dimensional shadows"
+        },
+        "composition": {
+          "score": 7,
+          "note": "Good negative space but could use more warm linen tones"
+        },
+        "colour": {
+          "score": 8,
+          "note": "Strong warm palette, terracotta vase perfect, good warm grade"
+        },
+        "styling": {
+          "score": 8,
+          "note": "Perfect matte ceramics and timber, minimal props, very Bower"
+        },
+        "technical": {
+          "score": 8,
+          "note": "Sharp focus, natural hand gesture, professional quality"
+        },
+        "brand_alignment": {
+          "score": 8,
+          "note": "Tactile minimalism achieved, feels fashion-forward not gift shop"
+        }
+      },
+      "verdict": "ITERATE",
+      "prompt_revisions": "Add: 'warm linen backdrop or wall color (#EDE3D5)' and specify 'f/2.8 aperture' for exact shallow DOF. Change 'chamomile' to 'baby's breath' for more premium feel."
+    }
+  },
+  {
+    "shot_id": "doorstep_arrival",
+    "shot_name": "Doorstep Arrival",
+    "prompt": "Lifestyle photograph of a flower delivery box in a minimal setting. A rectangular kraft-coloured cardboard box with a terracotta-coloured stripe accent sits against a warm linen backdrop or wall. A woman's hand reaches naturally toward the box \u2014 the gesture is genuine, not posed. One potted plant with sage green foliage is partially visible for subtle context. The composition emphasizes negative space at 50-60% of the frame, creating a clean, tactile minimalist aesthetic. Shot from eye level or slightly below. Warm natural daylight with soft shadows. The box is positioned off-center with ample breathing room. Colour palette: warm linen kraft, terracotta accents, sage green foliage. The mood is calm discovery and tactile appreciation. Warm colour grade, lifted shadows, natural tones. No text on the box, no logos, no watermarks.",
+    "image_path": "",
+    "image_url": "https://d3u0tzju9qaucj.cloudfront.net/0f2b464c-103d-4f28-8ce6-a99d12bab8dc/bcc40495-5ae6-4ad9-ae19-5683ea75503c.png",
+    "score": 8,
+    "iteration": 2,
+    "critique": {
+      "overall_score": 8,
+      "dimensions": {
+        "lighting": {
+          "score": 9,
+          "note": "Excellent warm directional light with soft dimensional shadows"
+        },
+        "composition": {
+          "score": 8,
+          "note": "Good negative space and eye-level angle, slight centering"
+        },
+        "colour": {
+          "score": 9,
+          "note": "Perfect warm palette matching brand colors exactly"
+        },
+        "styling": {
+          "score": 8,
+          "note": "Clean minimal props, box could be more premium"
+        },
+        "technical": {
+          "score": 9,
+          "note": "Sharp focus, professional quality, clean execution"
+        },
+        "brand_alignment": {
+          "score": 7,
+          "note": "Good tactile minimalism but feels slightly utilitarian"
+        }
+      },
+      "verdict": "ITERATE",
+      "prompt_revisions": "Change 'kraft-coloured cardboard box' to 'premium matte cardboard box in warm linen tone'. Add 'luxurious' before 'tactile minimalist aesthetic'. Specify 'shot at f/2.8 for shallow depth of field'."
+    }
+  },
+  {
+    "shot_id": "tissue_reveal",
+    "shot_name": "Tissue Reveal",
+    "prompt": "Close-up overhead photograph of hands opening a flower delivery box, gently parting sage-green tissue paper to reveal the first glimpse of flower stems and foliage inside. Shot from above at a 45-degree angle. The box is kraft-coloured, open, sitting on a linen cloth surface. The tissue paper is a muted eucalyptus sage green \u2014 the colour contrast between the green tissue and the cream-white flowers creates a moment of visual surprise. The hands are feminine, natural nails, no heavy jewellery \u2014 just a simple thin gold ring. Warm natural sidelight from the left. Shallow depth of field \u2014 hands and tissue paper in sharp focus, the box edges softly blurred. The mood is anticipation and discovery \u2014 the moment just before the full reveal. Warm colour grade, desaturated greens shifted toward eucalyptus tones, lifted shadows. Shot on professional camera. No text, no watermarks.",
+    "image_path": "",
+    "image_url": "https://d3u0tzju9qaucj.cloudfront.net/0f2b464c-103d-4f28-8ce6-a99d12bab8dc/c722127b-22f0-443a-8c27-632f65af509b.png",
+    "score": 8,
+    "iteration": 1,
+    "critique": {
+      "overall_score": 8,
+      "dimensions": {
+        "lighting": {
+          "score": 9,
+          "note": "Excellent warm directional sidelight with soft shadows"
+        },
+        "composition": {
+          "score": 7,
+          "note": "Good shallow DOF but less negative space than ideal"
+        },
+        "colour": {
+          "score": 8,
+          "note": "Perfect eucalyptus sage green, warm linen tones present"
+        },
+        "styling": {
+          "score": 9,
+          "note": "Kraft box, linen surface, minimal gold ring - all on-brand"
+        },
+        "technical": {
+          "score": 8,
+          "note": "Sharp focus, natural hands, professional quality"
+        },
+        "brand_alignment": {
+          "score": 8,
+          "note": "Tactile minimalism achieved, feels premium and considered"
+        }
+      },
+      "verdict": "PASS",
+      "prompt_revisions": ""
+    }
+  },
+  {
+    "shot_id": "living_room",
+    "shot_name": "Living Room Day 3",
+    "prompt": "Lifestyle photograph of a flower arrangement in a living room on its third day \u2014 the flowers are slightly relaxed and naturally opened but still beautiful, not wilted. A matte ceramic vase in warm terracotta tones sits on a low timber side table next to a linen-upholstered armchair. Warm afternoon light comes through a window, casting long soft shadows. A throw blanket drapes over the armchair arm. The room feels genuinely lived-in \u2014 a book on the armchair, a candle nearby. The arrangement features white roses that have softened and opened further, eucalyptus that has dried slightly, giving the composition a natural, settled quality. Shallow depth of field with the arrangement as focal point. Australian home interior, warm neutral palette. The mood is settled domestic warmth \u2014 these flowers live here, they weren't just placed for a photo. Warm colour grade, lifted shadows, gentle desaturation. Shot at eye level. No text, no watermarks.",
+    "image_path": "",
+    "image_url": "https://d3u0tzju9qaucj.cloudfront.net/0f2b464c-103d-4f28-8ce6-a99d12bab8dc/e6e00db2-0586-4bea-801f-09062ae19e05.png",
+    "score": 7,
+    "iteration": 1,
+    "critique": {
+      "overall_score": 7,
+      "dimensions": {
+        "lighting": {
+          "score": 8,
+          "note": "Beautiful warm directional light with soft shadows, perfect temperature"
+        },
+        "composition": {
+          "score": 6,
+          "note": "Good negative space but slightly below eye level, arrangement dominates frame"
+        },
+        "colour": {
+          "score": 8,
+          "note": "Excellent warm palette matching brand colours, good desaturation"
+        },
+        "styling": {
+          "score": 7,
+          "note": "Great terracotta vase and linen, but multiple props reduce focus"
+        },
+        "technical": {
+          "score": 8,
+          "note": "Sharp focus, good DOF, professional quality with no artifacts"
+        },
+        "brand_alignment": {
+          "score": 6,
+          "note": "Feels lived-in but slightly domestic rather than fashion-forward minimalism"
+        }
+      },
+      "verdict": "ITERATE",
+      "prompt_revisions": "Remove 'book on the armchair, a candle nearby' and 'genuinely lived-in'. Add 'tactile minimalism' and 'fashion brand aesthetic'. Change 'eye level' to 'slightly below eye level'. Reduce to maximum 1 prop besides vase."
+    }
+  },
+  {
+    "shot_id": "product_closeup",
+    "shot_name": "Product Close-Up",
+    "prompt": "Professional close-up photograph of the top of a flower arrangement, shot from slightly above at approximately 30 degrees. A matte sandstone ceramic bowl holds soft blush garden roses, dried eucalyptus sprigs, and white chamomile \u2014 the arrangement viewed from above reveals the organic spiral of stems and blooms. Shot on medium format camera with shallow depth of field at f/2.8, the centre blooms tack-sharp, the outer edges falling to a soft blur. Warm directional natural light from upper left, colour temperature around 4000K. The background is a raw linen surface in warm cream tones, visible around the edges of the bowl. Colour palette: warm linen-cream, soft blush pink, muted sage-eucalyptus greens, sandstone. Warm colour grade, slightly desaturated greens, lifted shadows, gentle film-like quality. The image feels intimate and tactile \u2014 close enough to smell the roses. No text, no logos, no watermarks.",
+    "image_url": "",
+    "score": null,
+    "iteration": 0,
+    "status": "draft \u2014 run through quality gate to verify",
+    "grid_slot": "product_closeup",
+    "content_type": "product"
+  },
+  {
+    "shot_id": "product_full",
+    "shot_name": "Product Full Frame",
+    "prompt": "Editorial product photograph of a flower arrangement in a handmade matte terracotta vase, placed on a warm stone surface. The arrangement is positioned in the lower-left third of the frame, leaving approximately 60% generous negative space in warm linen-cream tones above and to the right. The arrangement features pale pink peonies, dried oat grass, eucalyptus branches, and white ranunculus \u2014 organic, slightly wild, not overly structured. Eye-level camera angle, shot on medium format camera. Warm directional natural light from the right side at colour temperature 3800K, creating long soft shadows extending to the left. Very shallow depth of field at f/2.0 \u2014 the front blooms sharp, everything behind falling to a warm cream blur. Warm colour grade with lifted shadows, desaturated greens shifted toward sage tones, no crushed blacks. The mood is considered editorial minimalism \u2014 like a fashion brand lookbook page. No text, no logos, no watermarks.",
+    "image_url": "",
+    "score": null,
+    "iteration": 0,
+    "status": "draft \u2014 run through quality gate to verify",
+    "grid_slot": "product_full",
+    "content_type": "product"
+  },
+  {
+    "shot_id": "lifestyle_wide",
+    "shot_name": "Lifestyle Wide",
+    "prompt": "Lifestyle photograph of an Australian home interior, wider framing showing a full room corner. A flower arrangement in a matte ceramic vase sits on a low timber console table against a warm white rendered wall. The arrangement features white garden roses and dried eucalyptus. The room includes a linen-upholstered chair, a woven jute rug, and a single framed botanical print leaning against the wall. Warm afternoon light streams from a window on the left, casting long diagonal shadows across the floor and wall. The flowers are one element in a considered, lived-in space \u2014 not the sole subject but clearly the warmest point in the frame. Shallow depth of field at f/3.5, flowers and vase in focus, room edges softly blurred. Colour palette: warm linen-cream walls, natural timber, sage eucalyptus, terracotta ceramic accent. Warm colour grade, lifted shadows, desaturated greens. The mood is quiet domestic beauty \u2014 a space that someone actually lives in and has taken care to make beautiful. Shot at eye level on professional camera. No text, no watermarks.",
+    "image_url": "",
+    "score": null,
+    "iteration": 0,
+    "status": "draft \u2014 run through quality gate to verify",
+    "grid_slot": "lifestyle_wide",
+    "content_type": "lifestyle"
+  },
+  {
+    "shot_id": "texture_stems",
+    "shot_name": "Texture Detail \u2014 Stems",
+    "prompt": "Extreme close-up macro photograph of dried eucalyptus stems and leaves against a raw linen cloth surface. Shot with very shallow depth of field at f/2.0 on a macro lens. Natural warm sidelight from the left creating subtle shadows that reveal the leaf texture and stem structure. Two or three eucalyptus branches arranged casually \u2014 not styled, as if just set down. The leaves show the desaturated sage-green tones with subtle silver undertones, the stems a warm brown. Background is soft warm linen in cream tones, gently out of focus. Colour grade: warm, gently desaturated, greens shifted toward sage-eucalyptus tones, lifted shadows with film-like quality. The image should feel like a botanical study \u2014 quiet, observational, deeply textural. Shot on professional camera, no AI artefacts on leaf textures or surfaces. No text, no watermarks.",
+    "image_url": "",
+    "score": null,
+    "iteration": 0,
+    "status": "draft \u2014 run through quality gate to verify",
+    "grid_slot": "texture_detail",
+    "content_type": "detail"
+  },
+  {
+    "shot_id": "packaging_flat",
+    "shot_name": "Packaging Flat Lay",
+    "prompt": "Overhead flat-lay photograph of an open flower delivery box on a raw linen cloth surface. Shot from directly above. The kraft-coloured box is open, showing sage-green tissue paper neatly folded back to reveal the tops of cream-white flower stems and eucalyptus foliage. A small personal note card in warm linen-cream paper with handwritten text sits beside the box. A terracotta-coloured ribbon curls loosely near the box edge. The linen surface fills the frame around the box, providing approximately 40% negative space in warm cream tones. Warm natural light from above-left, soft shadows from the box edges and tissue folds. Shallow depth of field \u2014 note card and tissue sharp, box corners softly blurred. Colour palette: kraft paper, sage-eucalyptus green, warm linen-cream, terracotta accent. Warm colour grade, desaturated greens, lifted shadows. The mood is anticipation and considered presentation \u2014 every element placed with care. No branding on the box, no logos, no text, no watermarks.",
+    "image_url": "",
+    "score": null,
+    "iteration": 0,
+    "status": "draft \u2014 run through quality gate to verify",
+    "grid_slot": "packaging_flat",
+    "content_type": "detail"
+  }
+]
