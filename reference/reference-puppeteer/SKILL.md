@@ -114,7 +114,7 @@ node references/scripts/slice.js \
 
 **Output:** PNG files named after input HTML files. At default settings, each PNG is 1200px wide (600px × 2x scale) — retina-ready for email.
 
-**The script outputs a JSON manifest** between `__SLICE_MANIFEST__` markers on stdout. Parse this to get the exact output paths:
+**The script outputs a JSON manifest** between `__SLICE_MANIFEST__` markers on stdout. Parse this to get the exact output paths and broken-image reports:
 
 ```json
 {
@@ -124,11 +124,14 @@ node references/scripts/slice.js \
       "path": "/absolute/path/to/slices/hero-a.png",
       "width_css_px": 600,
       "scale": 2,
-      "width_actual_px": 1200
+      "width_actual_px": 1200,
+      "broken_images": []
     }
   ]
 }
 ```
+
+`broken_images` lists the `src` values of any `<img>` elements that failed to load (zero `naturalWidth`) during rendering. A non-empty array means the PNG was rendered with broken image placeholders. Always check this field — **do not proceed if any product card slice has non-empty `broken_images`**.
 
 ---
 
@@ -287,3 +290,55 @@ fi
 ```
 
 Common errors and fixes are documented in `references/INSTALL.md`.
+
+---
+
+## Troubleshooting
+
+### `Cannot find module 'minimist'`
+
+**Symptom:**
+```
+Error: Cannot find module 'minimist'
+    at Function.Module._resolveFilename (node:internal/modules/cjs/loader:1039:15)
+```
+
+**Cause:** npm dependencies have not been installed inside the `references/` directory, or `npm install` was run at the wrong level.
+
+**Fix:**
+```bash
+# Install deps from inside the references/ directory (where package.json lives)
+cd [skill-install-path]/reference-puppeteer/references
+npm install
+
+# Verify both critical deps are present
+node -e "require('minimist'); console.log('minimist OK')"
+node -e "require('puppeteer'); console.log('puppeteer OK')"
+```
+
+Do **not** run `npm install` at the repo root or skill root — only inside `references/`.
+
+### Chromium not found / launch error
+
+**Symptom:**
+```
+Error: Failed to launch the browser process!
+/usr/bin/chromium-browser: not found
+```
+
+**Fix:** The scripts are hardcoded to use `/usr/bin/chromium` (not `chromium-browser`). Verify it exists:
+
+```bash
+which chromium        # should print /usr/bin/chromium
+chromium --version    # should print a version string
+```
+
+If missing, install via: `apt-get install -y chromium`
+
+### Fonts rendering as wrong typeface (serif fallback)
+
+**Symptom:** PNG looks correct structurally but headings render in a generic serif font instead of Cervanttis or Lust.
+
+**Cause:** Fonts loaded from `file://` paths only work when the page is navigated via `page.goto('file:///...')`. Using `page.setContent()` (about:blank context) silently blocks `file://` font loads.
+
+**Fix:** Always use `page.goto()` with a `file://` path and include `--allow-file-access-from-files` in Chromium launch args (already set in `slice.js` defaults).

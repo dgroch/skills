@@ -151,13 +151,84 @@ Divide the selected component list into two groups:
 
 ### 5b. Pre-download product images
 
-Shopify CDN URLs are flaky when fetched concurrently during slicing. Download every `{{PRODUCT_IMAGE_URL}}`, `{{LIFESTYLE_IMAGE_URL}}`, and `{{STUDIO_IMAGE_URL}}` value to local disk before rendering, and use local `file://` paths in the token values.
+Shopify CDN URLs are flaky when fetched concurrently during slicing. **Pre-flight each URL then download every image before rendering.** Use local `file://` paths in token values for all `{{PRODUCT_IMAGE_URL}}`, `{{LIFESTYLE_IMAGE_URL}}`, and `{{STUDIO_IMAGE_URL}}` tokens.
+
+#### Preflight: validate image URLs before downloading
+
+For every product image URL, confirm it resolves to an actual image before attempting the full download:
+
+```bash
+# Check Content-Type header — must start with "image/"
+CONTENT_TYPE=$(curl -sI --max-time 10 "[shopify-url]" | grep -i '^content-type:' | awk '{print $2}' | tr -d '\r')
+if [[ "$CONTENT_TYPE" != image/* ]]; then
+  echo "ERROR: URL does not resolve to an image (got: $CONTENT_TYPE) — [shopify-url]"
+  # Use fallback URL or abort
+fi
+```
+
+If a URL fails preflight:
+1. Try the product's alternate image URL (next variant or `.jpg` format swap).
+2. If no alternate is available, flag the product and remove it from the campaign — **do not proceed with a broken image URL**.
+
+#### Download with MIME and byte-size checks
 
 ```bash
 mkdir -p /tmp/[campaign-slug]/product-images
+
+download_image() {
+  local url="$1"
+  local dest="$2"
+  local min_bytes=5000   # reject files smaller than 5KB as likely error pages
+
+  # Up to 3 attempts with exponential back-off
+  for attempt in 1 2 3; do
+    curl -sL --max-time 30 "$url" -o "$dest"
+    local status=$?
+    if [ $status -ne 0 ]; then
+      echo "  Attempt $attempt: curl error ($status) for $url"
+      sleep $((attempt * 2))
+      continue
+    fi
+
+    # Byte-size check
+    local file_size
+    file_size=$(wc -c < "$dest")
+    if [ "$file_size" -lt "$min_bytes" ]; then
+      echo "  Attempt $attempt: download too small (${file_size} bytes) — likely error page for $url"
+      sleep $((attempt * 2))
+      continue
+    fi
+
+    # MIME check on downloaded file
+    local mime
+    mime=$(file --mime-type -b "$dest")
+    if [[ "$mime" != image/* ]]; then
+      echo "  Attempt $attempt: downloaded file is not an image (MIME: $mime) for $url"
+      sleep $((attempt * 2))
+      continue
+    fi
+
+    echo "  ✓ Downloaded $dest (${file_size} bytes, $mime)"
+    return 0
+  done
+
+  echo "ERROR: Failed to download valid image after 3 attempts: $url"
+  return 1
+}
+
 # For each product image:
-curl -sL "[shopify-url]" -o /tmp/[campaign-slug]/product-images/[slug].jpg
+download_image "[shopify-url]" "/tmp/[campaign-slug]/product-images/[slug].jpg" || exit 1
 ```
+
+After all downloads complete, verify none of the files are missing or zero-byte:
+
+```bash
+for f in /tmp/[campaign-slug]/product-images/*.jpg; do
+  [ -s "$f" ] || { echo "ERROR: Empty or missing: $f"; exit 1; }
+done
+```
+
+#### Use local file:// paths in tokens
 
 Then in Step 5c token values, use `file://` paths instead of Shopify URLs:
 - `{{PRODUCT_IMAGE_URL}}` = `file:///tmp/[campaign-slug]/product-images/[slug].jpg`
@@ -185,13 +256,22 @@ For each **text** component:
 
 ### 5d. Slice visual components
 
-Call the `puppeteer` skill's `slice.js` on the components directory:
+Call the `puppeteer` skill's `slice.js` on the components directory. **Capture stdout to a file** so the `__SLICE_MANIFEST__` can be parsed in Step 6:
 
 ```bash
-node [puppeteer-skill-path]/references/scripts/slice.js   --input /tmp/[campaign-slug]/components/   --output /tmp/[campaign-slug]/slices/   --width 600   --scale 2   --verbose
+node [puppeteer-skill-path]/references/scripts/slice.js \
+  --input /tmp/[campaign-slug]/components/ \
+  --output /tmp/[campaign-slug]/slices/ \
+  --assets [puppeteer-skill-path]/references/assets \
+  --width 600 \
+  --scale 2 \
+  --verbose \
+  | tee /tmp/[campaign-slug]/slice-output.txt
 ```
 
-Parse the `__SLICE_MANIFEST__` from stdout to get the list of produced PNG files. The manifest includes a `broken_images` array per slice — if any entry is non-empty, the slice has failed image loads and must be re-rendered (check the file:// path exists and the pre-download in 5b succeeded).
+The `--assets` flag is required — it tells `slice.js` where to find the illustration PNG assets for `{{ASSETS_BASE}}` token substitution.
+
+Parse the `__SLICE_MANIFEST__` from `/tmp/[campaign-slug]/slice-output.txt` to get the list of produced PNG files. The manifest includes a `broken_images` array per slice — if any entry is non-empty, the slice has failed image loads and must be re-rendered (check the `file://` path exists and the pre-download in 5b succeeded).
 
 If any slice fails → fix the component HTML and re-run before proceeding.
 
@@ -204,6 +284,43 @@ If any slice fails → fix the component HTML and re-run before proceeding.
 - [ ] Every visual component has a corresponding PNG in `/tmp/[campaign-slug]/slices/`
 - [ ] No slice errors in the Puppeteer output
 - [ ] Every manifest entry has `broken_images: []` — any failures mean a pre-downloaded image is missing or `file://` path is wrong
+
+**Product-grid aggregate check (mandatory):**
+
+After parsing `__SLICE_MANIFEST__`, collect all product-card slice entries and verify the entire grid is clean — not just individual cards:
+
+```bash
+# Parse manifest and check all product card slices collectively
+node -e "
+const fs = require('fs');
+const out = fs.readFileSync('/tmp/[campaign-slug]/slice-output.txt', 'utf8');
+const match = out.match(/__SLICE_MANIFEST__([\s\S]*?)__END_MANIFEST__/);
+if (!match) { console.error('No manifest found'); process.exit(1); }
+const manifest = JSON.parse(match[1]);
+
+const productSlices = manifest.slices.filter(s =>
+  s.file.match(/card-|product-/i)
+);
+const gridBroken = productSlices.flatMap(s =>
+  (s.broken_images || []).map(img => ({ slice: s.file, img }))
+);
+
+if (gridBroken.length > 0) {
+  console.error('PRODUCT GRID BROKEN IMAGES:');
+  gridBroken.forEach(b => console.error('  ' + b.slice + ': ' + b.img));
+  process.exit(1);
+}
+console.log('Product grid OK — ' + productSlices.length + ' card(s), 0 broken images');
+"
+```
+
+**Fail the build** if any broken-image indicator appears across the composed product grid. Do not proceed to Step 7 until all product card slices are clean.
+
+If a card has broken images:
+1. Confirm the corresponding `file://` path in the component HTML matches the pre-downloaded file.
+2. Re-run the download for that image (Step 5b `download_image` function).
+3. Re-render only the affected card slice (pass the single HTML file to `slice.js --input`).
+4. Re-check manifest before continuing.
 
 **Token validation (text components):**
 - [ ] No `{{` or `}}` characters remain in any text component HTML
@@ -365,6 +482,70 @@ Read `references/manifest.json` to confirm exact file paths and token names befo
 | `references/klaviyo-html.md` | Klaviyo API calls (Steps 8, 10) |
 | `reference-google-drive` skill | Google Drive uploads (Steps 7, 9) — use `$GWS_USER_ADMIN` |
 | `puppeteer` skill | Slice rendering (Step 5) — must be installed on VPS first |
+
+---
+
+## Product-card / product-grid regression checklist
+
+Run this checklist any time a campaign includes product card slices before proceeding to Step 7:
+
+- [ ] **URL preflight passed** — every product image URL returned `Content-Type: image/*` before download
+- [ ] **All images downloaded** — every `file://` path referenced in component HTML exists on disk
+- [ ] **MIME check passed** — every downloaded file identified as `image/*` by `file --mime-type`
+- [ ] **Byte-size check passed** — no downloaded file is under 5KB
+- [ ] **Per-card broken_images empty** — `broken_images: []` for every card entry in `__SLICE_MANIFEST__`
+- [ ] **Grid aggregate check passed** — zero broken-image indicators across all `card-*` and `product-*` slices combined
+- [ ] **Visual spot-check** — open at least one product card PNG and confirm the product photo renders (not a grey placeholder or browser broken-image icon)
+
+---
+
+## Troubleshooting
+
+### `minimist` not found when running slice.js
+
+**Symptom:**
+```
+Error: Cannot find module 'minimist'
+    at Function.Module._resolveFilename (node:internal/modules/cjs/loader:1039:15)
+```
+
+**Cause:** The `reference-puppeteer` skill's npm dependencies have not been installed, or were installed in the wrong directory.
+
+**Fix:**
+```bash
+# Navigate to the puppeteer skill's references directory and install deps
+cd [puppeteer-skill-path]/references
+npm install
+
+# Verify
+node -e "require('minimist'); console.log('minimist OK')"
+node -e "require('puppeteer'); console.log('puppeteer OK')"
+```
+
+The `references/` directory contains `package.json` with `minimist` and `puppeteer` as dependencies. Running `npm install` inside that directory is the only setup step needed. Do not run `npm install` at the repo root.
+
+### Product images render as broken placeholders despite successful slice.js run
+
+**Symptom:** slice.js exits 0 and produces PNGs, but the PNG shows a grey box or browser broken-image icon where the product photo should be.
+
+**Cause:** `file://` path in the component HTML is wrong — mismatched slug, extension, or directory path.
+
+**Fix:**
+1. Open the failing component HTML file and find the `<img src="file:///...">` value.
+2. Check that exact path exists: `ls -lh "file-path-here"` (strip `file://` prefix).
+3. If missing, re-run the `download_image` function from Step 5b for that URL.
+4. If the path is wrong, correct the token value in the component HTML and re-render.
+
+### `broken_images` non-empty for a slice but PNG looks correct
+
+**Symptom:** `__SLICE_MANIFEST__` reports `broken_images` for a slice, but the PNG appears correct when opened.
+
+**Cause:** Puppeteer flagged an image that loaded with zero natural dimensions (e.g., a 1×1 tracking pixel, SVG with no intrinsic size). This is usually harmless for illustration assets but should be investigated.
+
+**Fix:** Check each URL in `broken_images`:
+- If it's a decoration/illustration asset, confirm it renders visually in the PNG — if so, it can be treated as a known false positive.
+- If it's a product image, treat as broken and re-download.
+- Never mark a broken product image as an acceptable false positive.
 
 ---
 
