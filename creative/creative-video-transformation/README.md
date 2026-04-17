@@ -28,7 +28,7 @@ The pipeline is fully automated. Checkpoints allow resume on failure.
 ### Dependencies
 
 ```bash
-pip install higgsfield-client scenedetect[opencv] anthropic requests
+pip install higgsfield-client scenedetect[opencv] requests
 ```
 
 FFmpeg must be installed system-wide:
@@ -45,13 +45,13 @@ brew install ffmpeg
 
 ```bash
 # Higgsfield auth — get keys from https://cloud.higgsfield.ai/api-keys
-export HF_API_KEY="your-key"
-export HF_API_SECRET="your-secret"
+export HF_API_KEY_ID="your-key-id"
+export HF_API_KEY_SECRET="your-key-secret"
 # OR combined:
-export HF_KEY="your-key:your-secret"
+export HF_KEY="your-key-id:your-key-secret"
 
-# Claude for shot analysis
-export ANTHROPIC_API_KEY="your-anthropic-key"
+# Claude for shot analysis — no ANTHROPIC_API_KEY needed in Paperclip.
+# The skill calls the `claude` CLI directly, which uses the native session auth.
 
 # Optional — override defaults if the model paths don't resolve
 export HF_IMAGE_MODEL="google/nano-banana-2/edit"
@@ -157,7 +157,7 @@ A 30-second source video with 10 shots costs ~$20–30 to remix. Start with shor
 
 **"Model not found" / 404** — The configured model path isn't in the catalogue. Log into https://cloud.higgsfield.ai, find the correct slug, and set `HF_IMAGE_MODEL` or `HF_VIDEO_MODEL` accordingly.
 
-**"401 Unauthorized"** — Check `HF_API_KEY` and `HF_API_SECRET` (or `HF_KEY`). Regenerate keys at https://cloud.higgsfield.ai/api-keys if needed.
+**"401 Unauthorized"** — Check `HF_API_KEY_ID` and `HF_API_KEY_SECRET` (or `HF_KEY`). Regenerate keys at https://cloud.higgsfield.ai/api-keys if needed.
 
 **"402 Payment Required"** — Top up credits at https://cloud.higgsfield.ai/credits.
 

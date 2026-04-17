@@ -4,19 +4,50 @@ Shared configuration for the video remix pipeline.
 Auth (Higgsfield):
   HF_KEY="api-key:api-secret"   (single value)
   OR
-  HF_API_KEY=api-key
-  HF_API_SECRET=api-secret
+  HF_API_KEY_ID=api-key
+  HF_API_KEY_SECRET=api-secret
 
 Auth (Claude):
-  ANTHROPIC_API_KEY=...
+  Uses the `claude` CLI available in the Paperclip environment — no
+  ANTHROPIC_API_KEY required.
 
 Install:
-  pip install higgsfield-client anthropic scenedetect[opencv] requests
+  pip install higgsfield-client scenedetect[opencv] requests
 """
 
 import json
 import os
 from pathlib import Path
+
+
+def _setup_higgsfield_env() -> None:
+    """Map Paperclip-style Higgsfield env vars to names the SDK expects.
+
+    The Paperclip environment exposes:
+      HF_API_KEY_ID     — the key identifier
+      HF_API_KEY_SECRET — the key secret
+
+    The higgsfield_client SDK reads:
+      HF_KEY            — "id:secret" combined, OR
+      HF_API_KEY + HF_API_SECRET
+
+    This function writes HF_API_KEY / HF_API_SECRET into os.environ when
+    the SDK-expected names are absent so the SDK picks them up automatically.
+    Call it once at import time so every script that imports config gets it.
+    """
+    if os.environ.get("HF_KEY") or (
+        os.environ.get("HF_API_KEY") and os.environ.get("HF_API_SECRET")
+    ):
+        return  # SDK-expected vars already present — nothing to do.
+
+    key_id = os.environ.get("HF_API_KEY_ID", "")
+    key_secret = os.environ.get("HF_API_KEY_SECRET", "")
+    if key_id and key_secret:
+        os.environ["HF_API_KEY"] = key_id
+        os.environ["HF_API_SECRET"] = key_secret
+
+
+_setup_higgsfield_env()
 
 # --- Paths (resolved relative to the current working directory) ---
 WORK_DIR = Path("./work")
@@ -71,7 +102,7 @@ def require_env(name: str) -> str:
 def have_higgsfield_creds() -> bool:
     return bool(
         os.environ.get("HF_KEY")
-        or (os.environ.get("HF_API_KEY") and os.environ.get("HF_API_SECRET"))
+        or (os.environ.get("HF_API_KEY_ID") and os.environ.get("HF_API_KEY_SECRET"))
     )
 
 
