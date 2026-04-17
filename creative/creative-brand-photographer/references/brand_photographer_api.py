@@ -646,7 +646,7 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
         cmd = [
             "claude",
             "--print",
-            "--system", self.critic_system,
+            "--system-prompt", self.critic_system,
             "--image", local_path,
             user_text,
         ]
@@ -762,7 +762,7 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
             f"CURRENT PROMPT:\n{prompt}\n\nREVISIONS TO APPLY:\n{revisions}\n\n"
             "Return the revised prompt."
         )
-        cmd = ["claude", "--print", "--system", system, user_text]
+        cmd = ["claude", "--print", "--system-prompt", system, user_text]
         try:
             result = subprocess.run(
                 cmd,
