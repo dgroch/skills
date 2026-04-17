@@ -1,5 +1,2036 @@
 {
   "version": "1.0",
-  "brand_id": "fig-and-bloom",
-  "seeds": []
+  "seeds": [
+    {
+      "id": "logo-stacked-black",
+      "file": "seeds/logos/logo-stacked-black.png",
+      "category": "logo",
+      "subcategory": "stacked",
+      "variant": "black",
+      "description": "Fig & Bloom stacked logo in black on transparent background. Square composition, 1000x1000px.",
+      "format": "png",
+      "background": "transparent",
+      "tags": [
+        "stacked",
+        "wordmark",
+        "black",
+        "transparent"
+      ],
+      "use_for": [
+        "overlay",
+        "composite",
+        "watermark"
+      ],
+      "never_use_for": [
+        "style-reference"
+      ]
+    },
+    {
+      "id": "logo-horizontal-black",
+      "file": "seeds/logos/logo-horizontal-black.png",
+      "category": "logo",
+      "subcategory": "horizontal",
+      "variant": "black",
+      "description": "Fig & Bloom horizontal wordmark in black on transparent background. 914x200px. Elegant serif 'Fig&Bloom' lockup.",
+      "format": "png",
+      "background": "transparent",
+      "tags": [
+        "horizontal",
+        "wordmark",
+        "black",
+        "transparent",
+        "serif"
+      ],
+      "use_for": [
+        "overlay",
+        "composite",
+        "watermark"
+      ],
+      "never_use_for": [
+        "style-reference"
+      ]
+    },
+    {
+      "id": "bouquet-broome-regular-hero-001",
+      "file": "seeds/bouquets/bouquet-broome-regular-hero-001.jpg",
+      "category": "bouquet",
+      "subcategory": "wrapped",
+      "description": "Broome Regular bouquet hero. Full wrapped bouquet on grey/white ground. White tissue wrap, black satin ribbon, Fig & Bloom circular black sticker. All-season. Compact composition. Colour story: warm rust + blush + amber. Flowers: banksia, pink lisianthus, alstroemeria, strawflower (bracteantha), eucalyptus.",
+      "season": "all-season",
+      "flowers": [
+        "banksia",
+        "lisianthus",
+        "alstroemeria",
+        "bracteantha",
+        "eucalyptus"
+      ],
+      "colour_story": "warm rust + blush + amber",
+      "tags": [
+        "wrapped",
+        "hero",
+        "full-bouquet",
+        "sticker-visible",
+        "grey-ground",
+        "regular-size"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference",
+        "product-shot"
+      ],
+      "pairs_with": [
+        "model-*"
+      ]
+    },
+    {
+      "id": "bouquet-broome-regular-detail-002",
+      "file": "seeds/bouquets/bouquet-broome-regular-detail-002.jpg",
+      "category": "bouquet",
+      "subcategory": "wrapped",
+      "description": "Broome Regular detail crop 1. Close-up of pink lisianthus, alstroemeria, banksia and strawflower blooms. Warm rust + blush tones.",
+      "season": "all-season",
+      "flowers": [
+        "banksia",
+        "lisianthus",
+        "alstroemeria",
+        "bracteantha",
+        "eucalyptus"
+      ],
+      "colour_story": "warm rust + blush + amber",
+      "tags": [
+        "wrapped",
+        "detail",
+        "close-up",
+        "regular-size"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference"
+      ],
+      "pairs_with": [
+        "model-*"
+      ]
+    },
+    {
+      "id": "bouquet-broome-regular-detail-003",
+      "file": "seeds/bouquets/bouquet-broome-regular-detail-003.jpg",
+      "category": "bouquet",
+      "subcategory": "wrapped",
+      "description": "Broome Regular detail crop 2. Close-up showing banksia, pink lisianthus buds and pink chrysanthemum button.",
+      "season": "all-season",
+      "flowers": [
+        "banksia",
+        "lisianthus",
+        "alstroemeria",
+        "bracteantha",
+        "eucalyptus"
+      ],
+      "colour_story": "warm rust + blush + amber",
+      "tags": [
+        "wrapped",
+        "detail",
+        "close-up",
+        "regular-size"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference"
+      ],
+      "pairs_with": [
+        "model-*"
+      ]
+    },
+    {
+      "id": "bouquet-broome-xlarge-hero-001",
+      "file": "seeds/bouquets/bouquet-broome-xlarge-hero-001.jpg",
+      "category": "bouquet",
+      "subcategory": "wrapped",
+      "description": "Broome XLarge bouquet hero. Full wrapped bouquet on grey/white ground. White tissue wrap, black satin ribbon, F&B sticker. All-season. More voluminous composition, prominent alstroemeria. Colour story: warm rust + blush + amber. Flowers: banksia, lisianthus, alstroemeria, strawflower (bracteantha), eucalyptus.",
+      "season": "all-season",
+      "flowers": [
+        "banksia",
+        "lisianthus",
+        "alstroemeria",
+        "bracteantha",
+        "eucalyptus"
+      ],
+      "colour_story": "warm rust + blush + amber",
+      "tags": [
+        "wrapped",
+        "hero",
+        "full-bouquet",
+        "sticker-visible",
+        "grey-ground",
+        "xlarge"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference",
+        "product-shot"
+      ],
+      "pairs_with": [
+        "model-*"
+      ]
+    },
+    {
+      "id": "bouquet-broome-xlarge-detail-002",
+      "file": "seeds/bouquets/bouquet-broome-xlarge-detail-002.jpg",
+      "category": "bouquet",
+      "subcategory": "wrapped",
+      "description": "Broome XLarge detail crop 1. Close-up of banksia cones, protea buds and lisianthus in larger arrangement.",
+      "season": "all-season",
+      "flowers": [
+        "banksia",
+        "lisianthus",
+        "alstroemeria",
+        "bracteantha",
+        "eucalyptus"
+      ],
+      "colour_story": "warm rust + blush + amber",
+      "tags": [
+        "wrapped",
+        "detail",
+        "close-up",
+        "xlarge"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference"
+      ],
+      "pairs_with": [
+        "model-*"
+      ]
+    },
+    {
+      "id": "bouquet-broome-xlarge-detail-003",
+      "file": "seeds/bouquets/bouquet-broome-xlarge-detail-003.jpg",
+      "category": "bouquet",
+      "subcategory": "wrapped",
+      "description": "Broome XLarge detail crop 2. Tight close-up of vivid strawflower heads (orange/red bracteantha), banksia and pink lisianthus.",
+      "season": "all-season",
+      "flowers": [
+        "banksia",
+        "lisianthus",
+        "alstroemeria",
+        "bracteantha",
+        "eucalyptus"
+      ],
+      "colour_story": "warm rust + blush + amber",
+      "tags": [
+        "wrapped",
+        "detail",
+        "close-up",
+        "xlarge",
+        "strawflower-prominent"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference"
+      ],
+      "pairs_with": [
+        "model-*"
+      ]
+    },
+    {
+      "id": "bouquet-broome-xlarge-detail-004",
+      "file": "seeds/bouquets/bouquet-broome-xlarge-detail-004.jpg",
+      "category": "bouquet",
+      "subcategory": "wrapped",
+      "description": "Broome XLarge detail crop 3. Very close banksia focus \u2014 multiple banksia cones with red/orange strawflowers in foreground.",
+      "season": "all-season",
+      "flowers": [
+        "banksia",
+        "lisianthus",
+        "alstroemeria",
+        "bracteantha",
+        "eucalyptus"
+      ],
+      "colour_story": "warm rust + blush + amber",
+      "tags": [
+        "wrapped",
+        "detail",
+        "close-up",
+        "xlarge",
+        "banksia-focus"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference"
+      ],
+      "pairs_with": [
+        "model-*"
+      ]
+    },
+    {
+      "id": "bouquet-osaka-hero-001",
+      "file": "seeds/bouquets/bouquet-osaka-hero-001.jpg",
+      "category": "bouquet",
+      "subcategory": "wrapped",
+      "description": "Osaka bouquet hero. Full wrapped bouquet on white ground. White tissue wrap, black satin ribbon, Fig & Bloom circular black sticker visible. All-season. Colour story: blush pink + white. Flowers: pink roses, white pompom disbuds (chrysanthemum), white snapdragons, white and pink gypsophila, eucalyptus. NOTE: seeds.json corrected per brand owner feedback 2026-04-18.",
+      "season": "all-season",
+      "flowers": [
+        "pink rose",
+        "white pompom disbud",
+        "white snapdragon",
+        "gypsophila",
+        "eucalyptus"
+      ],
+      "colour_story": "blush pink + white",
+      "tags": [
+        "wrapped",
+        "hero",
+        "full-bouquet",
+        "sticker-visible",
+        "white-ground"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference",
+        "product-shot"
+      ],
+      "pairs_with": [
+        "model-*"
+      ]
+    },
+    {
+      "id": "bouquet-osaka-detail-002",
+      "file": "seeds/bouquets/bouquet-osaka-detail-002.jpg",
+      "category": "bouquet",
+      "subcategory": "wrapped",
+      "description": "Osaka bouquet detail crop 1. Close-up of blooms and wrapping. Pompom chrysanthemums, blush spray roses. White tissue, black ribbon visible.",
+      "season": "all-season",
+      "flowers": [
+        "pompom chrysanthemum",
+        "spray rose",
+        "gypsophila"
+      ],
+      "colour_story": "blush + white + soft mauve",
+      "tags": [
+        "wrapped",
+        "detail",
+        "close-up"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference"
+      ],
+      "pairs_with": [
+        "model-*"
+      ]
+    },
+    {
+      "id": "bouquet-osaka-detail-003",
+      "file": "seeds/bouquets/bouquet-osaka-detail-003.jpg",
+      "category": "bouquet",
+      "subcategory": "wrapped",
+      "description": "Osaka bouquet detail crop 2. Close-up showing bloom arrangement and tissue wrapping.",
+      "season": "all-season",
+      "flowers": [
+        "pompom chrysanthemum",
+        "spray rose",
+        "gypsophila"
+      ],
+      "colour_story": "blush + white + soft mauve",
+      "tags": [
+        "wrapped",
+        "detail",
+        "close-up"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference"
+      ],
+      "pairs_with": [
+        "model-*"
+      ]
+    },
+    {
+      "id": "bouquet-osaka-detail-004",
+      "file": "seeds/bouquets/bouquet-osaka-detail-004.jpg",
+      "category": "bouquet",
+      "subcategory": "wrapped",
+      "description": "Osaka bouquet detail crop 3. Bloom and ribbon detail.",
+      "season": "all-season",
+      "flowers": [
+        "pompom chrysanthemum",
+        "spray rose",
+        "gypsophila"
+      ],
+      "colour_story": "blush + white + soft mauve",
+      "tags": [
+        "wrapped",
+        "detail",
+        "close-up"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference"
+      ],
+      "pairs_with": [
+        "model-*"
+      ]
+    },
+    {
+      "id": "bouquet-osaka-detail-005",
+      "file": "seeds/bouquets/bouquet-osaka-detail-005.jpg",
+      "category": "bouquet",
+      "subcategory": "wrapped",
+      "description": "Osaka bouquet detail crop 4. Top-down or angled close-up of blooms.",
+      "season": "all-season",
+      "flowers": [
+        "pompom chrysanthemum",
+        "spray rose",
+        "gypsophila"
+      ],
+      "colour_story": "blush + white + soft mauve",
+      "tags": [
+        "wrapped",
+        "detail",
+        "close-up"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference"
+      ],
+      "pairs_with": [
+        "model-*"
+      ]
+    },
+    {
+      "id": "bouquet-lucerne-hero-001",
+      "file": "seeds/bouquets/bouquet-lucerne-hero-001.jpg",
+      "category": "bouquet",
+      "subcategory": "wrapped",
+      "description": "Lucerne Large bouquet hero 1. Full wrapped bouquet on white surface. White tissue wrap, black ribbon. All-season. Colour story: pure white + ivory. Flowers: white alstroemeria, white stock, white roses, lisianthus.",
+      "season": "all-season",
+      "flowers": [
+        "alstroemeria",
+        "stock",
+        "rose",
+        "lisianthus"
+      ],
+      "colour_story": "pure white + ivory",
+      "tags": [
+        "wrapped",
+        "hero",
+        "full-bouquet",
+        "white-ground",
+        "large"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference",
+        "product-shot"
+      ],
+      "pairs_with": [
+        "model-*"
+      ]
+    },
+    {
+      "id": "bouquet-lucerne-detail-002",
+      "file": "seeds/bouquets/bouquet-lucerne-detail-002.jpg",
+      "category": "bouquet",
+      "subcategory": "wrapped",
+      "description": "Lucerne Large detail crop 1. Close-up of white blooms and tissue wrap.",
+      "season": "all-season",
+      "flowers": [
+        "alstroemeria",
+        "stock",
+        "rose",
+        "lisianthus"
+      ],
+      "colour_story": "pure white + ivory",
+      "tags": [
+        "wrapped",
+        "detail",
+        "close-up",
+        "white"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference"
+      ],
+      "pairs_with": [
+        "model-*"
+      ]
+    },
+    {
+      "id": "bouquet-lucerne-detail-003",
+      "file": "seeds/bouquets/bouquet-lucerne-detail-003.jpg",
+      "category": "bouquet",
+      "subcategory": "wrapped",
+      "description": "Lucerne Large detail crop 2. Close-up of bloom arrangement.",
+      "season": "all-season",
+      "flowers": [
+        "alstroemeria",
+        "stock",
+        "rose",
+        "lisianthus"
+      ],
+      "colour_story": "pure white + ivory",
+      "tags": [
+        "wrapped",
+        "detail",
+        "close-up",
+        "white"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference"
+      ],
+      "pairs_with": [
+        "model-*"
+      ]
+    },
+    {
+      "id": "bouquet-lucerne-hero-004",
+      "file": "seeds/bouquets/bouquet-lucerne-hero-004.jpg",
+      "category": "bouquet",
+      "subcategory": "wrapped",
+      "description": "Lucerne Large bouquet hero 2. Full wrapped bouquet. Second hero angle, white tissue, black ribbon.",
+      "season": "all-season",
+      "flowers": [
+        "alstroemeria",
+        "stock",
+        "rose",
+        "lisianthus"
+      ],
+      "colour_story": "pure white + ivory",
+      "tags": [
+        "wrapped",
+        "hero",
+        "full-bouquet",
+        "large"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference",
+        "product-shot"
+      ],
+      "pairs_with": [
+        "model-*"
+      ]
+    },
+    {
+      "id": "bouquet-lucerne-detail-005",
+      "file": "seeds/bouquets/bouquet-lucerne-detail-005.jpg",
+      "category": "bouquet",
+      "subcategory": "wrapped",
+      "description": "Lucerne Large detail crop 3. Close-up of white blooms.",
+      "season": "all-season",
+      "flowers": [
+        "alstroemeria",
+        "stock",
+        "rose",
+        "lisianthus"
+      ],
+      "colour_story": "pure white + ivory",
+      "tags": [
+        "wrapped",
+        "detail",
+        "close-up",
+        "white"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference"
+      ],
+      "pairs_with": [
+        "model-*"
+      ]
+    },
+    {
+      "id": "bouquet-lucerne-detail-006",
+      "file": "seeds/bouquets/bouquet-lucerne-detail-006.jpg",
+      "category": "bouquet",
+      "subcategory": "wrapped",
+      "description": "Lucerne Large detail crop 4. Close-up of ribbon, tissue and blooms.",
+      "season": "all-season",
+      "flowers": [
+        "alstroemeria",
+        "stock",
+        "rose",
+        "lisianthus"
+      ],
+      "colour_story": "pure white + ivory",
+      "tags": [
+        "wrapped",
+        "detail",
+        "close-up",
+        "ribbon-visible"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference"
+      ],
+      "pairs_with": [
+        "model-*"
+      ]
+    },
+    {
+      "id": "bouquet-portofino-hero-001",
+      "file": "seeds/bouquets/bouquet-portofino-hero-001.jpg",
+      "category": "bouquet",
+      "subcategory": "wrapped",
+      "description": "Portofino bouquet hero. Full wrapped bouquet held at arms length or on surface. Summer. Colour story: vivid orange + fuchsia + purple. Flowers: orange roses, protea, purple stock, fuchsia spray roses.",
+      "season": "summer",
+      "flowers": [
+        "rose",
+        "protea",
+        "stock",
+        "spray rose"
+      ],
+      "colour_story": "vivid orange + fuchsia + purple",
+      "tags": [
+        "wrapped",
+        "hero",
+        "full-bouquet",
+        "vibrant",
+        "summer"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference",
+        "product-shot"
+      ],
+      "pairs_with": [
+        "model-*"
+      ]
+    },
+    {
+      "id": "bouquet-portofino-detail-002",
+      "file": "seeds/bouquets/bouquet-portofino-detail-002.jpg",
+      "category": "bouquet",
+      "subcategory": "wrapped",
+      "description": "Portofino bouquet detail crop 1. Close-up showing vivid bloom arrangement.",
+      "season": "summer",
+      "flowers": [
+        "rose",
+        "protea",
+        "stock",
+        "spray rose"
+      ],
+      "colour_story": "vivid orange + fuchsia + purple",
+      "tags": [
+        "wrapped",
+        "detail",
+        "close-up",
+        "vibrant"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference"
+      ],
+      "pairs_with": [
+        "model-*"
+      ]
+    },
+    {
+      "id": "bouquet-portofino-detail-003",
+      "file": "seeds/bouquets/bouquet-portofino-detail-003.jpg",
+      "category": "bouquet",
+      "subcategory": "wrapped",
+      "description": "Portofino bouquet detail crop 2. Bloom and wrapping detail.",
+      "season": "summer",
+      "flowers": [
+        "rose",
+        "protea",
+        "stock",
+        "spray rose"
+      ],
+      "colour_story": "vivid orange + fuchsia + purple",
+      "tags": [
+        "wrapped",
+        "detail",
+        "close-up",
+        "vibrant"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference"
+      ],
+      "pairs_with": [
+        "model-*"
+      ]
+    },
+    {
+      "id": "bouquet-portofino-detail-004",
+      "file": "seeds/bouquets/bouquet-portofino-detail-004.jpg",
+      "category": "bouquet",
+      "subcategory": "wrapped",
+      "description": "Portofino bouquet detail crop 3. Close-up of individual blooms.",
+      "season": "summer",
+      "flowers": [
+        "rose",
+        "protea",
+        "stock",
+        "spray rose"
+      ],
+      "colour_story": "vivid orange + fuchsia + purple",
+      "tags": [
+        "wrapped",
+        "detail",
+        "close-up",
+        "vibrant"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference"
+      ],
+      "pairs_with": [
+        "model-*"
+      ]
+    },
+    {
+      "id": "bouquet-savoie-hero-001",
+      "file": "seeds/bouquets/bouquet-savoie-hero-001.jpg",
+      "category": "bouquet",
+      "subcategory": "wrapped",
+      "description": "Savoie bouquet hero. Full wrapped bouquet standing on white/grey ground. White tissue wrap, black satin ribbon. Clean studio shot. All-season. Colour story: white + sage-green + steel blue. Flowers: white stock, sea holly (eryngium), white ruffled stock.",
+      "season": "all-season",
+      "flowers": [
+        "stock",
+        "eryngium",
+        "lisianthus"
+      ],
+      "colour_story": "white + sage-green + steel blue",
+      "tags": [
+        "wrapped",
+        "hero",
+        "full-bouquet",
+        "white-ground"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference",
+        "product-shot"
+      ],
+      "pairs_with": [
+        "model-*"
+      ]
+    },
+    {
+      "id": "bouquet-savoie-detail-002",
+      "file": "seeds/bouquets/bouquet-savoie-detail-002.jpg",
+      "category": "bouquet",
+      "subcategory": "wrapped",
+      "description": "Savoie bouquet detail crop 1. Close-up showing eryngium (sea holly) and white stock blooms.",
+      "season": "all-season",
+      "flowers": [
+        "stock",
+        "eryngium",
+        "lisianthus"
+      ],
+      "colour_story": "white + sage-green + steel blue",
+      "tags": [
+        "wrapped",
+        "detail",
+        "close-up"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference"
+      ],
+      "pairs_with": [
+        "model-*"
+      ]
+    },
+    {
+      "id": "bouquet-savoie-detail-003",
+      "file": "seeds/bouquets/bouquet-savoie-detail-003.jpg",
+      "category": "bouquet",
+      "subcategory": "wrapped",
+      "description": "Savoie bouquet detail crop 2. Close-up of ribbon and bloom arrangement.",
+      "season": "all-season",
+      "flowers": [
+        "stock",
+        "eryngium",
+        "lisianthus"
+      ],
+      "colour_story": "white + sage-green + steel blue",
+      "tags": [
+        "wrapped",
+        "detail",
+        "close-up",
+        "ribbon-visible"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference"
+      ],
+      "pairs_with": [
+        "model-*"
+      ]
+    },
+    {
+      "id": "model-petl-beatle-jetblk-001",
+      "file": "seeds/models/model-petl-beatle-jetblk-001.jpg",
+      "category": "model",
+      "subcategory": "fashion-editorial",
+      "description": "Model wearing petl Beatle W4910 jet black wash jeans. Front three-quarter stance. Clean white/light backdrop. No bouquet.",
+      "source": "fig-and-bloom-brand-shoot",
+      "season": "all-season",
+      "outfit_colours": [
+        "jet black"
+      ],
+      "tags": [
+        "three-quarter",
+        "front",
+        "clean-backdrop",
+        "jeans",
+        "no-bouquet"
+      ],
+      "use_for": [
+        "composite"
+      ],
+      "pairs_with": [
+        "bouquet-*"
+      ]
+    },
+    {
+      "id": "model-petl-beatle-jetblk-002",
+      "file": "seeds/models/model-petl-beatle-jetblk-002.jpg",
+      "category": "model",
+      "subcategory": "fashion-editorial",
+      "description": "Model wearing petl Beatle W4910 jet black wash jeans. Straight-on front view. Clean backdrop. No bouquet.",
+      "source": "fig-and-bloom-brand-shoot",
+      "season": "all-season",
+      "outfit_colours": [
+        "jet black"
+      ],
+      "tags": [
+        "straight-front",
+        "clean-backdrop",
+        "jeans",
+        "no-bouquet"
+      ],
+      "use_for": [
+        "composite"
+      ],
+      "pairs_with": [
+        "bouquet-*"
+      ]
+    },
+    {
+      "id": "model-petl-beatle-jetblk-003",
+      "file": "seeds/models/model-petl-beatle-jetblk-003.jpg",
+      "category": "model",
+      "subcategory": "fashion-editorial",
+      "description": "Model wearing petl Beatle W4910 jet black wash jeans. Rear view. Clean backdrop. No bouquet. Style-reference only.",
+      "source": "fig-and-bloom-brand-shoot",
+      "season": "all-season",
+      "outfit_colours": [
+        "jet black"
+      ],
+      "tags": [
+        "rear",
+        "clean-backdrop",
+        "jeans",
+        "no-bouquet"
+      ],
+      "use_for": [
+        "style-reference"
+      ],
+      "never_use_for": [
+        "composite"
+      ],
+      "pairs_with": []
+    },
+    {
+      "id": "model-petl-mesh-sand-001",
+      "file": "seeds/models/model-petl-mesh-sand-001.jpg",
+      "category": "model",
+      "subcategory": "fashion-editorial",
+      "description": "Model wearing black open-weave mesh knit top (semi-sheer, boxy, half sleeves) with sand/cream wide-leg trousers. Straight-on front, full length. Clean light grey backdrop. No bouquet.",
+      "source": "fig-and-bloom-brand-shoot",
+      "season": "all-season",
+      "outfit_colours": [
+        "black",
+        "sand",
+        "cream"
+      ],
+      "tags": [
+        "straight-front",
+        "full-length",
+        "clean-backdrop",
+        "mesh-top",
+        "wide-leg",
+        "no-bouquet"
+      ],
+      "use_for": [
+        "composite"
+      ],
+      "pairs_with": [
+        "bouquet-*"
+      ]
+    },
+    {
+      "id": "model-petl-mesh-sand-002",
+      "file": "seeds/models/model-petl-mesh-sand-002.jpg",
+      "category": "model",
+      "subcategory": "fashion-editorial",
+      "description": "Model wearing black open-weave mesh knit top with sand wide-leg trousers. Cropped three-quarter front (head to hip). Gaze direct. Clean light grey backdrop. No bouquet.",
+      "source": "fig-and-bloom-brand-shoot",
+      "season": "all-season",
+      "outfit_colours": [
+        "black",
+        "sand",
+        "cream"
+      ],
+      "tags": [
+        "three-quarter",
+        "front",
+        "cropped",
+        "clean-backdrop",
+        "mesh-top",
+        "no-bouquet"
+      ],
+      "use_for": [
+        "composite"
+      ],
+      "pairs_with": [
+        "bouquet-*"
+      ]
+    },
+    {
+      "id": "model-petl-mesh-sand-003",
+      "file": "seeds/models/model-petl-mesh-sand-003.jpg",
+      "category": "model",
+      "subcategory": "fashion-editorial",
+      "description": "Model wearing black open-weave mesh knit top with sand wide-leg trousers. Side profile, full length, gaze right. Clean light grey backdrop. No bouquet.",
+      "source": "fig-and-bloom-brand-shoot",
+      "season": "all-season",
+      "outfit_colours": [
+        "black",
+        "sand",
+        "cream"
+      ],
+      "tags": [
+        "side-profile",
+        "full-length",
+        "gaze-right",
+        "clean-backdrop",
+        "mesh-top",
+        "no-bouquet"
+      ],
+      "use_for": [
+        "composite"
+      ],
+      "pairs_with": [
+        "bouquet-*"
+      ]
+    },
+    {
+      "id": "model-petl-mesh-sand-004",
+      "file": "seeds/models/model-petl-mesh-sand-004.jpg",
+      "category": "model",
+      "subcategory": "fashion-editorial",
+      "description": "Model wearing black open-weave mesh knit top with sand wide-leg trousers. Rear view, full length. Clean light grey backdrop. No bouquet. Style-reference only.",
+      "source": "fig-and-bloom-brand-shoot",
+      "season": "all-season",
+      "outfit_colours": [
+        "black",
+        "sand",
+        "cream"
+      ],
+      "tags": [
+        "rear",
+        "full-length",
+        "clean-backdrop",
+        "mesh-top",
+        "no-bouquet"
+      ],
+      "use_for": [
+        "style-reference"
+      ],
+      "never_use_for": [
+        "composite"
+      ],
+      "pairs_with": []
+    },
+    {
+      "id": "model-whitetee-blackmaxi-001",
+      "file": "seeds/models/model-whitetee-blackmaxi-001.jpg",
+      "category": "model",
+      "subcategory": "fashion-editorial",
+      "description": "Model wearing white fitted short-sleeve t-shirt with small chest logo + black tiered chiffon maxi skirt, black heeled boots. Straight-on front, full length. Light grey backdrop. No bouquet.",
+      "source": "fig-and-bloom-brand-shoot",
+      "season": "all-season",
+      "outfit_colours": [
+        "white",
+        "black"
+      ],
+      "tags": [
+        "straight-front",
+        "full-length",
+        "clean-backdrop",
+        "maxi-skirt",
+        "tiered",
+        "no-bouquet"
+      ],
+      "use_for": [
+        "composite"
+      ],
+      "pairs_with": [
+        "bouquet-*"
+      ]
+    },
+    {
+      "id": "model-whitetee-blackmaxi-002",
+      "file": "seeds/models/model-whitetee-blackmaxi-002.jpg",
+      "category": "model",
+      "subcategory": "fashion-editorial",
+      "description": "Model wearing black tiered chiffon maxi skirt. Detail crop \u2014 lower half only, showing skirt tiers and gathered ruffle detail. Light grey backdrop. Style-reference only.",
+      "source": "fig-and-bloom-brand-shoot",
+      "season": "all-season",
+      "outfit_colours": [
+        "black"
+      ],
+      "tags": [
+        "detail",
+        "lower-half",
+        "maxi-skirt",
+        "tiered",
+        "skirt-focus"
+      ],
+      "use_for": [
+        "style-reference"
+      ],
+      "never_use_for": [
+        "composite"
+      ],
+      "pairs_with": []
+    },
+    {
+      "id": "model-whitetee-blackmaxi-003",
+      "file": "seeds/models/model-whitetee-blackmaxi-003.jpg",
+      "category": "model",
+      "subcategory": "fashion-editorial",
+      "description": "Model wearing white fitted t-shirt + black tiered chiffon maxi skirt. Side profile, full length, gaze right. Light grey backdrop. No bouquet.",
+      "source": "fig-and-bloom-brand-shoot",
+      "season": "all-season",
+      "outfit_colours": [
+        "white",
+        "black"
+      ],
+      "tags": [
+        "side-profile",
+        "full-length",
+        "gaze-right",
+        "clean-backdrop",
+        "maxi-skirt",
+        "no-bouquet"
+      ],
+      "use_for": [
+        "composite"
+      ],
+      "pairs_with": [
+        "bouquet-*"
+      ]
+    },
+    {
+      "id": "model-whitetee-blackmaxi-004",
+      "file": "seeds/models/model-whitetee-blackmaxi-004.jpg",
+      "category": "model",
+      "subcategory": "fashion-editorial",
+      "description": "Model wearing white fitted t-shirt + black tiered chiffon maxi skirt. Rear view, full length. Light grey backdrop. No bouquet. Style-reference only.",
+      "source": "fig-and-bloom-brand-shoot",
+      "season": "all-season",
+      "outfit_colours": [
+        "white",
+        "black"
+      ],
+      "tags": [
+        "rear",
+        "full-length",
+        "clean-backdrop",
+        "maxi-skirt",
+        "no-bouquet"
+      ],
+      "use_for": [
+        "style-reference"
+      ],
+      "never_use_for": [
+        "composite"
+      ],
+      "pairs_with": []
+    },
+    {
+      "id": "model-pinkpolo-whiteshorts-001",
+      "file": "seeds/models/model-pinkpolo-whiteshorts-001.jpg",
+      "category": "model",
+      "subcategory": "fashion-editorial",
+      "description": "Model wearing dusty pink open-weave crochet polo knit top (short sleeve, polo collar, button placket, banded hem) with white tailored mini shorts and wine/burgundy pointed heels. Straight-on front, full length. Light grey backdrop. No bouquet.",
+      "source": "fig-and-bloom-brand-shoot",
+      "season": "spring-summer",
+      "outfit_colours": [
+        "dusty pink",
+        "white",
+        "wine"
+      ],
+      "tags": [
+        "straight-front",
+        "full-length",
+        "clean-backdrop",
+        "polo-knit",
+        "shorts",
+        "no-bouquet"
+      ],
+      "use_for": [
+        "composite"
+      ],
+      "pairs_with": [
+        "bouquet-*"
+      ]
+    },
+    {
+      "id": "model-pinkpolo-whiteshorts-002",
+      "file": "seeds/models/model-pinkpolo-whiteshorts-002.jpg",
+      "category": "model",
+      "subcategory": "fashion-editorial",
+      "description": "Model wearing dusty pink open-weave crochet polo knit top with white tailored mini shorts. Cropped three-quarter front (head to mid-thigh), closer framing showing top detail. Light grey backdrop. No bouquet.",
+      "source": "fig-and-bloom-brand-shoot",
+      "season": "spring-summer",
+      "outfit_colours": [
+        "dusty pink",
+        "white",
+        "wine"
+      ],
+      "tags": [
+        "three-quarter",
+        "front",
+        "cropped",
+        "clean-backdrop",
+        "polo-knit",
+        "no-bouquet"
+      ],
+      "use_for": [
+        "composite"
+      ],
+      "pairs_with": [
+        "bouquet-*"
+      ]
+    },
+    {
+      "id": "model-pinkpolo-whiteshorts-003",
+      "file": "seeds/models/model-pinkpolo-whiteshorts-003.jpg",
+      "category": "model",
+      "subcategory": "fashion-editorial",
+      "description": "Model wearing dusty pink open-weave crochet polo knit top with white tailored mini shorts. Three-quarter side profile, full length, gaze right. Light grey backdrop. No bouquet.",
+      "source": "fig-and-bloom-brand-shoot",
+      "season": "spring-summer",
+      "outfit_colours": [
+        "dusty pink",
+        "white",
+        "wine"
+      ],
+      "tags": [
+        "side-profile",
+        "full-length",
+        "gaze-right",
+        "clean-backdrop",
+        "polo-knit",
+        "no-bouquet"
+      ],
+      "use_for": [
+        "composite"
+      ],
+      "pairs_with": [
+        "bouquet-*"
+      ]
+    },
+    {
+      "id": "model-pinkpolo-whiteshorts-004",
+      "file": "seeds/models/model-pinkpolo-whiteshorts-004.jpg",
+      "category": "model",
+      "subcategory": "fashion-editorial",
+      "description": "Model wearing dusty pink open-weave crochet polo knit top with white tailored mini shorts. Rear view, full length. Light grey backdrop. No bouquet. Style-reference only.",
+      "source": "fig-and-bloom-brand-shoot",
+      "season": "spring-summer",
+      "outfit_colours": [
+        "dusty pink",
+        "white",
+        "wine"
+      ],
+      "tags": [
+        "rear",
+        "full-length",
+        "clean-backdrop",
+        "polo-knit",
+        "no-bouquet"
+      ],
+      "use_for": [
+        "style-reference"
+      ],
+      "never_use_for": [
+        "composite"
+      ],
+      "pairs_with": []
+    },
+    {
+      "id": "model-chocoCorset-sand-001",
+      "file": "seeds/models/model-chocoCorset-sand-001.jpg",
+      "category": "model",
+      "subcategory": "fashion-editorial",
+      "description": "Model A. Dark chocolate corset-style crop top (deep V-neck, boned bodice, sleeveless) with sand/camel wide-leg trousers and cream heels. Straight-on front, full length. Light grey backdrop. No bouquet.",
+      "source": "fig-and-bloom-brand-shoot",
+      "season": "all-season",
+      "outfit_colours": [
+        "dark chocolate",
+        "sand",
+        "camel"
+      ],
+      "tags": [
+        "straight-front",
+        "full-length",
+        "clean-backdrop",
+        "corset-top",
+        "wide-leg",
+        "no-bouquet"
+      ],
+      "use_for": [
+        "composite"
+      ],
+      "pairs_with": [
+        "bouquet-*"
+      ]
+    },
+    {
+      "id": "model-chocoCorset-sand-002",
+      "file": "seeds/models/model-chocoCorset-sand-002.jpg",
+      "category": "model",
+      "subcategory": "fashion-editorial",
+      "description": "Model A. Dark chocolate corset crop top detail \u2014 cropped head to waist, showing deep V-neckline and boning seam construction. Sand trousers visible at hem. Light grey backdrop. No bouquet.",
+      "source": "fig-and-bloom-brand-shoot",
+      "season": "all-season",
+      "outfit_colours": [
+        "dark chocolate",
+        "sand"
+      ],
+      "tags": [
+        "cropped",
+        "upper-body",
+        "detail",
+        "clean-backdrop",
+        "corset-top",
+        "no-bouquet"
+      ],
+      "use_for": [
+        "composite"
+      ],
+      "pairs_with": [
+        "bouquet-*"
+      ]
+    },
+    {
+      "id": "model-chocoCorset-sand-003",
+      "file": "seeds/models/model-chocoCorset-sand-003.jpg",
+      "category": "model",
+      "subcategory": "fashion-editorial",
+      "description": "Model A. Dark chocolate corset crop top with sand wide-leg trousers. Three-quarter side profile, full length, gaze right. Light grey backdrop. No bouquet.",
+      "source": "fig-and-bloom-brand-shoot",
+      "season": "all-season",
+      "outfit_colours": [
+        "dark chocolate",
+        "sand",
+        "camel"
+      ],
+      "tags": [
+        "side-profile",
+        "full-length",
+        "gaze-right",
+        "clean-backdrop",
+        "corset-top",
+        "no-bouquet"
+      ],
+      "use_for": [
+        "composite"
+      ],
+      "pairs_with": [
+        "bouquet-*"
+      ]
+    },
+    {
+      "id": "model-chocoCorset-sand-004",
+      "file": "seeds/models/model-chocoCorset-sand-004.jpg",
+      "category": "model",
+      "subcategory": "fashion-editorial",
+      "description": "Model A. Dark chocolate corset crop top with sand wide-leg trousers. Rear view, full length. Light grey backdrop. No bouquet. Style-reference only.",
+      "source": "fig-and-bloom-brand-shoot",
+      "season": "all-season",
+      "outfit_colours": [
+        "dark chocolate",
+        "sand",
+        "camel"
+      ],
+      "tags": [
+        "rear",
+        "full-length",
+        "clean-backdrop",
+        "corset-top",
+        "no-bouquet"
+      ],
+      "use_for": [
+        "style-reference"
+      ],
+      "never_use_for": [
+        "composite"
+      ],
+      "pairs_with": []
+    },
+    {
+      "id": "model-b-chocoCorset-chocoSkirt-001",
+      "file": "seeds/models/model-b-chocoCorset-chocoSkirt-001.jpg",
+      "category": "model",
+      "subcategory": "fashion-editorial",
+      "description": "Model B (different model \u2014 lighter skin, straight brown hair, blue eyes). Dark chocolate corset crop top with matching dark chocolate midi skirt (tonal monochrome set). Cropped three-quarter front (head to hip), hands clasped. Light grey backdrop. No bouquet.",
+      "source": "fig-and-bloom-brand-shoot",
+      "season": "all-season",
+      "outfit_colours": [
+        "dark chocolate"
+      ],
+      "tags": [
+        "three-quarter",
+        "front",
+        "cropped",
+        "clean-backdrop",
+        "corset-top",
+        "monochrome",
+        "model-b",
+        "no-bouquet"
+      ],
+      "use_for": [
+        "composite"
+      ],
+      "pairs_with": [
+        "bouquet-*"
+      ]
+    },
+    {
+      "id": "packaging-delivery-card-001",
+      "file": "seeds/packaging/packaging-delivery-card-001.jpg",
+      "category": "packaging",
+      "subcategory": "card",
+      "description": "Fig & Bloom branded delivery card held in hand. White card with botanical line-art (woman with flowers) and order details printed. White tissue wrap visible in background.",
+      "tags": [
+        "card",
+        "delivery",
+        "branded",
+        "detail",
+        "hand-held"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference"
+      ]
+    },
+    {
+      "id": "lifestyle-outdoor-bouquet-001",
+      "file": "seeds/lifestyle/lifestyle-outdoor-bouquet-001.jpg",
+      "category": "lifestyle",
+      "subcategory": "outdoor",
+      "description": "Marseille bouquet. Large fuchsia/magenta bouquet held in hand (bracelet visible) against an outdoor patio with bougainvillea greenery. Fig & Bloom white tissue wrap and black ribbon. Vivid pink/purple colour palette \u2014 roses, snapdragons, purple stock, gypsophila, pink alstroemeria.",
+      "scene": "outdoor-patio",
+      "tags": [
+        "outdoor",
+        "hand-held",
+        "bougainvillea",
+        "vivid",
+        "lifestyle",
+        "natural-light",
+        "marseille"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference"
+      ]
+    },
+    {
+      "id": "lifestyle-interior-table-001",
+      "file": "seeds/lifestyle/lifestyle-interior-table-001.jpg",
+      "category": "lifestyle",
+      "subcategory": "interior",
+      "description": "Marseille bouquet. Large fuchsia/magenta wrapped bouquet placed on a timber bedside console near a window. Styled with IKOU candle, rose lotion, and skin care products. Warm natural light. Bouquet still in tissue wrap with Fig & Bloom sticker visible.",
+      "scene": "bedside-table",
+      "tags": [
+        "interior",
+        "table-styled",
+        "window-light",
+        "candle",
+        "lifestyle-props",
+        "marseille"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference"
+      ]
+    },
+    {
+      "id": "lifestyle-interior-vase-001",
+      "file": "seeds/lifestyle/lifestyle-interior-vase-001.jpg",
+      "category": "lifestyle",
+      "subcategory": "interior",
+      "description": "Marseille bouquet. Large fuchsia/magenta bouquet unwrapped and arranged in a clear glass vase on a side table. Styled with IKOU candle, books, skincare. Window backdrop. Full bloom arrangement \u2014 roses, purple stock, snapdragons.",
+      "scene": "interior-vased",
+      "tags": [
+        "interior",
+        "vased",
+        "glass-vase",
+        "table-styled",
+        "window-light",
+        "lifestyle-props",
+        "unwrapped",
+        "marseille"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference"
+      ]
+    },
+    {
+      "id": "lifestyle-recipient-bedroom-001",
+      "file": "seeds/lifestyle/lifestyle-recipient-bedroom-001.jpg",
+      "category": "lifestyle",
+      "subcategory": "recipient",
+      "description": "Marseille bouquet. UGC-style. Blonde woman in hot pink/fuchsia fitted midi dress holding large red rose bouquet (with white alstroemeria, Fig & Bloom black ribbon). Bedroom interior, standing by white curtains. Looking down at bouquet, smiling. Gold earrings, layered necklace.",
+      "scene": "bedroom-interior",
+      "tags": [
+        "ugc",
+        "recipient",
+        "bedroom",
+        "red-roses",
+        "hot-pink-dress",
+        "interior",
+        "smiling",
+        "marseille"
+      ],
+      "use_for": [
+        "style-reference"
+      ]
+    },
+    {
+      "id": "lifestyle-recipient-bedroom-002",
+      "file": "seeds/lifestyle/lifestyle-recipient-bedroom-002.jpg",
+      "category": "lifestyle",
+      "subcategory": "recipient",
+      "description": "Marseille bouquet. UGC-style. Blonde woman in hot pink/fuchsia fitted midi dress holding large red rose bouquet. Bedroom interior, looking at camera with warm smile. Same setting as bedroom-001 but different pose.",
+      "scene": "bedroom-interior",
+      "tags": [
+        "ugc",
+        "recipient",
+        "bedroom",
+        "red-roses",
+        "hot-pink-dress",
+        "interior",
+        "camera-gaze",
+        "marseille"
+      ],
+      "use_for": [
+        "style-reference"
+      ]
+    },
+    {
+      "id": "lifestyle-recipient-outdoor-001",
+      "file": "seeds/lifestyle/lifestyle-recipient-outdoor-001.jpg",
+      "category": "lifestyle",
+      "subcategory": "recipient",
+      "description": "Marseille bouquet. UGC-style. Blonde woman in pink/white floral print mini dress holding large fuchsia/magenta wrapped bouquet. Mediterranean-style outdoor venue \u2014 white render wall, bougainvillea overhead. Looking down at bouquet.",
+      "scene": "outdoor-venue",
+      "tags": [
+        "ugc",
+        "recipient",
+        "outdoor",
+        "floral-dress",
+        "mediterranean",
+        "bougainvillea",
+        "pink-bouquet",
+        "marseille"
+      ],
+      "use_for": [
+        "style-reference"
+      ]
+    },
+    {
+      "id": "lifestyle-recipient-outdoor-002",
+      "file": "seeds/lifestyle/lifestyle-recipient-outdoor-002.jpg",
+      "category": "lifestyle",
+      "subcategory": "recipient",
+      "description": "Marseille bouquet. UGC-style. Blonde woman in pink/white floral print mini dress holding large fuchsia/magenta wrapped bouquet. Same outdoor venue, smiling directly at camera.",
+      "scene": "outdoor-venue",
+      "tags": [
+        "ugc",
+        "recipient",
+        "outdoor",
+        "floral-dress",
+        "mediterranean",
+        "camera-gaze",
+        "pink-bouquet",
+        "marseille"
+      ],
+      "use_for": [
+        "style-reference"
+      ]
+    },
+    {
+      "id": "lifestyle-recipient-outdoor-003",
+      "file": "seeds/lifestyle/lifestyle-recipient-outdoor-003.jpg",
+      "category": "lifestyle",
+      "subcategory": "recipient",
+      "description": "Marseille bouquet. UGC-style. Blonde woman in cream/ivory satin halter top + white wide-leg trousers holding large fuchsia/magenta wrapped bouquet. Outside venue entrance, white render wall with greenery. Smiling at camera.",
+      "scene": "outdoor-venue",
+      "tags": [
+        "ugc",
+        "recipient",
+        "outdoor",
+        "cream-outfit",
+        "white-walls",
+        "pink-bouquet",
+        "camera-gaze",
+        "marseille"
+      ],
+      "use_for": [
+        "style-reference"
+      ]
+    },
+    {
+      "id": "lifestyle-recipient-outdoor-004",
+      "file": "seeds/lifestyle/lifestyle-recipient-outdoor-004.jpg",
+      "category": "lifestyle",
+      "subcategory": "recipient",
+      "description": "Marseille bouquet. UGC-style. Blonde woman in cream/ivory halter outfit sitting on outdoor steps holding a brown cavoodle dog. Fuchsia/magenta bouquet visible in left foreground. Mediterranean outdoor setting with stone urn planter. Candid, joyful.",
+      "scene": "outdoor-steps",
+      "tags": [
+        "ugc",
+        "recipient",
+        "outdoor",
+        "cream-outfit",
+        "dog",
+        "candid",
+        "pink-bouquet",
+        "mediterranean",
+        "marseille"
+      ],
+      "use_for": [
+        "style-reference"
+      ]
+    },
+    {
+      "id": "lifestyle-recipient-interior-001",
+      "file": "seeds/lifestyle/lifestyle-recipient-interior-001.jpg",
+      "category": "lifestyle",
+      "subcategory": "recipient",
+      "description": "Marseille bouquet. UGC-style. Blonde woman in cream/ivory halter top + white wide-leg trousers sitting on white wicker/rattan chair inside a bright interior. Holding large fuchsia/magenta bouquet with Fig & Bloom tissue wrap visible. Olive tree in white pot behind her.",
+      "scene": "interior-sitting",
+      "tags": [
+        "ugc",
+        "recipient",
+        "interior",
+        "cream-outfit",
+        "wicker-chair",
+        "bright",
+        "pink-bouquet",
+        "fig-and-bloom-wrap-visible",
+        "marseille"
+      ],
+      "use_for": [
+        "style-reference"
+      ]
+    },
+    {
+      "id": "packaging-banksia-wrap-001",
+      "file": "seeds/packaging/packaging-banksia-wrap-001.jpg",
+      "category": "packaging",
+      "subcategory": "wrapping-paper",
+      "description": "Banksia botanical wrapping paper pattern. Warm ochre and rust tones on kraft-style background. Full sheet view.",
+      "tags": [
+        "wrapping-paper",
+        "botanical",
+        "banksia",
+        "pattern",
+        "ochre"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference"
+      ]
+    },
+    {
+      "id": "packaging-banksia-wrap-002",
+      "file": "seeds/packaging/packaging-banksia-wrap-002.jpg",
+      "category": "packaging",
+      "subcategory": "wrapping-paper",
+      "description": "Banksia botanical wrapping paper pattern. Second view/angle. Same botanical print.",
+      "tags": [
+        "wrapping-paper",
+        "botanical",
+        "banksia",
+        "pattern"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference"
+      ]
+    },
+    {
+      "id": "packaging-banksia-wrap-003",
+      "file": "seeds/packaging/packaging-banksia-wrap-003.jpg",
+      "category": "packaging",
+      "subcategory": "wrapping-paper",
+      "description": "Banksia botanical wrapping paper pattern. Third view. Detail or folded portion.",
+      "tags": [
+        "wrapping-paper",
+        "botanical",
+        "banksia",
+        "pattern",
+        "detail"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference"
+      ]
+    },
+    {
+      "id": "bouquet-marseille-regular-hero-001",
+      "file": "seeds/bouquets/bouquet-marseille-regular-hero-001.jpg",
+      "category": "bouquet",
+      "subcategory": "wrapped",
+      "description": "Marseille Regular bouquet hero \u2014 white tissue paper wrap, charcoal ribbon, Fig & Bloom sticker, grey studio ground. Vibrant fuchsia-forward arrangement: blush roses, hot-pink roses, fuchsia dianthus clusters, peach snapdragons, pink gypsophila, burgundy stocks.",
+      "season": "all-season",
+      "flowers": [
+        "rose",
+        "dianthus",
+        "snapdragon",
+        "gypsophila",
+        "stocks"
+      ],
+      "colour_story": "fuchsia + blush + magenta + deep burgundy",
+      "tags": [
+        "wrapped",
+        "hero",
+        "full-bouquet",
+        "sticker-visible",
+        "grey-ground",
+        "regular-size",
+        "marseille"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference",
+        "product-shot"
+      ],
+      "pairs_with": [
+        "model-*"
+      ]
+    },
+    {
+      "id": "bouquet-marseille-regular-hero-002",
+      "file": "seeds/bouquets/bouquet-marseille-regular-hero-002.jpg",
+      "category": "bouquet",
+      "subcategory": "wrapped",
+      "description": "Marseille Regular bouquet hero \u2014 wide angle, white tissue wrap, charcoal ribbon, grey studio ground. Full flower spread visible: blush roses, hot-pink roses, fuchsia dianthus, burgundy stocks, peach snapdragons, pink gypsophila.",
+      "season": "all-season",
+      "flowers": [
+        "rose",
+        "dianthus",
+        "snapdragon",
+        "gypsophila",
+        "stocks"
+      ],
+      "colour_story": "fuchsia + blush + magenta + deep burgundy",
+      "tags": [
+        "wrapped",
+        "hero",
+        "full-bouquet",
+        "grey-ground",
+        "regular-size",
+        "marseille"
+      ],
+      "use_for": [
+        "composite",
+        "style-reference",
+        "product-shot"
+      ],
+      "pairs_with": [
+        "model-*"
+      ]
+    },
+    {
+      "id": "bouquet-marseille-xl-hero-001",
+      "file": "seeds/bouquets/bouquet-marseille-xl-hero-001.jpg",
+      "category": "bouquet",
+      "subcategory": "detail-crop",
+      "description": "Marseille XL bouquet detail \u2014 close-up of blush and hot-pink roses with fuchsia dianthus clusters. Shows the dense, layered rose arrangement characteristic of the XL size.",
+      "season": "all-season",
+      "flowers": [
+        "rose",
+        "dianthus"
+      ],
+      "colour_story": "fuchsia + blush + hot pink",
+      "tags": [
+        "detail",
+        "close-up",
+        "xl-size",
+        "roses",
+        "marseille"
+      ],
+      "use_for": [
+        "style-reference",
+        "texture-reference"
+      ],
+      "pairs_with": []
+    },
+    {
+      "id": "bouquet-marseille-xl-hero-002",
+      "file": "seeds/bouquets/bouquet-marseille-xl-hero-002.jpg",
+      "category": "bouquet",
+      "subcategory": "detail-crop",
+      "description": "Marseille XL bouquet detail \u2014 close-up showing magenta lisianthus, burgundy snapdragons, pink gypsophila, and blush rose. Shows texture and colour depth of the XL arrangement.",
+      "season": "all-season",
+      "flowers": [
+        "lisianthus",
+        "snapdragon",
+        "gypsophila",
+        "rose"
+      ],
+      "colour_story": "magenta + burgundy + blush + pink",
+      "tags": [
+        "detail",
+        "close-up",
+        "xl-size",
+        "marseille"
+      ],
+      "use_for": [
+        "style-reference",
+        "texture-reference"
+      ],
+      "pairs_with": []
+    },
+    {
+      "id": "bouquet-marseille-xl-hero-003",
+      "file": "seeds/bouquets/bouquet-marseille-xl-hero-003.jpg",
+      "category": "bouquet",
+      "subcategory": "detail-crop",
+      "description": "Marseille XL bouquet detail \u2014 close-up of pink gypsophila cloud, deep magenta lisianthus, burgundy snapdragons, and blush rose bud. Best reference for the airy gypsophila texture in this bouquet.",
+      "season": "all-season",
+      "flowers": [
+        "gypsophila",
+        "lisianthus",
+        "snapdragon",
+        "rose"
+      ],
+      "colour_story": "magenta + burgundy + blush + pink",
+      "tags": [
+        "detail",
+        "close-up",
+        "xl-size",
+        "gypsophila",
+        "marseille"
+      ],
+      "use_for": [
+        "style-reference",
+        "texture-reference"
+      ],
+      "pairs_with": []
+    },
+    {
+      "id": "product-greeting-card-flowers-001",
+      "file": "seeds/products/product-greeting-card-flowers-001.jpg",
+      "category": "products",
+      "subcategory": "greeting-card",
+      "description": "Fig & Bloom greeting card \u2014 Flowers design. White card with gold line-art illustration of two poppies/anemones, paired with black branded backing card ('Fig & Bloom') and kraft envelope. Warm white surface. Full product set shot.",
+      "tags": [
+        "greeting-card",
+        "flowers-design",
+        "gold-line-art",
+        "white-card",
+        "kraft-envelope",
+        "product-shot",
+        "full-set"
+      ],
+      "use_for": [
+        "product-shot",
+        "style-reference",
+        "prop"
+      ],
+      "pairs_with": [
+        "bouquet-*",
+        "packaging-*"
+      ]
+    },
+    {
+      "id": "product-greeting-card-flowers-cu-001",
+      "file": "seeds/products/product-greeting-card-flowers-cu-001.jpg",
+      "category": "products",
+      "subcategory": "greeting-card",
+      "description": "Fig & Bloom greeting card \u2014 Flowers design close-up. White card fills frame; gold line-art poppies/anemones clearly visible. Black branded backing card and kraft envelope visible at edges.",
+      "tags": [
+        "greeting-card",
+        "flowers-design",
+        "gold-line-art",
+        "white-card",
+        "close-up",
+        "product-shot"
+      ],
+      "use_for": [
+        "product-shot",
+        "style-reference",
+        "prop"
+      ],
+      "pairs_with": [
+        "bouquet-*",
+        "packaging-*"
+      ]
+    },
+    {
+      "id": "product-greeting-card-withlove-cu-001",
+      "file": "seeds/products/product-greeting-card-withlove-cu-001.jpg",
+      "category": "products",
+      "subcategory": "greeting-card",
+      "description": "Fig & Bloom greeting card \u2014 With Love design. White card with gold line-art of two intertwined hearts and flourishes; 'With love' in gold script at bottom. Kraft envelope behind, black branded card at left edge.",
+      "tags": [
+        "greeting-card",
+        "with-love-design",
+        "gold-line-art",
+        "white-card",
+        "kraft-envelope",
+        "hearts",
+        "product-shot"
+      ],
+      "use_for": [
+        "product-shot",
+        "style-reference",
+        "prop"
+      ],
+      "pairs_with": [
+        "bouquet-*",
+        "packaging-*"
+      ]
+    },
+    {
+      "id": "product-greeting-card-withlove-cu-002",
+      "file": "seeds/products/product-greeting-card-withlove-cu-002.jpg",
+      "category": "products",
+      "subcategory": "greeting-card",
+      "description": "Fig & Bloom greeting card \u2014 With Love design (alternate shot, same composition as withlove-cu-001). White card with gold intertwined hearts line-art, 'With love' script. Kraft envelope and black branded card framing.",
+      "tags": [
+        "greeting-card",
+        "with-love-design",
+        "gold-line-art",
+        "white-card",
+        "kraft-envelope",
+        "hearts",
+        "product-shot"
+      ],
+      "use_for": [
+        "product-shot",
+        "style-reference",
+        "prop"
+      ],
+      "pairs_with": [
+        "bouquet-*",
+        "packaging-*"
+      ]
+    },
+    {
+      "id": "product-greeting-card-tulip-001",
+      "file": "seeds/products/product-greeting-card-tulip-001.jpg",
+      "category": "products",
+      "subcategory": "greeting-card",
+      "description": "Fig & Bloom greeting card \u2014 Tulip design close-up. White card nearly fills frame; gold line-art single tulip stem with leaves. Black 'Fig & Bloom' branded backing card and kraft envelope visible at edges.",
+      "tags": [
+        "greeting-card",
+        "tulip-design",
+        "gold-line-art",
+        "white-card",
+        "close-up",
+        "product-shot"
+      ],
+      "use_for": [
+        "product-shot",
+        "style-reference",
+        "prop"
+      ],
+      "pairs_with": [
+        "bouquet-*",
+        "packaging-*"
+      ]
+    },
+    {
+      "id": "product-greeting-card-tulip-002",
+      "file": "seeds/products/product-greeting-card-tulip-002.jpg",
+      "category": "products",
+      "subcategory": "greeting-card",
+      "description": "Fig & Bloom greeting card \u2014 Tulip design full set. White card with gold line-art single tulip, black 'Fig & Bloom' backing card, and kraft envelope; slight flat-lay angle on warm white surface.",
+      "tags": [
+        "greeting-card",
+        "tulip-design",
+        "gold-line-art",
+        "white-card",
+        "kraft-envelope",
+        "product-shot",
+        "full-set",
+        "flat-lay"
+      ],
+      "use_for": [
+        "product-shot",
+        "style-reference",
+        "prop"
+      ],
+      "pairs_with": [
+        "bouquet-*",
+        "packaging-*"
+      ]
+    },
+    {
+      "id": "product-choc-raspberry-hero-001",
+      "file": "seeds/products/product-chocolate-001.jpg",
+      "category": "products",
+      "subcategory": "chocolate",
+      "description": "Fig & Bloom Milk Chocolate Raspberries (125g) \u2014 upright hero on marble surface. Bag upright centre-frame, chocolates spilled in front with one halved (raspberry jelly centre). Props: fresh raspberries, red jelly candy pieces, linen napkin. Warm golden-beige background. Best upright product hero.",
+      "tags": [
+        "chocolate",
+        "milk-chocolate-raspberries",
+        "hero",
+        "upright",
+        "marble-surface",
+        "product-shot",
+        "raspberries",
+        "linen"
+      ],
+      "use_for": [
+        "product-shot",
+        "style-reference",
+        "prop"
+      ],
+      "pairs_with": [
+        "bouquet-*",
+        "product-greeting-card-*"
+      ]
+    },
+    {
+      "id": "product-choc-raspberry-flatlay-001",
+      "file": "seeds/products/product-chocolate-002.jpg",
+      "category": "products",
+      "subcategory": "chocolate",
+      "description": "Fig & Bloom Milk Chocolate Raspberries (125g) \u2014 flat lay on marble surface. Bag horizontal centre, chocolates and halved pieces scattered around. Props: fresh raspberries, red jelly pieces, gold spoon, linen napkin corner. Overhead composition.",
+      "tags": [
+        "chocolate",
+        "milk-chocolate-raspberries",
+        "flat-lay",
+        "marble-surface",
+        "product-shot",
+        "gold-spoon",
+        "raspberries",
+        "overhead"
+      ],
+      "use_for": [
+        "product-shot",
+        "style-reference",
+        "prop"
+      ],
+      "pairs_with": [
+        "bouquet-*",
+        "product-greeting-card-*"
+      ]
+    },
+    {
+      "id": "product-choc-raspberry-spill-001",
+      "file": "seeds/products/product-chocolate-003.jpg",
+      "category": "products",
+      "subcategory": "chocolate",
+      "description": "Fig & Bloom Milk Chocolate Raspberries (125g) \u2014 spill shot on marble with pink woven placemat. Bag on its side (upside-down) with chocolates cascading out. Props: fresh raspberries, red jelly pieces, cocoa powder dust. Action/lifestyle energy.",
+      "tags": [
+        "chocolate",
+        "milk-chocolate-raspberries",
+        "spill",
+        "marble-surface",
+        "pink-placemat",
+        "product-shot",
+        "cocoa-dust",
+        "lifestyle"
+      ],
+      "use_for": [
+        "product-shot",
+        "style-reference"
+      ],
+      "pairs_with": [
+        "bouquet-*"
+      ]
+    },
+    {
+      "id": "product-choc-raspberry-spill-002",
+      "file": "seeds/products/product-chocolate-004.jpg",
+      "category": "products",
+      "subcategory": "chocolate",
+      "description": "Fig & Bloom Milk Chocolate Raspberries (125g) \u2014 close-up spill on pink woven placemat. Bag open-end down, chocolates piled with one halved. Props: fresh raspberry, red jelly pieces. Tight, textural composition.",
+      "tags": [
+        "chocolate",
+        "milk-chocolate-raspberries",
+        "spill",
+        "close-up",
+        "pink-placemat",
+        "product-shot",
+        "raspberries"
+      ],
+      "use_for": [
+        "product-shot",
+        "style-reference"
+      ],
+      "pairs_with": [
+        "bouquet-*"
+      ]
+    },
+    {
+      "id": "product-choc-raspberry-marble-board-001",
+      "file": "seeds/products/product-chocolate-005.jpg",
+      "category": "products",
+      "subcategory": "chocolate",
+      "description": "Fig & Bloom Milk Chocolate Raspberries (125g) \u2014 angled shot on marble serving board. Bag open-end down, chocolates spread. Props: gold spoon with cocoa powder, fresh raspberry, red jelly pieces, linen napkin. Styling-forward, elevated food photography feel.",
+      "tags": [
+        "chocolate",
+        "milk-chocolate-raspberries",
+        "marble-board",
+        "angled",
+        "product-shot",
+        "gold-spoon",
+        "cocoa-dust",
+        "linen",
+        "styled"
+      ],
+      "use_for": [
+        "product-shot",
+        "style-reference"
+      ],
+      "pairs_with": [
+        "bouquet-*",
+        "product-greeting-card-*"
+      ]
+    },
+    {
+      "id": "product-choc-raspberry-hero-002",
+      "file": "seeds/products/product-chocolate-006.jpg",
+      "category": "products",
+      "subcategory": "chocolate",
+      "description": "Fig & Bloom Milk Chocolate Raspberries (125g) \u2014 upright hero on pink woven placemat. Bag upright, chocolates spilled in front with one halved (raspberry centre visible). Fresh raspberry prop. Clean, simple upright composition on warm ground.",
+      "tags": [
+        "chocolate",
+        "milk-chocolate-raspberries",
+        "hero",
+        "upright",
+        "pink-placemat",
+        "product-shot",
+        "raspberries",
+        "clean"
+      ],
+      "use_for": [
+        "product-shot",
+        "style-reference",
+        "prop"
+      ],
+      "pairs_with": [
+        "bouquet-*",
+        "product-greeting-card-*"
+      ]
+    }
+  ]
 }

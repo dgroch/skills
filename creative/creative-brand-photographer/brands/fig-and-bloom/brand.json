@@ -33,7 +33,7 @@
       },
       {
         "name": "colour",
-        "description": "Brand palette is monochrome (Noir #000000, Silk White #FFFFFF, Clay #D8CCBE) — the FLOWERS provide all colour. Flower colours must be vivid and true-to-life: saturated pinks, orchid purples, amber oranges, fuchsia, coral. Backdrop reads as warm clay/terracotta neutral. White tissue wrap reads clean, not blue. No colour grading that mutes or desaturates the flowers — their vibrancy IS the brand."
+        "description": "Brand palette is monochrome (Noir #000000, Silk White #FFFFFF, Clay #D8CCBE) — the FLOWERS provide all colour. Flower colours must be vivid and true-to-life: saturated pinks, orchid purples, amber oranges, fuchsia, coral. Backdrop MUST read as light warm beige/parchment (#D8CCBE) — NOT terracotta, NOT rust, NOT orange-brown. If the backdrop reads as terracotta or rust, this is a FAIL (score ≤ 4). The correct backdrop is a quiet, neutral parchment tone — the flowers bring all the warmth and colour. White tissue wrap reads clean, not blue. No colour grading that mutes or desaturates the flowers — their vibrancy IS the brand."
       },
       {
         "name": "styling",
@@ -46,6 +46,10 @@
       {
         "name": "brand_alignment",
         "description": "Feels like a fashion brand campaign that happens to feature flowers — not a florist who hired a model. The energy is editorial, intentional, refined. The image should feel at home on a fashion brand's Instagram or in a lifestyle magazine editorial. NOT: generic gift-shop photography, stock photo energy, overly sweet/romantic, stiff catalogue posing."
+      },
+      {
+        "name": "bouquet_fidelity",
+        "description": "When a specific Fig & Bloom design is referenced (e.g. Marseille, Portofino, Lucerne, Osaka, Broome), the generated bouquet MUST faithfully replicate that design's flower varieties, colour story, and composition. It is NOT acceptable to generate a random arrangement of flowers that generally looks nice. Key identifiers must be present: the specific flower types, colour palette, and scale must match the seed reference. If the seed is used in Mode B/C composite, the bouquet in the final image must be recognisably the same design as the seed. A randomly generated flower arrangement that happens to match the colour story is a FAIL for bouquet_fidelity (score ≤ 4)."
       }
     ]
   },
@@ -65,7 +69,8 @@
       "EXCLUSIONS — 'No text, no logos, no watermarks. Model not looking at camera.'"
     ],
     "colour_vocabulary": {
-      "warm clay backdrop": "not 'beige background' or 'brown wall'",
+      "backdrop_correct": "light warm beige studio backdrop hex #D8CCBE, NOT terracotta, NOT rust, NOT orange-brown. Background must read as neutral parchment — cooler and lighter than terracotta.",
+      "warm clay backdrop": "DEPRECATED — use 'light warm beige studio backdrop hex #D8CCBE, NOT terracotta' instead. 'Warm clay' causes models to generate terracotta/rust backdrops.",
       "silk white": "not just 'white'",
       "noir": "not just 'black'",
       "vivid orchid pink": "not 'pink'",

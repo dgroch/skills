@@ -35,14 +35,20 @@ light. Flat on-camera flash. Ring light catchlights. Dramatic chiaroscuro
 
 ## Backdrops
 
-**Primary:** Warm clay/terracotta-toned seamless paper or painted
-backdrop (#D8CCBE and warmer variants). This is the brand's signature
-background — it appears in the majority of editorial shots.
+**Primary:** Light warm beige/parchment seamless paper or painted
+backdrop, hex **#D8CCBE**. This is the brand's signature background —
+it appears in the majority of editorial shots. The correct tone is a
+quiet, neutral parchment — NOT terracotta, NOT rust, NOT orange-brown.
+The flowers provide all the warmth and colour; the backdrop stays
+understated so as not to compete. Always specify the hex value in
+prompts: `light warm beige studio backdrop hex #D8CCBE, NOT terracotta,
+NOT rust, NOT orange-brown`.
 
 **Secondary:** Clean white or off-white for brighter seasonal content.
 Soft grey for winter collections.
 
-**Never:** Busy patterned backgrounds. Outdoor locations for editorial
+**Never:** Terracotta or rust backdrops (these read as a competitor
+brand). Busy patterned backgrounds. Outdoor locations for editorial
 shots (lifestyle is separate). Dark/moody backdrops. Concrete or
 industrial textures.
 
@@ -131,6 +137,16 @@ garden roses (blush, amber, peach), stock (purple, lilac), anthurium
 **Arrangement style:** Abundant but not chaotic. A clear colour story
 within each bouquet — typically 3–4 hero flowers with supporting
 textures. Orchids cascading forward is a signature compositional choice.
+
+**Design fidelity (critical):** When generating from a named Fig & Bloom
+design (Marseille, Portofino, Lucerne, Osaka, Broome, etc.), the image
+MUST faithfully replicate that specific design — the correct flower
+varieties, their proportions, and the colour story. A generic
+"nice-looking bouquet" that does not match the named design is not
+acceptable. The seed image drives fidelity in Mode B/C composites;
+ensure the seed is correctly loaded and referenced. Always describe the
+specific flower ingredients from the seed in the prompt (not generic
+descriptors like "mixed flowers").
 
 ---
 
