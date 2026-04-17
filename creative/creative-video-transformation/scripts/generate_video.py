@@ -178,8 +178,9 @@ def generate_shot(
 def main():
     if not have_higgsfield_creds():
         raise SystemExit(
-            "ERROR: Higgsfield credentials not set. Export HF_KEY or "
-            "HF_API_KEY + HF_API_SECRET."
+            "ERROR: Higgsfield credentials not set. "
+            "Export HF_API_KEY_ID + HF_API_KEY_SECRET (Paperclip env), "
+            "or HF_KEY, or HF_API_KEY + HF_API_SECRET."
         )
 
     ensure_dirs()

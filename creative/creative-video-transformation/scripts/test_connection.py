@@ -4,9 +4,9 @@ Pre-flight check for the video remix pipeline.
 Validates:
   - Python version
   - FFmpeg + FFprobe on PATH
-  - Required SDKs import (anthropic, higgsfield_client, scenedetect, requests)
-  - ANTHROPIC_API_KEY / HF auth env vars
-  - Anthropic auth (tiny text-only call)
+  - Required SDKs import (higgsfield_client, scenedetect, requests)
+  - HF auth env vars (HF_KEY or HF_API_KEY_ID + HF_API_KEY_SECRET)
+  - claude CLI available and responsive (no ANTHROPIC_API_KEY required)
   - Higgsfield auth (upload a small in-memory PNG)
   - Configured model paths (does NOT run a full generation — credits-free probe)
 
@@ -83,7 +83,7 @@ def check_binary(c: Check, name: str):
 
 
 def check_imports(c: Check):
-    for pkg in ("anthropic", "higgsfield_client", "scenedetect", "requests"):
+    for pkg in ("higgsfield_client", "scenedetect", "requests"):
         try:
             __import__(pkg)
             c.ok(f"import {pkg}")
@@ -92,37 +92,34 @@ def check_imports(c: Check):
 
 
 def check_env(c: Check):
-    if os.environ.get("ANTHROPIC_API_KEY"):
-        c.ok("ANTHROPIC_API_KEY set")
-    else:
-        c.fail("ANTHROPIC_API_KEY", "not set")
     if have_higgsfield_creds():
         c.ok("Higgsfield credentials set")
     else:
-        c.fail("HF_KEY / HF_API_KEY+HF_API_SECRET", "not set")
+        c.fail("HF_KEY / HF_API_KEY_ID+HF_API_KEY_SECRET", "not set")
 
 
-def check_anthropic(c: Check):
-    try:
-        from anthropic import Anthropic
-    except ImportError:
-        c.skip("Anthropic auth", "SDK not installed")
-        return
-    key = os.environ.get("ANTHROPIC_API_KEY")
-    if not key:
-        c.skip("Anthropic auth", "no key")
+def check_claude_cli(c: Check):
+    """Verify the claude CLI is available and responds (no API key needed)."""
+    path = shutil.which("claude")
+    if not path:
+        c.fail("claude CLI", "not on PATH")
         return
     try:
-        client = Anthropic(api_key=key)
-        response = client.messages.create(
-            model=ANTHROPIC_MODEL,
-            max_tokens=10,
-            messages=[{"role": "user", "content": "Say 'ok' and nothing else."}],
+        result = subprocess.run(
+            ["claude", "-p", "--model", ANTHROPIC_MODEL, "Say 'ok' and nothing else."],
+            capture_output=True,
+            text=True,
+            timeout=30,
         )
-        text = response.content[0].text if response.content else ""
-        c.ok(f"Anthropic auth ({ANTHROPIC_MODEL})", f"replied: {text.strip()[:20]}")
+        if result.returncode == 0:
+            reply = result.stdout.strip()[:40]
+            c.ok(f"claude CLI ({ANTHROPIC_MODEL})", f"replied: {reply}")
+        else:
+            c.fail("claude CLI", (result.stderr or result.stdout).strip()[:120])
+    except subprocess.TimeoutExpired:
+        c.fail("claude CLI", "timed out after 30 s")
     except Exception as e:
-        c.fail(f"Anthropic auth ({ANTHROPIC_MODEL})", str(e)[:120])
+        c.fail("claude CLI", str(e)[:120])
 
 
 def _tiny_png() -> bytes:
@@ -254,7 +251,7 @@ def main():
     check_env(c)
 
     print("\n=== Live checks ===")
-    check_anthropic(c)
+    check_claude_cli(c)
     check_higgsfield_upload(c)
 
     print("\n=== Models ===")

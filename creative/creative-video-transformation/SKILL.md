@@ -10,8 +10,8 @@ Transform an existing video into a new video with specified changes (character, 
 
 - Source video file exists (MP4, MOV, or WEBM).
 - High-level remix prompt provided by the user (e.g. "Change the character to a woman in her 30s, set the scene in Tokyo at night, keep the same pacing").
-- Higgsfield credentials set (`HF_KEY` or `HF_API_KEY` + `HF_API_SECRET`).
-- `ANTHROPIC_API_KEY` set.
+- Higgsfield credentials set (`HF_KEY` or `HF_API_KEY_ID` + `HF_API_KEY_SECRET`).
+- `claude` CLI available on PATH (no `ANTHROPIC_API_KEY` required — uses Paperclip's native Claude session).
 - FFmpeg and Python 3.10+ available on host.
 
 Run `python scripts/test_connection.py` first. IF any check fails → HARD STOP and surface the failing check to the user.
@@ -63,7 +63,7 @@ INPUT: source_video.mp4 + "remix prompt"
 
 ## Step 2: ANALYSE
 
-**Script:** `scripts/analyse.py` (calls Claude via the Anthropic SDK)
+**Script:** `scripts/analyse.py` (calls Claude via the `claude` CLI subprocess — no `ANTHROPIC_API_KEY` required)
 
 **Actions:**
 1. Load `shots_manifest.json`.
@@ -249,13 +249,14 @@ To force a full re-run, delete the `work/` directory.
 
 ```
 # Higgsfield auth (choose one):
-HF_KEY="your-api-key:your-api-secret"
-# OR:
-HF_API_KEY=your-api-key
-HF_API_SECRET=your-api-secret
+HF_KEY="your-api-key-id:your-api-key-secret"
+# OR (Paperclip-native format):
+HF_API_KEY_ID=your-api-key-id
+HF_API_KEY_SECRET=your-api-key-secret
 
 # Claude for shot analysis:
-ANTHROPIC_API_KEY=your-anthropic-key
+# No ANTHROPIC_API_KEY required — uses the `claude` CLI available in the
+# Paperclip environment.
 
 # Optional overrides:
 HF_IMAGE_MODEL=google/nano-banana-2/edit         # default; catalog slug may differ
@@ -263,7 +264,7 @@ HF_VIDEO_MODEL=google/veo/3.1/image-to-video     # default; catalog slug may dif
 HF_PROBE_MODEL=bytedance/seedream/v4/text-to-image  # known-good model for auth test
 HF_IMAGE_RESOLUTION=2K                           # 1K | 2K | 4K
 HF_VIDEO_RESOLUTION=1080p                        # 720p | 1080p
-ANTHROPIC_MODEL=claude-sonnet-4-6                # analysis model
+ANTHROPIC_MODEL=claude-sonnet-4-6                # analysis model (used by claude CLI)
 ```
 
 Get Higgsfield credentials at https://cloud.higgsfield.ai/api-keys. Inspect the catalog for the authoritative model slugs if the defaults 404.
@@ -271,8 +272,9 @@ Get Higgsfield credentials at https://cloud.higgsfield.ai/api-keys. Inspect the 
 ## Dependencies
 
 ```
-pip install higgsfield-client scenedetect[opencv] anthropic requests
+pip install higgsfield-client scenedetect[opencv] requests
 # FFmpeg must be installed system-wide
+# No anthropic SDK needed — analysis uses the claude CLI
 ```
 
 ## Unverified Model Paths

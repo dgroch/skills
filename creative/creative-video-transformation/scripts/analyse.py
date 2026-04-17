@@ -1,21 +1,21 @@
 """
 Step 2: Use Claude to turn each keyframe + remix brief into per-shot prompts.
 
+Uses the `claude` CLI available in the Paperclip environment — no
+ANTHROPIC_API_KEY required.
+
 Usage: python scripts/analyse.py "high level remix prompt"
 """
 
 import base64
 import json
 import re
+import subprocess
 import sys
 
-from anthropic import Anthropic
-
 from config import (
-    ANTHROPIC_MODEL,
     load_manifest,
     quantise_duration,
-    require_env,
     save_remix_plan,
     write_state,
 )
@@ -56,45 +56,64 @@ def strip_fences(text: str) -> str:
     return match.group(1).strip() if match else text
 
 
-def extract_text(response) -> str:
-    for block in response.content:
-        if getattr(block, "type", None) == "text":
-            return block.text
-    raise ValueError("No text block in Claude response")
+def analyse_shot(shot: dict, remix_prompt: str) -> dict:
+    """Analyse a keyframe via the local claude CLI (no API key needed).
 
-
-def analyse_shot(client: Anthropic, shot: dict, remix_prompt: str) -> dict:
-    """Send a keyframe + brief to Claude and return the parsed JSON plan."""
+    Sends a stream-json message containing the base64-encoded keyframe image
+    and the remix brief to `claude -p`, then parses the JSON response.
+    """
     image_b64 = encode_image(shot["keyframe_path"])
     target_duration = quantise_duration(shot["duration"])
 
-    user_content = [
-        {
-            "type": "image",
-            "source": {
-                "type": "base64",
-                "media_type": "image/png",
-                "data": image_b64,
-            },
-        },
-        {
-            "type": "text",
-            "text": (
-                f"Shot ID: {shot['shot_id']}\n"
-                f"Source duration: {shot['duration']:.2f}s → target: {target_duration}s\n\n"
-                f"REMIX BRIEF:\n{remix_prompt}"
-            ),
-        },
-    ]
-
-    response = client.messages.create(
-        model=ANTHROPIC_MODEL,
-        max_tokens=1000,
-        system=SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": user_content}],
+    user_text = (
+        f"Shot ID: {shot['shot_id']}\n"
+        f"Source duration: {shot['duration']:.2f}s \u2192 target: {target_duration}s\n\n"
+        f"REMIX BRIEF:\n{remix_prompt}"
     )
 
-    text = strip_fences(extract_text(response))
+    # Build a stream-json user message with inline image + text.
+    input_msg = json.dumps({
+        "type": "user",
+        "message": {
+            "role": "user",
+            "content": [
+                {
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": "image/png",
+                        "data": image_b64,
+                    },
+                },
+                {"type": "text", "text": user_text},
+            ],
+        },
+    })
+
+    result = subprocess.run(
+        [
+            "claude", "-p",
+            "--input-format", "stream-json",
+            "--output-format", "text",
+            "--no-session-persistence",
+            "--dangerously-skip-permissions",
+            "--append-system-prompt", SYSTEM_PROMPT,
+        ],
+        input=input_msg + "\n",
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+
+    if result.returncode != 0:
+        raise ValueError(
+            f"claude CLI failed (rc={result.returncode}): {result.stderr[:200]}"
+        )
+
+    text = strip_fences(result.stdout.strip())
+    if not text:
+        raise ValueError("claude CLI returned empty output")
+
     data = json.loads(text)
 
     required = ("shot_index", "nano_banana_prompt", "veo_prompt", "duration_seconds")
@@ -116,13 +135,11 @@ def main():
         sys.exit(1)
 
     remix_prompt = sys.argv[1]
-    anthropic_key = require_env("ANTHROPIC_API_KEY")
     manifest = load_manifest()
     shots = manifest["shots"]
     if not shots:
         raise SystemExit("ERROR: manifest has no shots. Re-run decompose.")
 
-    client = Anthropic(api_key=anthropic_key)
     plan = {
         "remix_prompt": remix_prompt,
         "aspect_ratio": manifest.get("aspect_ratio", "16:9"),
@@ -135,10 +152,10 @@ def main():
         last_error = None
         for attempt in range(1, MAX_ANALYSIS_ATTEMPTS + 1):
             try:
-                result = analyse_shot(client, shot, remix_prompt)
+                result = analyse_shot(shot, remix_prompt)
                 plan["shots"].append(result)
                 desc = result.get("original_description", "")[:60]
-                print(f"  OK — {desc}")
+                print(f"  OK \u2014 {desc}")
                 break
             except (json.JSONDecodeError, ValueError, KeyError) as e:
                 last_error = e
