@@ -70,8 +70,37 @@ RATIO_MAP = {"4:5": "3:4", "5:4": "4:3"}
 
 
 def _brands_root() -> Path:
-    """Root directory holding per-brand configuration."""
-    return Path(__file__).parent.parent / "brands"
+    """Root directory holding per-brand configuration.
+
+    Returns a persistent path outside the ephemeral __runtime__ directory so
+    that seeds.json, seed images, prompt-library, and outputs survive across
+    heartbeat sessions.
+
+    Path structure inside __runtime__:
+        .../skills/{companyId}/__runtime__/{skill}/references/brand_photographer_api.py
+
+    Persistent store lives two levels above __runtime__:
+        .../skills/{companyId}/data/creative-brand-photographer/brands/
+
+    On first access, any brand directory present in the bundled brands/ tree
+    is bootstrapped into the persistent store (copy-once, never overwrite).
+    """
+    import shutil
+
+    skill_root = Path(__file__).resolve().parent.parent  # __runtime__/{skill}/
+    skills_base = skill_root.parent.parent               # .../skills/{companyId}/
+    persistent = skills_base / "data" / "creative-brand-photographer" / "brands"
+    persistent.mkdir(parents=True, exist_ok=True)
+
+    # Bootstrap: copy any brand dirs that exist in the bundled source but
+    # have not yet been initialised in the persistent store.  Never overwrites.
+    bundled = skill_root / "brands"
+    if bundled.exists():
+        for brand_dir in bundled.iterdir():
+            if brand_dir.is_dir() and not (persistent / brand_dir.name).exists():
+                shutil.copytree(str(brand_dir), str(persistent / brand_dir.name))
+
+    return persistent
 
 
 class BrandNotConfiguredError(Exception):

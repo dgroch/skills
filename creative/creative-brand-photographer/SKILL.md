@@ -56,35 +56,54 @@ Four layers, each scoped to the loaded brand:
 
 ## Directory Layout
 
+The skill has two directory trees: an **ephemeral runtime tree** (wiped on
+each deploy) and a **persistent data tree** (survives across sessions).
+
 ```
-creative-brand-photographer/
-├── SKILL.md                              ← This file
-├── README.md                             ← Human-facing guide
+# Ephemeral — source of truth for skill code and config templates
+__runtime__/creative-brand-photographer--{hash}/
+├── SKILL.md
+├── README.md
 ├── references/
-│   ├── brand_photographer_api.py         ← Brand-agnostic Python API
-│   ├── brand_photographer_cli.py         ← Brand-agnostic CLI
-│   └── onboarding-template.md            ← Template for new brands
+│   ├── brand_photographer_api.py
+│   ├── brand_photographer_cli.py
+│   └── onboarding-template.md
 └── brands/
-    └── <brand_id>/                       ← One directory per brand
-        ├── brand.json                    ← Brand configuration
-        ├── art-direction.md              ← Brand-specific rules
-        ├── colour-system.md              ← Brand-specific palette
-        ├── grid-spec.md                  ← Brand-specific grid
-        ├── prompt-library.json           ← Brand-specific prompts
-        ├── seeds.json                    ← Seed asset manifest
-        ├── seeds/                        ← Real brand photography
-        │   ├── logos/                    ← Logo files (wordmark, monogram, sticker)
-        │   ├── packaging/               ← Tissue, ribbon, box, sticker close-ups
-        │   ├── bouquets/                ← Real wrapped bouquets (no model)
-        │   ├── models/                  ← Model reference shots
-        │   ├── spaces/                  ← Store, warehouse, studio
-        │   ├── lifestyle/               ← Styled interiors, tablescapes
-        │   └── products/               ← Non-floral products (candles, cards, etc)
-        └── outputs/                      ← Brand-scoped image output
+    └── <brand_id>/          ← Template/seed-empty bootstrap copies only
+        ├── brand.json
+        ├── art-direction.md
+        ├── colour-system.md
+        ├── grid-spec.md
+        ├── prompt-library.json
+        └── seeds.json        ← Empty template; NOT the live manifest
+
+# Persistent — written to and read from at runtime (survives sessions)
+.../skills/{companyId}/data/creative-brand-photographer/brands/
+└── <brand_id>/
+    ├── brand.json            ← Bootstrapped once; update here if needed
+    ├── art-direction.md
+    ├── colour-system.md
+    ├── grid-spec.md
+    ├── prompt-library.json   ← All prompt library writes go here
+    ├── seeds.json            ← All seed manifest writes go here
+    ├── seeds/                ← All seed image files saved here
+    │   ├── logos/
+    │   ├── packaging/
+    │   ├── bouquets/
+    │   ├── models/
+    │   ├── spaces/
+    │   ├── lifestyle/
+    │   └── products/
+    └── outputs/              ← Generated images saved here
 ```
 
+`brand_photographer_api.py` automatically resolves `_brands_root()` to the
+persistent directory. On first access it bootstraps any missing brand
+directories from the bundled templates (copy-once, never overwrites).
+
 **Brand isolation guarantee:** Every file read, every critique, every
-library write uses paths under `brands/<brand_id>/` only.
+library write uses paths under `brands/<brand_id>/` only — always in the
+persistent store.
 
 ## Seed System
 
@@ -275,6 +294,10 @@ Check `BrandPhotographer.list_brands()`:
 
 ### Step 2 — Load and confirm
 
+`BrandPhotographer` automatically reads from the persistent data directory.
+On first instantiation for a new brand, configuration files are bootstrapped
+from the bundled templates; subsequent sessions read the live, persisted data.
+
 ```python
 photographer = BrandPhotographer(brand_id="<brand_id>")
 print(photographer.brand_summary())
@@ -380,7 +403,8 @@ well-structured manifest entries.
 
 ### Workflow: Registering New Seeds
 
-When the user provides images to register:
+When the user provides images to register (either as inline attachments in a
+Paperclip comment or as direct uploads):
 
 **Step 1 — Look at the images.** Examine each uploaded image and
 determine its most likely category. State your assessment plainly:
@@ -400,10 +424,35 @@ Wait for confirmation before proceeding.
 only the questions that category requires. Keep it tight — don't ask
 questions you can already answer from looking at the image.
 
-**Step 3 — Generate manifest entries.** Write the JSON entries and
-show them to the user for confirmation. Then write to `seeds.json`.
+**Step 3 — Download and save each image file.** For every image, save
+the file into the persistent `seeds/<category>/` directory using the
+generated seed ID as the filename. Images provided via Paperclip
+attachment URLs (e.g. `/api/attachments/{id}/content`) must be
+downloaded and written to disk at this step:
 
-**Step 4 — Report mode availability.** After any change to the seed
+```bash
+# Resolve persistent brands root from the API file's location
+SKILL_ROOT="$(cd "$(dirname "$(realpath references/brand_photographer_api.py)")/.." && pwd)"
+SKILLS_BASE="$(cd "$SKILL_ROOT/../.." && pwd)"
+SEEDS_DIR="$SKILLS_BASE/data/creative-brand-photographer/brands/<brand_id>/seeds/<category>"
+mkdir -p "$SEEDS_DIR"
+
+# Download (pass PAPERCLIP_API_KEY as Bearer token for attachment URLs)
+curl -sL -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
+     "$PAPERCLIP_API_URL/api/attachments/<attachmentId>/content" \
+     -o "$SEEDS_DIR/<seed_id>.<ext>"
+```
+
+The `file` field in the manifest entry must reference this local path
+relative to the brand directory (e.g. `seeds/logos/logo-stacked-black.png`).
+The local file is the authoritative copy — it must exist on disk for Mode
+B compositing to work.
+
+**Step 4 — Generate manifest entries.** Write the JSON entries and
+show them to the user for confirmation. Then write to `seeds.json` in
+the persistent brands directory.
+
+**Step 5 — Report mode availability.** After any change to the seed
 library, report what generation modes are now unlocked.
 
 ### Interview Questions by Category
