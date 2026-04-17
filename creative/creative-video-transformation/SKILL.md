@@ -272,8 +272,9 @@ Get Higgsfield credentials at https://cloud.higgsfield.ai/api-keys. Inspect the 
 ## Dependencies
 
 ```
-pip install higgsfield-client scenedetect[opencv] anthropic requests
+pip install higgsfield-client scenedetect[opencv] requests
 # FFmpeg must be installed system-wide
+# No anthropic SDK needed — analysis uses the claude CLI
 ```
 
 ## Unverified Model Paths
