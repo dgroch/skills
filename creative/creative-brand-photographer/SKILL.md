@@ -35,6 +35,31 @@ rubrics, libraries, seeds, or critiques across brands.
   missing reference assets — you STOP and run the onboarding flow.
   You do not guess brand standards.
 
+## Canonical Execution Rules
+
+**Use the bundled references. Do not generate new scripts.**
+
+All critique and prompt revision runs MUST go through the bundled reference
+files:
+
+- `references/brand_photographer_api.py` — the API wrapper (import this)
+- `references/brand_photographer_cli.py` — the CLI entry point (run this)
+
+**Never create ad-hoc generation scripts** for a normal brand photographer run.
+If you find yourself writing a new `.py` file that reimplements critique or
+generation, stop — use the bundled API instead.
+
+**Critic execution order:**
+
+1. **Claude CLI (`claude` command)** — preferred. Used automatically when
+   `claude` is on PATH. Does not require `ANTHROPIC_API_KEY`.
+2. **Anthropic API** — fallback only, when CLI is unavailable. Requires
+   `ANTHROPIC_API_KEY`.
+
+The active path is logged at startup (`[critic] Using CLI path` or
+`[critic] Using API path`). If you see API-mode logs in a Paperclip workspace
+where `claude` should be available, investigate the PATH before proceeding.
+
 ## Architecture
 
 Four layers, each scoped to the loaded brand:

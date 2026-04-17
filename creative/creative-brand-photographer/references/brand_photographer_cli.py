@@ -103,6 +103,7 @@ def main():
     print("  BRAND PHOTOGRAPHER")
     print(f"  Brand: {summary['brand_name']} ({summary['brand_id']})")
     print(f"  Backend: {summary['backend']} · Model: {summary['model']}")
+    print(f"  Critic: {summary.get('critic_mode', 'api')} mode")
     print(f"  Threshold: {summary['pass_threshold']}/10 · Max iterations: {summary['max_iterations']}")
     print(f"  Library: {summary['library_size']} prompts")
     print("=" * 60)

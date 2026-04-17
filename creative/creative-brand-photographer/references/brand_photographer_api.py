@@ -11,6 +11,12 @@ Supports two image generation backends:
   - OpenRouter (default) — Nano Banana 2 / Pro via google/gemini models
   - Higgsfield — Soul via higgsfield-ai/soul/standard
 
+Critic execution priority:
+  1. Claude CLI (`claude` command) — preferred when available on PATH.
+     Does not require ANTHROPIC_API_KEY to be set.
+  2. Anthropic API — fallback when Claude CLI is not available.
+     Requires ANTHROPIC_API_KEY.
+
 Usage:
     from brand_photographer_api import BrandPhotographer
 
@@ -18,7 +24,7 @@ Usage:
     photographer = BrandPhotographer(
         brand_id="bower",
         openrouter_key="sk-or-v1-...",
-        anthropic_key="sk-ant-...",
+        # anthropic_key only needed if claude CLI is unavailable
     )
 
     # Generate a single shot
@@ -44,6 +50,9 @@ import os
 import json
 import time
 import base64
+import shutil
+import subprocess
+import tempfile
 import requests
 from pathlib import Path
 from typing import Optional
@@ -68,6 +77,10 @@ POLL_TIMEOUT = 300
 VALID_RATIOS = {"9:16", "16:9", "4:3", "3:4", "1:1", "2:3", "3:2"}
 RATIO_MAP = {"4:5": "3:4", "5:4": "4:3"}
 
+# Critic execution modes — logged at runtime
+CRITIC_MODE_CLI = "cli"
+CRITIC_MODE_API = "api"
+
 
 def _brands_root() -> Path:
     """Root directory holding per-brand configuration.
@@ -85,8 +98,6 @@ def _brands_root() -> Path:
     On first access, any brand directory present in the bundled brands/ tree
     is bootstrapped into the persistent store (copy-once, never overwrite).
     """
-    import shutil
-
     skill_root = Path(__file__).resolve().parent.parent  # __runtime__/{skill}/
     skills_base = skill_root.parent.parent               # .../skills/{companyId}/
     persistent = skills_base / "data" / "creative-brand-photographer" / "brands"
@@ -103,6 +114,11 @@ def _brands_root() -> Path:
     return persistent
 
 
+def _claude_cli_available() -> bool:
+    """Return True if the `claude` CLI is present on PATH."""
+    return shutil.which("claude") is not None
+
+
 class BrandNotConfiguredError(Exception):
     """Raised when the requested brand_id has no configuration."""
 
@@ -113,13 +129,18 @@ class BrandPhotographer:
     Each instance is bound to exactly one brand_id. All library writes,
     critiques, and prompt revisions use that brand's assets only.
 
+    Critic execution: Claude CLI is used when available (preferred). Falls back
+    to direct Anthropic API calls when CLI is unavailable. ANTHROPIC_API_KEY is
+    only required for the API fallback path.
+
     Args:
         brand_id: Identifier of the brand directory under brands/.
         backend: "openrouter" (default) or "higgsfield".
         openrouter_key: OpenRouter API key.
         model: Override the brand's configured image model.
         hf_key / hf_secret: Higgsfield credentials (if backend=higgsfield).
-        anthropic_key: Anthropic API key for the Claude critic.
+        anthropic_key: Anthropic API key for API-mode critic fallback.
+            Optional when `claude` CLI is available on PATH.
         max_iterations: Override brand's quality-gate iteration cap.
         pass_threshold: Override brand's pass threshold (1-10).
         verbose: Print progress messages.
@@ -178,15 +199,29 @@ class BrandPhotographer:
         self.critic_model = critic.get("model", DEFAULT_CLAUDE_MODEL)
         self.critic_system = self._build_critic_system()
 
-        # Anthropic (critic) — required
-        self.anthropic_key = anthropic_key or os.environ.get("ANTHROPIC_API_KEY", "")
-        if not self.anthropic_key:
-            raise ValueError("Anthropic API key required: set ANTHROPIC_API_KEY or pass anthropic_key")
+        # ── Critic execution mode ──────────────────────────────────────
+        # Prefer Claude CLI; fall back to API only when CLI is absent.
+        self._cli_available = _claude_cli_available()
+        if self._cli_available:
+            self.critic_mode = CRITIC_MODE_CLI
+            self._log("[critic] Claude CLI found on PATH — using CLI mode")
+            # API key not required but accepted if provided (used only if CLI fails)
+            self.anthropic_key = anthropic_key or os.environ.get("ANTHROPIC_API_KEY", "")
+        else:
+            self.critic_mode = CRITIC_MODE_API
+            self._log("[critic] Claude CLI not found — falling back to API mode")
+            self.anthropic_key = anthropic_key or os.environ.get("ANTHROPIC_API_KEY", "")
+            if not self.anthropic_key:
+                raise ValueError(
+                    "Anthropic API key required when Claude CLI is unavailable. "
+                    "Either install the Claude CLI or set ANTHROPIC_API_KEY."
+                )
+
         self.anthropic_headers = {
             "Content-Type": "application/json",
             "x-api-key": self.anthropic_key,
             "anthropic-version": "2023-06-01",
-        }
+        } if self.anthropic_key else {}
 
         # Backend-specific credentials
         if self.backend == "openrouter":
@@ -381,6 +416,7 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
             "product_category": self.config.get("product_category", ""),
             "backend": self.backend,
             "model": self.model,
+            "critic_mode": self.critic_mode,
             "critic_dimensions": [d["name"] for d in self.config["critic"]["dimensions"]],
             "pass_threshold": self.pass_threshold,
             "max_iterations": self.max_iterations,
@@ -542,9 +578,120 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
             "shot_id": shot_id, "prompt": prompt, "image_url": "", "score": 0, "iteration": 0,
         }
 
-    # ── Critic ───────────────────────────────────────────────────────────
+    # ── Critic — CLI path ────────────────────────────────────────────────
 
-    def _critique(self, image_ref: str, shot_name: str, prompt: str) -> Optional[dict]:
+    def _image_ref_to_local_path(self, image_ref: str) -> Optional[str]:
+        """Return a local file path for an image ref, downloading if necessary.
+
+        Returns None if the image cannot be resolved to a local file.
+        """
+        if not image_ref:
+            return None
+
+        # Already a local file
+        if not image_ref.startswith("http") and not image_ref.startswith("data:"):
+            p = Path(image_ref)
+            return str(p) if p.exists() else None
+
+        # HTTP URL — download to temp file
+        if image_ref.startswith("http"):
+            try:
+                resp = requests.get(image_ref, timeout=30)
+                resp.raise_for_status()
+                ext = "jpg"
+                ct = resp.headers.get("content-type", "")
+                if "png" in ct:
+                    ext = "png"
+                elif "webp" in ct:
+                    ext = "webp"
+                tmp = tempfile.NamedTemporaryFile(suffix=f".{ext}", delete=False)
+                tmp.write(resp.content)
+                tmp.close()
+                return tmp.name
+            except Exception as e:
+                self._log(f"    [critic/cli] Failed to download image: {e}")
+                return None
+
+        # Base64 data URL — decode to temp file
+        if image_ref.startswith("data:image"):
+            try:
+                header, b64_data = image_ref.split(",", 1)
+                ext = "png"
+                if "jpeg" in header or "jpg" in header:
+                    ext = "jpg"
+                elif "webp" in header:
+                    ext = "webp"
+                tmp = tempfile.NamedTemporaryFile(suffix=f".{ext}", delete=False)
+                tmp.write(base64.b64decode(b64_data))
+                tmp.close()
+                return tmp.name
+            except Exception as e:
+                self._log(f"    [critic/cli] Failed to decode base64 image: {e}")
+                return None
+
+        return None
+
+    def _critique_via_cli(self, image_ref: str, shot_name: str, prompt: str) -> Optional[dict]:
+        """Run critique using the Claude CLI (`claude --print`)."""
+        local_path = self._image_ref_to_local_path(image_ref)
+        if not local_path:
+            self._log("    [critic/cli] Could not resolve image to local path — skipping CLI critique")
+            return None
+
+        user_text = (
+            f'Shot type: "{shot_name}". Prompt:\n{prompt}\n\n'
+            f"Score against the {self.config['brand_name']} rubric."
+        )
+
+        cmd = [
+            "claude",
+            "--print",
+            "--system", self.critic_system,
+            "--image", local_path,
+            user_text,
+        ]
+
+        try:
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=120,
+            )
+            # Clean up temp file if we created one
+            if image_ref.startswith("http") or image_ref.startswith("data:"):
+                try:
+                    Path(local_path).unlink(missing_ok=True)
+                except Exception:
+                    pass
+
+            if result.returncode != 0:
+                self._log(f"    [critic/cli] CLI exited with code {result.returncode}: {result.stderr[:200]}")
+                return None
+
+            text = result.stdout.strip()
+            if not text:
+                self._log("    [critic/cli] Empty response from CLI")
+                return None
+
+            clean = text.replace("```json", "").replace("```", "").strip()
+            return json.loads(clean)
+
+        except subprocess.TimeoutExpired:
+            self._log("    [critic/cli] CLI timed out")
+            return None
+        except json.JSONDecodeError as e:
+            self._log(f"    [critic/cli] JSON parse error: {e}")
+            return None
+        except Exception as e:
+            self._log(f"    [critic/cli] Error: {e}")
+            return None
+
+    def _critique_via_api(self, image_ref: str, shot_name: str, prompt: str) -> Optional[dict]:
+        """Run critique using the Anthropic API directly."""
+        if not self.anthropic_key:
+            self._log("    [critic/api] No API key available for fallback")
+            return None
         try:
             if image_ref.startswith("data:image") or image_ref.startswith("http"):
                 image_content = {
@@ -583,12 +730,62 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
             clean = text.replace("```json", "").replace("```", "").strip()
             return json.loads(clean)
         except Exception as e:
-            self._log(f"    Critique error: {e}")
+            self._log(f"    [critic/api] Error: {e}")
             return None
+
+    # ── Critic — dispatch ────────────────────────────────────────────────
+
+    def _critique(self, image_ref: str, shot_name: str, prompt: str) -> Optional[dict]:
+        """Critique an image. Tries CLI first; falls back to API on failure."""
+        if self._cli_available:
+            self._log(f"    [critic] Using CLI path")
+            result = self._critique_via_cli(image_ref, shot_name, prompt)
+            if result is not None:
+                return result
+            # CLI attempted but failed — fall back with warning
+            self._log("    [critic] CLI critique failed — falling back to API")
+            return self._critique_via_api(image_ref, shot_name, prompt)
+        else:
+            self._log(f"    [critic] Using API path (CLI not available)")
+            return self._critique_via_api(image_ref, shot_name, prompt)
 
     # ── Prompt revision helpers ──────────────────────────────────────────
 
-    def _apply_revisions(self, prompt: str, revisions: str) -> str:
+    def _apply_revisions_via_cli(self, prompt: str, revisions: str) -> Optional[str]:
+        """Apply prompt revisions using the Claude CLI."""
+        system = (
+            "You are a prompt engineer. Apply the requested revisions to the image "
+            "generation prompt. Return ONLY the revised prompt text — no explanation, "
+            "no markdown, no backticks."
+        )
+        user_text = (
+            f"CURRENT PROMPT:\n{prompt}\n\nREVISIONS TO APPLY:\n{revisions}\n\n"
+            "Return the revised prompt."
+        )
+        cmd = ["claude", "--print", "--system", system, user_text]
+        try:
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+            if result.returncode != 0:
+                self._log(f"    [revise/cli] CLI exited with code {result.returncode}: {result.stderr[:200]}")
+                return None
+            text = result.stdout.strip()
+            return text if text else None
+        except subprocess.TimeoutExpired:
+            self._log("    [revise/cli] CLI timed out")
+            return None
+        except Exception as e:
+            self._log(f"    [revise/cli] Error: {e}")
+            return None
+
+    def _apply_revisions_via_api(self, prompt: str, revisions: str) -> Optional[str]:
+        """Apply prompt revisions using the Anthropic API."""
+        if not self.anthropic_key:
+            return None
         try:
             res = requests.post(
                 ANTHROPIC_URL,
@@ -606,7 +803,22 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
             res.raise_for_status()
             return "".join(b.get("text", "") for b in res.json().get("content", [])).strip()
         except Exception:
-            return prompt
+            return None
+
+    def _apply_revisions(self, prompt: str, revisions: str) -> str:
+        """Apply revisions to a prompt. Tries CLI first; falls back to API."""
+        if self._cli_available:
+            self._log("    [revise] Using CLI path")
+            revised = self._apply_revisions_via_cli(prompt, revisions)
+            if revised:
+                return revised
+            self._log("    [revise] CLI failed — falling back to API")
+            revised = self._apply_revisions_via_api(prompt, revisions)
+            return revised if revised else prompt
+        else:
+            self._log("    [revise] Using API path (CLI not available)")
+            revised = self._apply_revisions_via_api(prompt, revisions)
+            return revised if revised else prompt
 
     def _apply_subject_swap(self, prompt: str, subjects: list[str]) -> str:
         joined = ", ".join(subjects)

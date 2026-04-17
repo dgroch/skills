@@ -32,16 +32,72 @@ Onboarding → Brand Loader → Prompt Engine → Image Model → Critic → Pas
 
 ---
 
+## Canonical execution
+
+**Always use the bundled reference files.** Do not generate ad-hoc scripts or
+inline reimplementations for normal runs — use `brand_photographer_api.py` and
+`brand_photographer_cli.py` directly. This ensures consistent behaviour and
+makes debugging deterministic.
+
+The critic pipeline runs **Claude CLI first** when `claude` is available on
+PATH. Direct Anthropic API calls are the fallback only. The active path is
+logged at startup:
+
+```
+[critic] Claude CLI found on PATH — using CLI mode
+```
+or
+```
+[critic] Claude CLI not found — falling back to API mode
+```
+
+### Smoke test
+
+Verify the intended critic path can execute before running a full generation:
+
+```bash
+# 1. Confirm claude CLI is on PATH (expected: a file path)
+which claude
+
+# 2. Run the CLI in interactive mode to confirm brand loads and critic path logs correctly
+python3 references/brand_photographer_cli.py bower
+
+# 3. Non-interactive single-shot test (pick shot index 1)
+python3 references/brand_photographer_cli.py bower 1
+
+# 4. Confirm critic mode in brand_summary (should show "cli" when claude is on PATH)
+python3 - <<'EOF'
+import sys; sys.path.insert(0, "references")
+from brand_photographer_api import BrandPhotographer
+p = BrandPhotographer(brand_id="bower")
+print(p.brand_summary())
+EOF
+```
+
+Expected output when CLI is available:
+
+```
+[critic] Claude CLI found on PATH — using CLI mode
+Brand Photographer configured for 'Bower' (brand_id=bower)
+{'critic_mode': 'cli', ...}
+```
+
+---
+
 ## Quick start
 
 ### 1. Set credentials
 
 ```bash
-export ANTHROPIC_API_KEY="sk-ant-..."
+# OPENROUTER_API_KEY is always required (image generation backend)
 export OPENROUTER_API_KEY="sk-or-v1-..."
 # Or for Higgsfield (legacy):
 # export HF_KEY="..."
 # export HF_SECRET="..."
+
+# ANTHROPIC_API_KEY is only needed if the Claude CLI is NOT installed.
+# When `claude` is on PATH, the CLI handles critique — no API key required.
+export ANTHROPIC_API_KEY="sk-ant-..."   # fallback only
 ```
 
 ### 2. Pick a brand
