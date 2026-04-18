@@ -13,7 +13,7 @@
   },
   "image_backend": {
     "default": "openrouter",
-    "model": "google/gemini-3.1-flash-image-preview",
+    "model": "google/gemini-3-pro-image-preview",
     "hero_model": "google/gemini-3-pro-image-preview"
   },
   "quality_gate": {

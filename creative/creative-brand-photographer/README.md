@@ -117,7 +117,26 @@ photographer.brand_summary()    # confirm which brand is loaded
 photographer.generate("product_hero")
 photographer.generate_grid(season="spring")
 photographer.generate_campaign("mothers_day", flowers=["garden roses"])
+
+# Seed-constrained image+text generation (OpenRouter)
+photographer.generate(
+    "fashion_hero",
+    fidelity_mode="strict",
+    seed_constraints={
+        "must_include_flowers": ["phalaenopsis orchid", "garden rose"],
+        "forbidden_substitutions": ["tulip", "gerbera"],
+        "composition_rules": ["hero bouquet occupies >= 30% frame"],
+        "colour_targets": ["vivid pink + amber"],
+    },
+)
 ```
+
+### Seed-constrained fidelity modes
+
+- `fidelity_mode="guided"`: uses selected seeds as references and scores fidelity in critique.
+- `fidelity_mode="strict"`: if bouquet fidelity is graded as mismatched, quality gate forces iterate even when overall score is high.
+
+Seed images are passed to OpenRouter as multimodal `image_url` content parts (image + text prompt in one request).
 
 ### CLI
 

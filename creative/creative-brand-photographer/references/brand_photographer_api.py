@@ -50,6 +50,7 @@ import os
 import json
 import time
 import base64
+import fnmatch
 import shutil
 import subprocess
 import tempfile
@@ -80,6 +81,8 @@ RATIO_MAP = {"4:5": "3:4", "5:4": "4:3"}
 # Critic execution modes — logged at runtime
 CRITIC_MODE_CLI = "cli"
 CRITIC_MODE_API = "api"
+FIDELITY_MODE_GUIDED = "guided"
+FIDELITY_MODE_STRICT = "strict"
 
 
 def _brands_root() -> Path:
@@ -182,7 +185,9 @@ class BrandPhotographer:
         # Brand-scoped paths — NEVER reach across brands
         self.output_dir = self.brand_dir / "outputs"
         self.library_path = self.brand_dir / self.config["references"]["prompt_library"]
+        self.seeds_manifest_path = self.brand_dir / self.config["references"]["seeds_manifest"]
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.seeds = self._load_seeds_manifest()
 
         # Backend resolution (constructor arg > brand config > default)
         brand_backend = self.config.get("image_backend", {})
@@ -267,6 +272,31 @@ class BrandPhotographer:
             raise BrandNotConfiguredError(f"No brand configured at {path}")
         return json.loads(path.read_text())
 
+    def _load_seeds_manifest(self) -> list[dict]:
+        """Load and normalize seeds from the configured manifest."""
+        if not self.seeds_manifest_path.exists():
+            return []
+        try:
+            manifest = json.loads(self.seeds_manifest_path.read_text())
+        except Exception:
+            self._log(f"[seed] Could not parse seeds manifest: {self.seeds_manifest_path}")
+            return []
+
+        raw_seeds = manifest.get("seeds", [])
+        if not isinstance(raw_seeds, list):
+            return []
+
+        normalized = []
+        for seed in raw_seeds:
+            if not isinstance(seed, dict):
+                continue
+            sid = seed.get("id")
+            sfile = seed.get("file")
+            if not sid or not sfile:
+                continue
+            normalized.append(seed)
+        return normalized
+
     # ── Validation & critic construction ─────────────────────────────────
 
     def _validate_config(self):
@@ -322,18 +352,46 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
 
     # ── Public API ───────────────────────────────────────────────────────
 
-    def generate(self, shot_id: str, prompt: str = "", ratio: str = "3:4") -> dict:
+    def generate(
+        self,
+        shot_id: str,
+        prompt: str = "",
+        ratio: str = "3:4",
+        fidelity_mode: str = FIDELITY_MODE_GUIDED,
+        seed_constraints: Optional[dict] = None,
+    ) -> dict:
         """Generate a single image through the quality gate loop."""
+        if fidelity_mode not in (FIDELITY_MODE_GUIDED, FIDELITY_MODE_STRICT):
+            raise ValueError("fidelity_mode must be 'guided' or 'strict'")
+
+        library_entry = self._lookup_library_entry(shot_id)
         if not prompt:
-            prompt = self._lookup_prompt(shot_id)
+            prompt = library_entry.get("prompt", "")
             if not prompt:
                 raise ValueError(
                     f"No prompt for shot_id '{shot_id}' in {self.brand_id}'s library. "
                     "Provide a prompt or add one via the onboarding/expansion flow."
                 )
-        return self._run_quality_gate(shot_id, prompt, ratio)
+        if seed_constraints is None and isinstance(library_entry.get("seed_constraints"), dict):
+            seed_constraints = library_entry["seed_constraints"]
+        if fidelity_mode == FIDELITY_MODE_GUIDED and isinstance(library_entry.get("fidelity_mode"), str):
+            fidelity_mode = library_entry["fidelity_mode"]
 
-    def generate_grid(self, product: str = "", season: str = "") -> list[dict]:
+        return self._run_quality_gate(
+            shot_id,
+            prompt,
+            ratio,
+            fidelity_mode=fidelity_mode,
+            seed_constraints=seed_constraints,
+        )
+
+    def generate_grid(
+        self,
+        product: str = "",
+        season: str = "",
+        fidelity_mode: str = FIDELITY_MODE_GUIDED,
+        seed_constraints: Optional[dict] = None,
+    ) -> list[dict]:
         """Generate a full grid following the brand's grid_pattern."""
         grid_pattern = self.config["grid_pattern"]
         slot_to_shot = self.config.get("slot_to_shot", {})
@@ -352,7 +410,13 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
                 prompt = self._apply_season_modifier(prompt, season)
 
             self._log(f"\n  Grid slot: {slot['slot']} ({slot['type']})")
-            result = self._run_quality_gate(shot_id, prompt, slot["ratio"])
+            result = self._run_quality_gate(
+                shot_id,
+                prompt,
+                slot["ratio"],
+                fidelity_mode=fidelity_mode,
+                seed_constraints=seed_constraints,
+            )
             result["grid_slot"] = slot["slot"]
             result["content_type"] = slot["type"]
             results.append(result)
@@ -366,6 +430,8 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
         flowers: Optional[list[str]] = None,
         products: Optional[list[str]] = None,
         shot_count: int = 5,
+        fidelity_mode: str = FIDELITY_MODE_GUIDED,
+        seed_constraints: Optional[dict] = None,
     ) -> list[dict]:
         """Generate a campaign asset set using the brand's default shot plan."""
         campaign_plan = self.config.get("campaign_plan") or [
@@ -393,7 +459,13 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
                 )
 
             self._log(f"\n  Campaign shot: {shot_id}")
-            result = self._run_quality_gate(shot_id, prompt, ratio)
+            result = self._run_quality_gate(
+                shot_id,
+                prompt,
+                ratio,
+                fidelity_mode=fidelity_mode,
+                seed_constraints=seed_constraints,
+            )
             result["campaign"] = campaign_name
             results.append(result)
 
@@ -425,20 +497,32 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
 
     # ── Generation backends ──────────────────────────────────────────────
 
-    def _generate_image(self, prompt: str, ratio: str) -> Optional[str]:
+    def _generate_image(self, prompt: str, ratio: str, seed_images: Optional[list[str]] = None) -> Optional[str]:
         if self.backend == "openrouter":
-            return self._generate_openrouter(prompt, ratio)
-        return self._generate_higgsfield(prompt, ratio)
+            return self._generate_openrouter(prompt, ratio, seed_images=seed_images)
+        return self._generate_higgsfield(prompt, ratio, seed_images=seed_images)
 
-    def _generate_openrouter(self, prompt: str, ratio: str) -> Optional[str]:
+    def _generate_openrouter(
+        self,
+        prompt: str,
+        ratio: str,
+        seed_images: Optional[list[str]] = None,
+    ) -> Optional[str]:
         ar = RATIO_MAP.get(ratio, ratio)
         try:
+            content = [{"type": "text", "text": prompt}]
+            for image_ref in seed_images or []:
+                content.append({
+                    "type": "image_url",
+                    "image_url": {"url": image_ref},
+                })
+
             res = requests.post(
                 OPENROUTER_URL,
                 headers=self.openrouter_headers,
                 json={
                     "model": self.model,
-                    "messages": [{"role": "user", "content": prompt}],
+                    "messages": [{"role": "user", "content": content}],
                     "modalities": ["image", "text"],
                     "image_config": {"aspect_ratio": ar},
                 },
@@ -478,7 +562,14 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
             self._log(f"    OpenRouter error: {e}")
             return None
 
-    def _generate_higgsfield(self, prompt: str, ratio: str) -> Optional[str]:
+    def _generate_higgsfield(
+        self,
+        prompt: str,
+        ratio: str,
+        seed_images: Optional[list[str]] = None,
+    ) -> Optional[str]:
+        if seed_images:
+            self._log("    [seed] Higgsfield backend ignores seed images in this implementation")
         ar = RATIO_MAP.get(ratio, ratio)
         if ar not in VALID_RATIOS:
             ar = "3:4"
@@ -529,24 +620,42 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
 
     # ── Quality gate ─────────────────────────────────────────────────────
 
-    def _run_quality_gate(self, shot_id: str, prompt: str, ratio: str) -> dict:
+    def _run_quality_gate(
+        self,
+        shot_id: str,
+        prompt: str,
+        ratio: str,
+        fidelity_mode: str = FIDELITY_MODE_GUIDED,
+        seed_constraints: Optional[dict] = None,
+    ) -> dict:
         best_result = None
+        normalized_constraints = self._normalize_seed_constraints(seed_constraints)
+        seed_images, seed_context = self._select_seed_images(shot_id, prompt, normalized_constraints)
 
         for iteration in range(1, self.max_iterations + 1):
             self._log(f"  Iteration {iteration}/{self.max_iterations}")
 
-            image_ref = self._generate_image(prompt, ratio)
+            image_ref = self._generate_image(prompt, ratio, seed_images=seed_images)
             if not image_ref:
                 self._log("    Generation failed")
                 continue
 
             self._log("    Image ready")
 
-            critique = self._critique(image_ref, shot_id, prompt)
+            critique = self._critique(
+                image_ref,
+                shot_id,
+                prompt,
+                seed_context=seed_context,
+                fidelity_mode=fidelity_mode,
+            )
             if not critique:
                 best_result = {
                     "shot_id": shot_id, "prompt": prompt, "image_url": image_ref,
                     "score": None, "iteration": iteration,
+                    "fidelity_mode": fidelity_mode,
+                    "seed_constraints": normalized_constraints,
+                    "selected_seeds": seed_context,
                 }
                 continue
 
@@ -557,17 +666,29 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
             result = {
                 "shot_id": shot_id, "prompt": prompt, "image_url": image_ref,
                 "score": score, "iteration": iteration, "critique": critique,
+                "fidelity_mode": fidelity_mode,
+                "seed_constraints": normalized_constraints,
+                "selected_seeds": seed_context,
             }
 
             if not best_result or (score and (not best_result.get("score") or score > best_result["score"])):
                 best_result = result
 
-            if score >= self.pass_threshold or verdict == "PASS":
+            strict_fail = fidelity_mode == FIDELITY_MODE_STRICT and self._is_strict_fidelity_fail(critique)
+            if strict_fail:
+                self._log("    Strict fidelity mismatch detected — forcing iterate")
+
+            if (score >= self.pass_threshold or verdict == "PASS") and not strict_fail:
                 self._log("    PASSED")
                 self._save_to_library(result)
                 return result
 
             revisions = critique.get("prompt_revisions", "")
+            if strict_fail and not revisions:
+                revisions = (
+                    "Match bouquet fidelity to selected seed exactly: same flower species set, "
+                    "same composition hierarchy, and same colour distribution."
+                )
             if revisions and iteration < self.max_iterations:
                 prompt = self._apply_revisions(prompt, revisions)
                 self._log("    Prompt revised")
@@ -577,6 +698,124 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
         return best_result or {
             "shot_id": shot_id, "prompt": prompt, "image_url": "", "score": 0, "iteration": 0,
         }
+
+    def _normalize_seed_constraints(self, seed_constraints: Optional[dict]) -> dict:
+        if not isinstance(seed_constraints, dict):
+            return {}
+        normalized = {}
+        for key in (
+            "required_seed_ids",
+            "bouquet_seed_ids",
+            "model_seed_ids",
+            "must_include_flowers",
+            "forbidden_substitutions",
+            "composition_rules",
+            "colour_targets",
+        ):
+            val = seed_constraints.get(key)
+            if isinstance(val, list):
+                normalized[key] = [str(v).strip() for v in val if str(v).strip()]
+            elif isinstance(val, str) and val.strip():
+                normalized[key] = [val.strip()]
+        return normalized
+
+    def _lookup_library_entry(self, shot_id: str) -> dict:
+        matches = [item for item in self.get_library() if item.get("shot_id") == shot_id]
+        if not matches:
+            return {}
+        return max(matches, key=lambda x: x.get("score", 0) or 0)
+
+    def _select_seed_images(
+        self,
+        shot_id: str,
+        prompt: str,
+        seed_constraints: dict,
+    ) -> tuple[list[str], dict]:
+        """Return data URLs for generation + metadata for critique context."""
+        if self.backend != "openrouter":
+            return [], {}
+        if not self.seeds:
+            return [], {}
+
+        required_ids = set(seed_constraints.get("required_seed_ids", []))
+        bouquet_ids = set(seed_constraints.get("bouquet_seed_ids", []))
+        model_ids = set(seed_constraints.get("model_seed_ids", []))
+        must_include_flowers = {
+            x.lower() for x in seed_constraints.get("must_include_flowers", [])
+        }
+
+        # Prefer explicit ids first.
+        explicit = []
+        for seed in self.seeds:
+            sid = seed.get("id", "")
+            if sid in required_ids or sid in bouquet_ids or sid in model_ids:
+                explicit.append(seed)
+
+        if explicit:
+            selected = explicit[:3]
+        else:
+            scored = []
+            prompt_l = prompt.lower()
+            shot_l = shot_id.lower()
+            for seed in self.seeds:
+                score = 0
+                tags = [t.lower() for t in seed.get("tags", []) if isinstance(t, str)]
+                flowers = [f.lower() for f in seed.get("flowers", []) if isinstance(f, str)]
+                category = str(seed.get("category", "")).lower()
+                if category == "bouquet":
+                    score += 2
+                if shot_l in " ".join(tags):
+                    score += 2
+                if must_include_flowers and set(flowers) & must_include_flowers:
+                    score += 4
+                for token in flowers:
+                    if token and token in prompt_l:
+                        score += 1
+                scored.append((score, seed))
+            scored.sort(key=lambda x: x[0], reverse=True)
+            selected = [s for score, s in scored if score > 0][:3]
+
+        # Prefer at least one bouquet seed; if available, keep one model that pairs.
+        bouquets = [s for s in selected if str(s.get("category", "")).lower() == "bouquet"]
+        models = [s for s in selected if str(s.get("category", "")).lower() == "model"]
+        final_seeds = []
+        if bouquets:
+            final_seeds.append(bouquets[0])
+            if models:
+                b_id = bouquets[0].get("id", "")
+                paired = None
+                for model_seed in models:
+                    patterns = model_seed.get("pairs_with", [])
+                    if isinstance(patterns, list) and any(fnmatch.fnmatch(b_id, p) for p in patterns if isinstance(p, str)):
+                        paired = model_seed
+                        break
+                final_seeds.append(paired or models[0])
+        else:
+            final_seeds = selected[:2]
+
+        data_urls = []
+        context = {"seed_ids": [], "flowers": [], "colour_story": [], "notes": []}
+        for seed in final_seeds:
+            file_ref = seed.get("file", "")
+            if not file_ref:
+                continue
+            seed_path = self.brand_dir / file_ref
+            data_url = self._image_ref_to_data_url(str(seed_path))
+            if not data_url:
+                continue
+            data_urls.append(data_url)
+            context["seed_ids"].append(seed.get("id"))
+            context["flowers"].extend(seed.get("flowers", []) if isinstance(seed.get("flowers"), list) else [])
+            colour_story = seed.get("colour_story")
+            if isinstance(colour_story, str) and colour_story:
+                context["colour_story"].append(colour_story)
+            if isinstance(seed.get("description"), str) and seed["description"]:
+                context["notes"].append(seed["description"])
+
+        context["flowers"] = sorted({f for f in context["flowers"] if isinstance(f, str)})
+        context["colour_story"] = sorted({c for c in context["colour_story"] if isinstance(c, str)})
+        context["notes"] = context["notes"][:3]
+        return data_urls, context
 
     # ── Critic — CLI path ────────────────────────────────────────────────
 
@@ -631,17 +870,53 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
 
         return None
 
-    def _critique_via_cli(self, image_ref: str, shot_name: str, prompt: str) -> Optional[dict]:
+    def _build_critic_user_text(
+        self,
+        shot_name: str,
+        prompt: str,
+        seed_context: Optional[dict],
+        fidelity_mode: str,
+    ) -> str:
+        text = (
+            f'Shot type: "{shot_name}". Prompt:\n{prompt}\n\n'
+            f"Score against the {self.config['brand_name']} rubric."
+        )
+        if seed_context and seed_context.get("seed_ids"):
+            text += (
+                "\n\nSeed context for fidelity grading:"
+                f"\n- fidelity_mode: {fidelity_mode}"
+                f"\n- seed_ids: {', '.join(seed_context.get('seed_ids', []))}"
+            )
+            flowers = seed_context.get("flowers", [])
+            if flowers:
+                text += f"\n- expected_flowers: {', '.join(flowers)}"
+            colour_story = seed_context.get("colour_story", [])
+            if colour_story:
+                text += f"\n- expected_colour_story: {', '.join(colour_story)}"
+            notes = seed_context.get("notes", [])
+            if notes:
+                text += f"\n- seed_notes: {' | '.join(notes)}"
+            if fidelity_mode == FIDELITY_MODE_STRICT:
+                text += (
+                    "\n- strict_rule: Any major bouquet species mismatch or composition mismatch must be FAIL."
+                )
+        return text
+
+    def _critique_via_cli(
+        self,
+        image_ref: str,
+        shot_name: str,
+        prompt: str,
+        seed_context: Optional[dict] = None,
+        fidelity_mode: str = FIDELITY_MODE_GUIDED,
+    ) -> Optional[dict]:
         """Run critique using the Claude CLI (`claude --print`)."""
         local_path = self._image_ref_to_local_path(image_ref)
         if not local_path:
             self._log("    [critic/cli] Could not resolve image to local path — skipping CLI critique")
             return None
 
-        user_text = (
-            f'Shot type: "{shot_name}". Prompt:\n{prompt}\n\n'
-            f"Score against the {self.config['brand_name']} rubric."
-        )
+        user_text = self._build_critic_user_text(shot_name, prompt, seed_context, fidelity_mode)
 
         cmd = [
             "claude",
@@ -687,7 +962,14 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
             self._log(f"    [critic/cli] Error: {e}")
             return None
 
-    def _critique_via_api(self, image_ref: str, shot_name: str, prompt: str) -> Optional[dict]:
+    def _critique_via_api(
+        self,
+        image_ref: str,
+        shot_name: str,
+        prompt: str,
+        seed_context: Optional[dict] = None,
+        fidelity_mode: str = FIDELITY_MODE_GUIDED,
+    ) -> Optional[dict]:
         """Run critique using the Anthropic API directly."""
         if not self.anthropic_key:
             self._log("    [critic/api] No API key available for fallback")
@@ -717,9 +999,11 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
                     "system": self.critic_system,
                     "messages": [{"role": "user", "content": [
                         image_content,
-                        {"type": "text", "text": (
-                            f'Shot type: "{shot_name}". Prompt:\n{prompt}\n\n'
-                            f"Score against the {self.config['brand_name']} rubric."
+                        {"type": "text", "text": self._build_critic_user_text(
+                            shot_name,
+                            prompt,
+                            seed_context,
+                            fidelity_mode,
                         )},
                     ]}],
                 },
@@ -735,19 +1019,54 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
 
     # ── Critic — dispatch ────────────────────────────────────────────────
 
-    def _critique(self, image_ref: str, shot_name: str, prompt: str) -> Optional[dict]:
+    def _critique(
+        self,
+        image_ref: str,
+        shot_name: str,
+        prompt: str,
+        seed_context: Optional[dict] = None,
+        fidelity_mode: str = FIDELITY_MODE_GUIDED,
+    ) -> Optional[dict]:
         """Critique an image. Tries CLI first; falls back to API on failure."""
         if self._cli_available:
             self._log(f"    [critic] Using CLI path")
-            result = self._critique_via_cli(image_ref, shot_name, prompt)
+            result = self._critique_via_cli(
+                image_ref,
+                shot_name,
+                prompt,
+                seed_context=seed_context,
+                fidelity_mode=fidelity_mode,
+            )
             if result is not None:
                 return result
             # CLI attempted but failed — fall back with warning
             self._log("    [critic] CLI critique failed — falling back to API")
-            return self._critique_via_api(image_ref, shot_name, prompt)
+            return self._critique_via_api(
+                image_ref,
+                shot_name,
+                prompt,
+                seed_context=seed_context,
+                fidelity_mode=fidelity_mode,
+            )
         else:
             self._log(f"    [critic] Using API path (CLI not available)")
-            return self._critique_via_api(image_ref, shot_name, prompt)
+            return self._critique_via_api(
+                image_ref,
+                shot_name,
+                prompt,
+                seed_context=seed_context,
+                fidelity_mode=fidelity_mode,
+            )
+
+    def _is_strict_fidelity_fail(self, critique: dict) -> bool:
+        dims = critique.get("dimensions", {})
+        fidelity_dim = dims.get("bouquet_fidelity", {}) if isinstance(dims, dict) else {}
+        score = fidelity_dim.get("score", None)
+        note = str(fidelity_dim.get("note", "")).lower()
+        if isinstance(score, (int, float)) and score <= 4:
+            return True
+        mismatch_tokens = ("mismatch", "wrong", "missing", "substitut", "different species")
+        return any(tok in note for tok in mismatch_tokens)
 
     # ── Prompt revision helpers ──────────────────────────────────────────
 
@@ -842,12 +1161,7 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
     # ── Library ──────────────────────────────────────────────────────────
 
     def _lookup_prompt(self, shot_id: str) -> str:
-        library = self.get_library()
-        matches = [item for item in library if item.get("shot_id") == shot_id]
-        if matches:
-            best = max(matches, key=lambda x: x.get("score", 0) or 0)
-            return best.get("prompt", "")
-        return ""
+        return self._lookup_library_entry(shot_id).get("prompt", "")
 
     def _save_to_library(self, result: dict):
         library = self.get_library()
@@ -861,11 +1175,42 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
             "critique": result.get("critique"),
             "campaign": result.get("campaign"),
             "grid_slot": result.get("grid_slot"),
+            "fidelity_mode": result.get("fidelity_mode"),
+            "seed_constraints": result.get("seed_constraints"),
+            "selected_seeds": result.get("selected_seeds"),
             "brand_id": self.brand_id,
             "backend": self.backend,
             "model": self.model if self.backend == "openrouter" else HF_MODEL,
         })
         self.library_path.write_text(json.dumps(library, indent=2))
+
+    def _image_ref_to_data_url(self, image_ref: str) -> Optional[str]:
+        """Convert a local path/URL/data URL image reference into a data URL."""
+        if not image_ref:
+            return None
+        if image_ref.startswith("data:image"):
+            return image_ref
+        if image_ref.startswith("http"):
+            try:
+                resp = requests.get(image_ref, timeout=30)
+                resp.raise_for_status()
+                ct = resp.headers.get("content-type", "image/png")
+                b64 = base64.b64encode(resp.content).decode("utf-8")
+                return f"data:{ct};base64,{b64}"
+            except Exception as e:
+                self._log(f"    [seed] Failed to download seed image: {e}")
+                return None
+        try:
+            path = Path(image_ref)
+            if not path.exists():
+                return None
+            ext = path.suffix.lower().lstrip(".")
+            media_type = f"image/{ext}" if ext in ("png", "jpeg", "jpg", "webp", "gif") else "image/png"
+            b64 = base64.b64encode(path.read_bytes()).decode("utf-8")
+            return f"data:{media_type};base64,{b64}"
+        except Exception as e:
+            self._log(f"    [seed] Failed to encode local seed image: {e}")
+            return None
 
     def _save_base64_image(self, data_url: str) -> Optional[str]:
         try:
