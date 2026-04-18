@@ -254,7 +254,7 @@ Light  (footer)
 
 ## Trust Bar
 
-5 items in a single row: Fresh Daily Flowers, Perfect for Every Occasion, Australia-Wide Service, Same Day Delivery, Order Before 1pm. SVG icons (stroke only, 26px), Neuzeit Bold 8px labels.
+5 items in a single row: Fresh Daily Flowers, Perfect for Every Occasion, Australia-Wide Service, Same Day Delivery, Order Before 1pm. Uses a single pre-rendered CDN-hosted image (no inline SVG — email clients strip SVGs). The image links to figandbloom.com and includes descriptive alt text for accessibility.
 
 ---
 
