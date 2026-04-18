@@ -620,6 +620,26 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
 
     # ── Quality gate ─────────────────────────────────────────────────────
 
+    def _get_backdrop_negation(self) -> str:
+        """Return the backdrop negation string from brand config, or '' if not configured."""
+        vocab = self.config.get("prompt_construction", {}).get("colour_vocabulary", {})
+        return vocab.get("backdrop_correct", "")
+
+    def _inject_backdrop_negation(self, prompt: str) -> str:
+        """Ensure the brand's backdrop negation language is present in the prompt.
+
+        Reads 'backdrop_correct' from prompt_construction.colour_vocabulary in brand.json
+        and appends it if the negation language is not already in the prompt. This prevents
+        backdrop colour drift (e.g. terracotta backdrops) in Mode B composite shots without
+        requiring the brief author to remember to include it.
+        """
+        negation = self._get_backdrop_negation()
+        if not negation:
+            return prompt
+        if "not terracotta" in prompt.lower():
+            return prompt
+        return f"{prompt.rstrip()} {negation}"
+
     def _run_quality_gate(
         self,
         shot_id: str,
@@ -631,6 +651,14 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
         best_result = None
         normalized_constraints = self._normalize_seed_constraints(seed_constraints)
         seed_images, seed_context = self._select_seed_images(shot_id, prompt, normalized_constraints)
+
+        # Mode B composite: auto-inject backdrop negation from brand config so
+        # it is never omitted from the prompt regardless of how the brief was written.
+        if seed_images:
+            injected = self._inject_backdrop_negation(prompt)
+            if injected != prompt:
+                self._log("  [backdrop] Backdrop negation auto-injected from brand config")
+                prompt = injected
 
         for iteration in range(1, self.max_iterations + 1):
             self._log(f"  Iteration {iteration}/{self.max_iterations}")
