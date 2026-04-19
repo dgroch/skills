@@ -22,7 +22,7 @@
     ],
     "slice_components": [
       "header",
-      "all hero variants",
+      "all hero variants (including hero-image-only)",
       "all product cards",
       "body-copy",
       "testimonial",
@@ -48,7 +48,8 @@
       "testimonial": "After products, before promo-code.",
       "promo-code": "After testimonial, before upsell.",
       "upsell-noir": "Near bottom \u2014 closing beat. After promo-code.",
-      "delivery-cutoffs": "After upsell, before trust-bar."
+      "delivery-cutoffs": "After upsell, before trust-bar.",
+      "three-column-steps-*": "After body-copy or after products. Use when a step-by-step partner flow (e.g. card creation) needs explaining. Max one per email. Choose variant by background: -beige (warm off-white), -clay (brand clay), or -white (silk white)."
     }
   },
   "components": {
@@ -215,6 +216,16 @@
           "CTA_TEXT",
           "CTA_URL"
         ]
+      },
+      "hero-image-only": {
+        "file": "templates/heroes/hero-image-only.html",
+        "description": "Full-bleed image hero with no text overlay or button. 600×750px (4:5 ratio). Used when the image tells the story — mascot creative, lifestyle photography. Slice-to-PNG classification.",
+        "classification": "slice",
+        "tokens": [
+          "HERO_IMAGE_URL",
+          "HERO_IMAGE_ALT",
+          "HERO_LINK_URL"
+        ]
       }
     },
     "products": {
@@ -353,6 +364,72 @@
         "file": "templates/sections/trust-bar.html",
         "static": true,
         "tokens": []
+      },
+      "three-column-steps-beige": {
+        "file": "templates/sections/three-column-steps-beige.html",
+        "description": "Headline + 3-col numbered steps + CTA. Beige background (#faf5f0). Lust font for headline/numbers; NeuzeitGro Light for step text. Primary black button. HTML-safe — no slicing.",
+        "classification": "html-safe",
+        "tokens": [
+          "HEADLINE",
+          "STEP_1_NUMBER",
+          "STEP_1_TEXT",
+          "STEP_2_NUMBER",
+          "STEP_2_TEXT",
+          "STEP_3_NUMBER",
+          "STEP_3_TEXT",
+          "CTA_TEXT",
+          "CTA_URL",
+          "PADDING_TOP",
+          "PADDING_BOTTOM"
+        ],
+        "token_defaults": {
+          "PADDING_TOP": "48px",
+          "PADDING_BOTTOM": "48px"
+        }
+      },
+      "three-column-steps-clay": {
+        "file": "templates/sections/three-column-steps-clay.html",
+        "description": "Headline + 3-col numbered steps + CTA. Clay background (#D8CCBE). Lust font for headline/numbers; NeuzeitGro Light for step text. Primary black button. HTML-safe — no slicing.",
+        "classification": "html-safe",
+        "tokens": [
+          "HEADLINE",
+          "STEP_1_NUMBER",
+          "STEP_1_TEXT",
+          "STEP_2_NUMBER",
+          "STEP_2_TEXT",
+          "STEP_3_NUMBER",
+          "STEP_3_TEXT",
+          "CTA_TEXT",
+          "CTA_URL",
+          "PADDING_TOP",
+          "PADDING_BOTTOM"
+        ],
+        "token_defaults": {
+          "PADDING_TOP": "48px",
+          "PADDING_BOTTOM": "48px"
+        }
+      },
+      "three-column-steps-white": {
+        "file": "templates/sections/three-column-steps-white.html",
+        "description": "Headline + 3-col numbered steps + CTA. White background (#ffffff). Lust font for headline/numbers; NeuzeitGro Light for step text. Primary black button. HTML-safe — no slicing. Add divider-line if adjacent to another white section.",
+        "classification": "html-safe",
+        "tokens": [
+          "HEADLINE",
+          "STEP_1_NUMBER",
+          "STEP_1_TEXT",
+          "STEP_2_NUMBER",
+          "STEP_2_TEXT",
+          "STEP_3_NUMBER",
+          "STEP_3_TEXT",
+          "CTA_TEXT",
+          "CTA_URL",
+          "PADDING_TOP",
+          "PADDING_BOTTOM"
+        ],
+        "token_defaults": {
+          "PADDING_TOP": "48px",
+          "PADDING_BOTTOM": "48px"
+        }
       }
     },
     "dividers": {
