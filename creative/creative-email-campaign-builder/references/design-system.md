@@ -127,7 +127,7 @@ All heroes share: header (logo centred, 24px height), section border `1px solid 
 
 ### Hero B — Text Above Image
 - Text band (top) + full-bleed photo (bottom, 600×360px, no overlay)
-- Text band backgrounds: White / 50% Clay (#EBE5DF) / Clay (#D8CCBE) / Noir
+- Text band backgrounds: White / 50% Clay (`clay_50`, #EBE5DF) / Clay (#D8CCBE) / Noir
 - Illustration: width:220px, height:auto, anchored right:0, bottom:-30px (base bleeds off)
 - Text/CTA colour: black on light bands, white on Noir
 - **Use for:** when the photo should be seen unobscured; editorial feel
