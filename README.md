@@ -1,4 +1,4 @@
-# OpenClaw Skills
+# Paperclip AI Skills
 
 A shared collection of agent skills for OpenClaw and Paperclip-style deployments.
 
