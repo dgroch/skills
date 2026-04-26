@@ -99,6 +99,58 @@ Not styled, just lived-in.
 
 ---
 
+## Hero Editorial (website only)
+
+Used exclusively for the homepage hero, which rotates weekly with the
+current drop. This is a separate lane from product / lifestyle /
+detail and does not appear on the Instagram grid.
+
+**Editorial framing, not product photography.** The job here is to
+sell a feeling, not to merchandise the bouquet. If a shot would work
+as a PDP image, it's wrong for hero editorial.
+
+**Arrangement is in the scene, not the subject of it.** The flowers
+are an element within a moment — they're discovered by the viewer
+rather than presented to them. The arrangement should feel
+incidental, as if the photographer was shooting the room and the
+flowers happened to be there.
+
+**Context over isolation.** Place the flowers in a lived space — on a
+table mid-meal, caught in a slice of window light, partially in
+frame at the edge of a kitchen counter. Never on a clean studio
+surface, never centred against negative space alone.
+
+**Negative space and atmosphere prioritised.** The shot is mostly
+mood. Wide framing, generous breathing room around the arrangement,
+soft warm tones bleeding through the scene. Atmosphere reads first;
+the arrangement reads second.
+
+**Cropping that would be wrong for a PDP.** Tight, off-centre,
+partial. The vase is half out of frame. A bloom is sliced by the
+edge. The arrangement sits in the lower third with the entire upper
+half of the image given to wall, light, and air. Choices that would
+fail a product brief are exactly right here.
+
+**Human traces but no humans.** The scene should imply someone has
+just left or is about to return — a hand exiting the frame, a
+half-poured glass, a folded linen napkin, a chair pushed back, a
+book left open. No faces. No models. (See "Always / Never" — the
+existing no-models rule still applies.)
+
+**Aspect ratios:**
+- **16:9** — primary (desktop hero)
+- **4:5** — secondary (mobile crop)
+- **Higgsfield mapping constraint:** 4:5 outputs render as 3:4 on
+  the Higgsfield pipeline. When prompting for the 4:5 mobile crop
+  via Higgsfield, frame for 3:4 and verify the safe area.
+
+**Lighting and grade:** Same warm direction and grade as the rest of
+the brand — natural sidelight, 3500–4500K, lifted shadows,
+desaturated greens. The hero-editorial lane bends framing and
+subject hierarchy, not the colour world.
+
+---
+
 ## Casting Direction
 
 **Who:** Women 25–40 as primary subjects. Diverse as default. Real

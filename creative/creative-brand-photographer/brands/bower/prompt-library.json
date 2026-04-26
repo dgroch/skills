@@ -293,5 +293,48 @@
     "status": "draft \u2014 run through quality gate to verify",
     "grid_slot": "packaging_flat",
     "content_type": "detail"
+  },
+  {
+    "shot_id": "hero_editorial_dining_morning",
+    "shot_name": "Hero Editorial \u2014 Dining Table, Morning",
+    "prompt": "Editorial wide photograph of a lived-in dining room mid-morning, shot for a website hero banner in 16:9. A flower arrangement in a matte terracotta vase sits at the far end of a long raw timber dining table \u2014 pushed off-centre to the lower-right third, partially clipped by the right edge of the frame. The upper two-thirds of the image is wall, slow window light, and warm air. Soft directional sidelight from a window on the left, 4000K, casting a long diagonal shadow across the table. Human traces but no humans: a half-finished cup of black coffee, a folded linen napkin, a chair pulled slightly back from the table, a hand exiting frame on the far right just at the wrist. The arrangement is incidental \u2014 cream garden roses, dried oat grass, and sage eucalyptus, organic and slightly asymmetric, not the subject of the frame. Shallow depth of field at f/2.8, focus on the napkin and coffee in the mid-ground, the arrangement softly in focus, the far wall falling to a warm cream blur. Colour palette: warm linen-cream walls, sandstone, terracotta accent, sage-eucalyptus, espresso shadows lifted. Warm colour grade, desaturated greens, lifted shadows, no crushed blacks. Mood: a quiet morning that someone has just stepped away from. Editorial framing, not product photography \u2014 the crop should feel wrong for a product page and exactly right for a hero banner. No faces, no models, no text, no logos, no watermarks. Aspect ratio 16:9.",
+    "image_url": "",
+    "score": null,
+    "iteration": 0,
+    "status": "draft \u2014 awaiting quality-gate runs",
+    "shot_type": "hero-editorial",
+    "content_type": "hero-editorial",
+    "channel": "website",
+    "aspect_ratio": "16:9",
+    "scene_archetype": "dining table morning"
+  },
+  {
+    "shot_id": "hero_editorial_side_table_window",
+    "shot_name": "Hero Editorial \u2014 Side Table, Window Light",
+    "prompt": "Editorial photograph of a quiet corner of an Australian living room caught in late-afternoon window light, framed for a mobile website hero. A low timber side table sits beside a linen-upholstered armchair pushed slightly out of frame on the right. On the side table, a matte sandstone ceramic vase holds an arrangement of pale blush peonies, dried eucalyptus, and white ranunculus \u2014 the vase is positioned in the lower-left third and clipped at the bottom edge of the frame. The upper two-thirds is taken up by a soft warm wall washed in slow diagonal light from a window just out of frame on the left. A folded throw drapes over the visible armchair arm; an open paperback lies face-down on the seat. Human traces but no humans, no faces. Shot at eye level, shallow depth of field at f/3.2, focus on the front blooms, the rest of the room falling to a warm cream blur. Warm directional natural light, 3800K, lifted shadows, dimensional but soft. Colour palette: warm linen-cream wall, sandstone, sage-eucalyptus, terracotta accent in the vase, espresso shadow detail. Warm colour grade, desaturated greens shifted toward sage. Mood: late-afternoon stillness, a room that someone lives in. Editorial cropping that would be wrong for a PDP \u2014 partial, off-centre, atmosphere over object. Frame for 4:5; if rendered through Higgsfield, account for the 4:5 \u2192 3:4 mapping by leaving safe margin top and bottom. No faces, no models, no text, no logos, no watermarks. Aspect ratio 4:5.",
+    "image_url": "",
+    "score": null,
+    "iteration": 0,
+    "status": "draft \u2014 awaiting quality-gate runs",
+    "shot_type": "hero-editorial",
+    "content_type": "hero-editorial",
+    "channel": "website",
+    "aspect_ratio": "4:5",
+    "higgsfield_mapping": "4:5 \u2192 3:4",
+    "scene_archetype": "side table window light"
+  },
+  {
+    "shot_id": "hero_editorial_kitchen_counter_evening",
+    "shot_name": "Hero Editorial \u2014 Kitchen Counter, Evening",
+    "prompt": "Editorial wide photograph of a warm minimal kitchen at the end of the day, framed for a 16:9 website hero. A flower arrangement in a matte clay-toned ceramic vase sits at the far left of a long warm-stone kitchen counter, pushed off-centre and partially clipped by the left edge of the frame. The right two-thirds of the image is open counter, a slice of timber cabinetry, and slow warm evening light coming through a window just out of frame. Human traces but no humans: a half-poured glass of amber wine on the counter mid-frame, a folded linen tea towel draped over the edge, a wooden chopping board with a single ceramic bowl. Soft warm directional light, 3500K, golden-hour quality, long gentle shadows extending to the right. The arrangement \u2014 cream garden roses, dried oat grass, sage eucalyptus \u2014 is part of the scene, not staged into it. Shallow depth of field at f/2.8, focus on the wine glass and tea towel in the mid-ground, arrangement softly in focus, far counter and cabinetry falling to a warm cream blur. Colour palette: warm stone, sandstone, light timber, terracotta accent, sage-eucalyptus, espresso shadow. Warm colour grade, lifted shadows, desaturated greens, gentle film-like quality. Mood: the quiet end of a day, someone has just stepped away from preparing dinner. Editorial framing \u2014 the crop, the off-centre arrangement, the dominance of empty counter and warm air would be wrong for product photography and exactly right for a hero banner. No faces, no models, no text, no logos, no watermarks. Aspect ratio 16:9.",
+    "image_url": "",
+    "score": null,
+    "iteration": 0,
+    "status": "draft \u2014 awaiting quality-gate runs",
+    "shot_type": "hero-editorial",
+    "content_type": "hero-editorial",
+    "channel": "website",
+    "aspect_ratio": "16:9",
+    "scene_archetype": "kitchen counter evening"
   }
 ]
