@@ -101,7 +101,7 @@ their own scoring criteria — keep them out of the grid plan.
 The homepage hero image rotates weekly with the current drop. The shot
 is **editorial, not product** — the arrangement appears within a scene
 rather than being the subject of it. See `art-direction.md` →
-"Hero Editorial" for direction and `rubric.md` for scoring.
+"Hero Editorial" for direction.
 
 | Slot          | Shot type        | Aspect ratio              | Notes                                                                                  |
 |---------------|------------------|---------------------------|----------------------------------------------------------------------------------------|

@@ -9,7 +9,6 @@
     "colour_system": "colour-system.md",
     "grid_spec": "grid-spec.md",
     "prompt_library": "prompt-library.json",
-    "rubric": "rubric.md",
     "seeds_manifest": "seeds.json"
   },
   "image_backend": {
@@ -75,7 +74,7 @@
     {"id": "product",        "channel": "instagram", "in_grid": true,  "description": "Product hero, close-ups, full arrangements in vessel"},
     {"id": "lifestyle",      "channel": "instagram", "in_grid": true,  "description": "Kitchen table, doorstep arrival, living room scenes"},
     {"id": "detail",         "channel": "instagram", "in_grid": true,  "description": "Petal textures, packaging flat-lays, stem close-ups"},
-    {"id": "hero-editorial", "channel": "website",   "in_grid": false, "description": "Weekly homepage hero. Editorial scene with arrangement as element, not subject. Off-centre, partial cropping, atmosphere over object. No models, no faces — human traces only.", "aspect_ratios": ["16:9", "4:5"], "primary_aspect_ratio": "16:9", "higgsfield_mapping": "4:5 → 3:4", "rubric_section": "Hero Editorial"}
+    {"id": "hero-editorial", "channel": "website",   "in_grid": false, "description": "Weekly homepage hero. Editorial scene with arrangement as element, not subject. Off-centre, partial cropping, atmosphere over object. No models, no faces — human traces only.", "aspect_ratios": ["16:9", "4:5"], "primary_aspect_ratio": "16:9", "higgsfield_mapping": "4:5 → 3:4"}
   ],
   "grid_pattern": [
     {"slot": "product_closeup",    "type": "product",   "ratio": "1:1"},
