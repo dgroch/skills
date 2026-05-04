@@ -32,6 +32,8 @@ from config import (
     PROBE_T2I_MODEL,
     VIDEO_I2V_MODEL,
     have_higgsfield_creds,
+    image_edit_arguments,
+    video_i2v_arguments,
 )
 
 OK = "[ ok ]"
@@ -163,7 +165,13 @@ def probe_model(c: Check, model: str, arguments: dict, label: str):
         lower = msg.lower()
         if "404" in msg or "not found" in lower:
             c.fail(f"model path '{model}'", "model not found — check catalog")
-        elif "400" in msg or "validation" in lower or "invalid" in lower:
+        elif (
+            "400" in msg
+            or "validation" in lower
+            or "invalid" in lower
+            or "required property" in lower
+            or "is not one of" in lower
+        ):
             # Validation error — model exists but our probe args were incomplete.
             c.ok(f"model path '{model}'", "recognised (args rejected, as expected for probe)")
         else:
@@ -205,28 +213,38 @@ def check_model_paths(c: Check, probe: bool):
     # 1. Known-good text-to-image — validates auth path end-to-end.
     probe_model(c, PROBE_T2I_MODEL, {
         "prompt": "a single red dot on white",
-        "resolution": "1K",
+        "resolution": "2K",
         "aspect_ratio": "1:1",
     }, label="t2i (auth check)")
 
     # 2. Configured image-edit model. We don't upload a reference image —
     #    the submission will likely fail validation if required, but a 404
     #    on the path distinguishes "unknown model" from "bad args".
-    probe_model(c, IMAGE_EDIT_MODEL, {
-        "prompt": "no-op",
-        "images_list": [],
-        "resolution": "1K",
-        "aspect_ratio": "1:1",
-    }, label="image edit")
+    probe_model(
+        c,
+        IMAGE_EDIT_MODEL,
+        image_edit_arguments(
+            ["https://example.invalid/reference.png"],
+            "no-op",
+            "1:1",
+            resolution="2K",
+        ),
+        label="image edit",
+    )
 
     # 3. Configured video model.
-    probe_model(c, VIDEO_I2V_MODEL, {
-        "prompt": "no-op",
-        "image_url": "",
-        "duration": 4,
-        "resolution": "720p",
-        "aspect_ratio": "16:9",
-    }, label="video i2v")
+    probe_model(
+        c,
+        VIDEO_I2V_MODEL,
+        video_i2v_arguments(
+            "",
+            "no-op",
+            4,
+            "16:9",
+            resolution="720",
+        ),
+        label="video i2v",
+    )
 
 
 def main():

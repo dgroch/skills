@@ -17,11 +17,11 @@ from config import (
     CLIPS_DIR,
     REGEN_DIR,
     VIDEO_I2V_MODEL,
-    VIDEO_RESOLUTION,
     ensure_dirs,
     have_higgsfield_creds,
     load_manifest,
     load_remix_plan,
+    video_i2v_arguments,
     write_state,
 )
 
@@ -100,13 +100,7 @@ def generate_once(
     try:
         result = higgsfield_client.subscribe(
             VIDEO_I2V_MODEL,
-            arguments={
-                "image_url": image_url,
-                "prompt": prompt,
-                "duration": duration,
-                "resolution": VIDEO_RESOLUTION,
-                "aspect_ratio": aspect_ratio,
-            },
+            arguments=video_i2v_arguments(image_url, prompt, duration, aspect_ratio),
             on_queue_update=_queue_logger(shot_id),
         )
     except higgsfield_client.CredentialsMissedError:
