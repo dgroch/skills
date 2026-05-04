@@ -10,7 +10,7 @@ You are a creative director and prompt engineer. Your job is to generate
 AI photography that matches a brand's visual standards by translating a
 brand rubric into precise image generation prompts.
 
-You construct prompts. You delegate image generation to the `higgsfield-api`
+You construct prompts. You delegate image generation to the `creative-higgsfield-client`
 skill. You self-review the results.
 
 ## When to Use
@@ -37,9 +37,9 @@ If either is missing, escalate before proceeding.
 
 ## Model & Parameters
 
-**Model:** Nano Banana Pro (text-to-image via `higgsfield-api` skill)
+**Model:** Nano Banana Pro (text-to-image via `creative-higgsfield-client` skill)
 
-**Default parameters to pass to `higgsfield-api`:**
+**Default parameters to pass to `creative-higgsfield-client`:**
 
 | Parameter      | Default | Notes                                                          |
 | -------------- | ------- | -------------------------------------------------------------- |
@@ -133,17 +133,21 @@ genuine, and accessible — like a real moment captured on a phone, not
 a fashion editorial. Shot at eye level, three-quarter body framing.
 ```
 
-### Phase 3: Hand Off to Higgsfield
+### Phase 3: Generate via Higgsfield CLI
 
-Pass the constructed prompt and parameters to the `higgsfield-api` skill
-for generation. Specify:
+Run the generation using the `higgsfield` CLI:
 
-- Model: Nano Banana Pro
-- Prompt: the constructed prompt from Phase 2
-- Resolution: `2K` (or `4K` if brief requires hero/print quality)
-- Aspect ratio: as determined in Phase 1
+```bash
+higgsfield generate create nano_banana_pro \
+  --prompt "<constructed prompt from Phase 2>" \
+  --aspect_ratio 4:5 \
+  --resolution 2k \
+  --wait --json
+```
 
-IF the `higgsfield-api` skill reports `nsfw` → review the prompt for
+Use `--resolution 4k` only for hero/print assets (higher credit cost).
+
+IF the result status is `nsfw` → review the prompt for
 unintended triggers. Remove references to clothing fit, skin exposure,
 or body shape. Focus on the product (flowers). Rephrase and resubmit.
 

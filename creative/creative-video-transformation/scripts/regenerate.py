@@ -13,11 +13,11 @@ import requests
 
 from config import (
     IMAGE_EDIT_MODEL,
-    IMAGE_RESOLUTION,
     KEYFRAMES_DIR,
     REGEN_DIR,
     ensure_dirs,
     have_higgsfield_creds,
+    image_edit_arguments,
     load_manifest,
     load_remix_plan,
     save_remix_plan,
@@ -90,12 +90,7 @@ def regenerate_once(
     try:
         result = higgsfield_client.subscribe(
             IMAGE_EDIT_MODEL,
-            arguments={
-                "images_list": images_list,
-                "prompt": prompt,
-                "aspect_ratio": aspect_ratio,
-                "resolution": IMAGE_RESOLUTION,
-            },
+            arguments=image_edit_arguments(images_list, prompt, aspect_ratio),
             on_queue_update=_queue_logger(shot_id),
         )
     except higgsfield_client.CredentialsMissedError:

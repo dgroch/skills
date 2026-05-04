@@ -54,10 +54,10 @@ export HF_KEY="your-key-id:your-key-secret"
 # The skill calls the `claude` CLI directly, which uses the native session auth.
 
 # Optional — override defaults if the model paths don't resolve
-export HF_IMAGE_MODEL="google/nano-banana-2/edit"
-export HF_VIDEO_MODEL="google/veo/3.1/image-to-video"
+export HF_IMAGE_MODEL="bytedance/seedream/v4/edit"
+export HF_VIDEO_MODEL="bytedance/seedance/v1/pro/image-to-video"
 export HF_IMAGE_RESOLUTION="2K"       # 1K | 2K | 4K (case-sensitive)
-export HF_VIDEO_RESOLUTION="1080p"    # 720p | 1080p
+export HF_VIDEO_RESOLUTION="1080"     # 480 | 720 | 1080
 export ANTHROPIC_MODEL="claude-sonnet-4-6"
 ```
 
@@ -148,8 +148,8 @@ A 30-second source video with 10 shots costs ~$20–30 to remix. Start with shor
 ## Known limitations
 
 - **Veo duration quantisation.** Clips are forced to 4 s, 6 s, or 8 s. A 5.2 s source shot becomes 6 s — the final video's total length may drift ±20% from the source.
-- **Character consistency across shots.** The pipeline uses a hero-reference pattern (first regenerated frame feeds forward as a second reference image for all later shots — Nano Banana 2 Edit accepts up to 14 images in `images_list`). For stricter identity locking across a long video, train a Higgsfield Soul ID on ~20 photos and swap the image step to Soul I2I.
-- **Model path strings.** `google/nano-banana-2/edit` and `google/veo/3.1/image-to-video` are educated guesses. The only slug confirmed in the SDK README is `bytedance/seedream/v4/text-to-image`. If the SDK returns "model not found", inspect the catalogue at https://cloud.higgsfield.ai and override via `HF_IMAGE_MODEL` / `HF_VIDEO_MODEL`. Run `python scripts/test_connection.py --probe-models` to test.
+- **Character consistency across shots.** The pipeline uses a hero-reference pattern (first regenerated frame feeds forward as a second reference image for all later shots). Seedream edit expects this under `image_urls`; older Nano Banana style paths used `images_list`. The helper in `scripts/config.py` maps the right field automatically from the configured model slug.
+- **Model path strings.** The current verified defaults are `bytedance/seedream/v4/edit` and `bytedance/seedance/v1/pro/image-to-video`. If the SDK returns "model not found", inspect the catalogue at https://cloud.higgsfield.ai and override via `HF_IMAGE_MODEL` / `HF_VIDEO_MODEL`. Run `python scripts/test_connection.py --probe-models` to test.
 - **Rate limits.** The pipeline runs sequentially with built-in delays (2 s between image gens, 5 s between video gens). Parallelising risks hitting Higgsfield's per-plan limits.
 - **Audio.** The pipeline can overlay the source audio but does not generate new voiceover. For new dialogue, run a TTS pass after assembly.
 

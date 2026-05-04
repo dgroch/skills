@@ -63,13 +63,10 @@ STATE_PATH = WORK_DIR / "state.txt"
 ALL_DIRS = [KEYFRAMES_DIR, REGEN_DIR, CLIPS_DIR, AUDIO_DIR, OUTPUT_DIR]
 
 # --- Model identifiers ---
-# The Higgsfield SDK passes the model string through as the URL path
-# (POST https://platform.higgsfield.ai/{model}). The canonical paths below
-# are educated guesses based on the shape of other known slugs
-# (e.g. bytedance/seedream/v4/text-to-image). Override via env if the
-# catalog at https://cloud.higgsfield.ai uses different slugs.
-IMAGE_EDIT_MODEL = os.environ.get("HF_IMAGE_MODEL", "google/nano-banana-2/edit")
-VIDEO_I2V_MODEL = os.environ.get("HF_VIDEO_MODEL", "google/veo/3.1/image-to-video")
+# These defaults are live slugs confirmed against the current Higgsfield API
+# via probe submissions. Override via env if the account catalog differs.
+IMAGE_EDIT_MODEL = os.environ.get("HF_IMAGE_MODEL", "bytedance/seedream/v4/edit")
+VIDEO_I2V_MODEL = os.environ.get("HF_VIDEO_MODEL", "bytedance/seedance/v1/pro/image-to-video")
 
 # Text-to-image model used only by test_connection.py to validate auth.
 # This slug is the one documented in the SDK README and is the most likely
@@ -79,8 +76,9 @@ PROBE_T2I_MODEL = os.environ.get("HF_PROBE_MODEL", "bytedance/seedream/v4/text-t
 # --- Generation defaults (override via env) ---
 # Nano Banana 2 Edit: valid resolutions are "1K", "2K", "4K" (case-sensitive).
 IMAGE_RESOLUTION = os.environ.get("HF_IMAGE_RESOLUTION", "2K")
-# Veo 3.1: valid resolutions are "720p" or "1080p".
-VIDEO_RESOLUTION = os.environ.get("HF_VIDEO_RESOLUTION", "1080p")
+# Seedance image-to-video: valid resolutions are numeric strings such as
+# "480", "720", or "1080" (no trailing "p").
+VIDEO_RESOLUTION = os.environ.get("HF_VIDEO_RESOLUTION", "1080")
 
 # Claude model used by analyse.py. Defaults to the latest Sonnet.
 ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-4-6")
@@ -126,6 +124,47 @@ def quantise_duration(seconds: float) -> int:
     if seconds < 7.0:
         return 6
     return 8
+
+
+def image_edit_arguments(
+    image_urls: list[str],
+    prompt: str,
+    aspect_ratio: str,
+    resolution: str | None = None,
+) -> dict:
+    """Build request args for the configured image-edit model.
+
+    Seedream v4 edit expects `image_urls`, while older Nano Banana style paths
+    used `images_list`. Keep both layouts available so env overrides remain
+    compatible without more code changes.
+    """
+    args = {
+        "prompt": prompt,
+        "aspect_ratio": aspect_ratio,
+        "resolution": resolution or IMAGE_RESOLUTION,
+    }
+    if "seedream/" in IMAGE_EDIT_MODEL:
+        args["image_urls"] = image_urls
+    else:
+        args["images_list"] = image_urls
+    return args
+
+
+def video_i2v_arguments(
+    image_url: str,
+    prompt: str,
+    duration: int,
+    aspect_ratio: str,
+    resolution: str | None = None,
+) -> dict:
+    """Build request args for the configured image-to-video model."""
+    return {
+        "image_url": image_url,
+        "prompt": prompt,
+        "duration": duration,
+        "resolution": resolution or VIDEO_RESOLUTION,
+        "aspect_ratio": aspect_ratio,
+    }
 
 
 def load_json(path: Path) -> dict:

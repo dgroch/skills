@@ -1,349 +1,168 @@
 ---
-name: creative-higgsfield-api
-description: Generate images and videos via the Higgsfield AI API. This is a reference skill — it teaches the agent how to talk to Higgsfield, not what creative assets to produce. Consuming skills (like ad-creative-builder or ai-video-generation) define the "what".
-version: 1.0.0
+name: creative-higgsfield-client
+description: Generate images and videos via the Higgsfield CLI. This is a reference skill — it teaches the agent how to use the `higgsfield` CLI, not what creative assets to produce. Consuming skills (like ad-creative-builder or ugc-photo-generation) define the "what".
+version: 3.0.0
 author: CSTMR
 license: MIT
 metadata:
-  tags: [API, Higgsfield, Image Generation, Video Generation, AI Media, Reference]
+  tags: [CLI, Higgsfield, Image Generation, Video Generation, AI Media, Reference]
 ---
 
-# Higgsfield API
+# Higgsfield CLI
 
 ## Overview
 
-Higgsfield is a unified API gateway to 100+ generative media models for image,
-video, voice, and audio. All models share a single async request-response
-pattern: submit a job, poll (or receive a webhook), then download the output.
+Higgsfield is a unified gateway to 30+ generative media models for image
+and video. Access is via the `higgsfield` CLI — no REST calls, no API keys
+to manage, no polling loops required.
 
-**Base URL:** `https://platform.higgsfield.ai`
-**Dashboard / API keys:** `https://cloud.higgsfield.ai`
+**Dashboard:** `https://cloud.higgsfield.ai`
 **Docs:** `https://docs.higgsfield.ai`
+**CLI repo:** `https://github.com/higgsfield-ai/cli`
 
-## Authentication
+## Bootstrap
 
-Every request requires an `Authorization` header with your API key and secret:
+Before any other command, verify the CLI is installed and authenticated:
 
-```
-Authorization: Key {api_key}:{api_key_secret}
-```
+1. If `higgsfield` is not on `$PATH`, install it:
+   ```bash
+   curl -fsSL https://raw.githubusercontent.com/higgsfield-ai/cli/main/install.sh | sh
+   ```
+2. Run `higgsfield account status`. If it fails with `Session expired` / `Not authenticated`, ask the user to run `higgsfield auth login` (interactive, opens browser).
 
-Generate credentials at https://cloud.higgsfield.ai.
+Skip both checks if `higgsfield account status` prints account info.
 
-For the Python SDK, set environment variables:
-
-```bash
-# Option A — single combined key
-export HF_KEY="your-api-key:your-api-secret"
-
-# Option B — separate values
-export HF_API_KEY="your-api-key"
-export HF_API_SECRET="your-api-secret"
-```
-
-> **Security:** Never commit credentials. Use env vars or a secrets manager.
-
-## Request Lifecycle
-
-Higgsfield is fully asynchronous. Every generation follows this flow:
-
-1. **Submit** — POST to `/{model_id}` with your payload. Returns `request_id`.
-2. **Poll** — GET `/requests/{request_id}/status` until terminal status.
-3. **Download** — On `completed`, extract URLs from `images[]` or `video`.
-
-### Statuses
-
-| Status        | Terminal? | Billed? | Description                                     |
-| ------------- | --------- | ------- | ----------------------------------------------- |
-| `queued`      | No        | No      | Waiting in queue. Can be cancelled.             |
-| `in_progress` | No        | No      | Actively generating. Cannot cancel.             |
-| `completed`   | Yes       | Yes     | Output ready. URLs valid for ≥7 days.           |
-| `failed`      | Yes       | No      | Error occurred. Credits refunded.               |
-| `nsfw`        | Yes       | No      | Content moderation rejection. Credits refunded. |
-
-### Cancellation
-
-POST `/requests/{request_id}/cancel` — only works while `queued`.
-Returns `202 Accepted` on success, `400 Bad Request` otherwise.
-
-## Endpoints (REST)
-
-### Submit a generation
-
-```
-POST https://platform.higgsfield.ai/{model_id}
-Authorization: Key {key}:{secret}
-Content-Type: application/json
-
-{
-  "prompt": "...",
-  ... model-specific params
-}
-```
-
-Response:
-
-```json
-{
-  "status": "queued",
-  "request_id": "d7e6c0f3-...",
-  "status_url": "https://platform.higgsfield.ai/requests/{request_id}/status",
-  "cancel_url": "https://platform.higgsfield.ai/requests/{request_id}/cancel"
-}
-```
-
-### Check status
-
-```
-GET https://platform.higgsfield.ai/requests/{request_id}/status
-Authorization: Key {key}:{secret}
-```
-
-Completed image response adds `"images": [{"url": "..."}]`.
-Completed video response adds `"video": {"url": "..."}`.
-
-## Webhooks
-
-Append `?hf_webhook={url}` to the submit endpoint to receive an HTTP POST
-on terminal status (`completed`, `failed`, `nsfw`). This eliminates polling.
-
-```
-POST https://platform.higgsfield.ai/{model_id}?hf_webhook=https://your-server.com/hook
-```
-
-### Webhook payload shapes
-
-**Completed (image):**
-
-```json
-{"status": "completed", "request_id": "...", "images": [{"url": "..."}]}
-```
-
-**Completed (video):**
-
-```json
-{"status": "completed", "request_id": "...", "video": {"url": "..."}}
-```
-
-**Failed:**
-
-```json
-{"status": "failed", "request_id": "...", "error": "..."}
-```
-
-**NSFW:**
-
-```json
-{"status": "nsfw", "request_id": "..."}
-```
-
-### Webhook requirements
-
-- Endpoint must accept POST and return 2xx promptly (<10 s).
-- Retries continue for up to 2 hours on non-2xx responses.
-- Implement idempotency using `request_id` (duplicate deliveries possible).
-- Use HTTPS.
-- If webhook delivery fails, fall back to polling the `status_url`.
-
-## Python SDK
+## Image Generation
 
 ```bash
-pip install higgsfield-client
+higgsfield generate create <model_id> --prompt "..." [--image <path-or-id>] [--aspect_ratio 16:9] [--resolution 2k] --wait
 ```
 
-Requires Python ≥ 3.8. Supports both sync and async.
+`--wait` blocks until the job completes and prints the result URL. Use `--wait-timeout 20m` for longer jobs.
 
-### Pattern 1 — Submit and wait (simplest)
+### Key image models
 
-```python
-import higgsfield_client
+| Model ID | Best for |
+|----------|----------|
+| `gpt_image_2` | Default general — graphic design, UI, banners, typography |
+| `nano_banana_2` | Top quality 4K, text/diagrams, character/cartoon |
+| `text2image_soul_v2` | Portraits, fashion, UGC, editorial |
+| `soul_cast` | Text-only character/avatar |
+| `soul_location` | Locations, environments, no-people scenes |
+| `seedream_4_5` | Vector illustrations, face edit + scene swap |
+| `marketing_studio_image` | Commercial/product/ads |
 
-result = higgsfield_client.subscribe(
-    'bytedance/seedream/v4/text-to-image',
-    arguments={
-        'prompt': 'A serene lake at sunset with mountains',
-        'resolution': '2K',
-        'aspect_ratio': '16:9',
-    }
-)
-print(result['images'][0]['url'])
+### Using reference images
+
+Media flags accept a local file path (auto-uploaded) or a UUID:
+
+```bash
+higgsfield generate create nano_banana_2 --prompt "..." --image ./ref.png --wait
 ```
 
-### Pattern 2 — Submit, poll, track progress
+### Batch generation
 
-```python
-import higgsfield_client
+Not a built-in flag — submit multiple `generate create` calls.
 
-ctrl = higgsfield_client.submit(
-    'bytedance/seedream/v4/text-to-image',
-    arguments={
-        'prompt': 'Football ball',
-        'resolution': '2K',
-        'aspect_ratio': '16:9',
-    },
-    webhook_url='https://example.com/webhook'  # optional
-)
+## Video Generation
 
-for status in ctrl.poll_request_status():
-    if isinstance(status, higgsfield_client.Queued):
-        print('Queued')
-    elif isinstance(status, higgsfield_client.InProgress):
-        print('In progress')
-    elif isinstance(status, higgsfield_client.Completed):
-        print('Completed')
-    elif isinstance(status, (higgsfield_client.Failed,
-                             higgsfield_client.NSFW,
-                             higgsfield_client.Cancelled)):
-        print('Terminal non-success')
-
-result = ctrl.get()
-print(result['images'][0]['url'])
+```bash
+higgsfield generate create <model_id> --prompt "..." [--start-image <path-or-id>] [--duration 5] --wait
 ```
 
-### Pattern 3 — Callbacks
+### Key video models
 
-```python
-import higgsfield_client
+| Model ID | Best for |
+|----------|----------|
+| `seedance_2_0` | Default all-purpose video, multi-shot, identity preservation |
+| `kling3_0` | Multi-shot, audio, motion transfer |
+| `marketing_studio_video` | Commercial/product/branded ads |
 
-result = higgsfield_client.subscribe(
-    'bytedance/seedream/v4/text-to-image',
-    arguments={'prompt': '...', 'resolution': '2K', 'aspect_ratio': '16:9'},
-    on_enqueue=lambda rid: print(f'Enqueued: {rid}'),
-    on_queue_update=lambda s: print(f'Status: {s}'),
-)
+### Media flags
+
+| Flag | Purpose |
+|------|---------|
+| `--image <path-or-id>` | Reference image |
+| `--start-image <path-or-id>` | First frame (image-to-video) |
+| `--end-image <path-or-id>` | Last frame (transitions) |
+| `--video <path-or-id>` | Reference video |
+| `--audio <path-or-id>` | Audio for lipsync/soundtrack |
+
+## Marketing Studio
+
+Branded image/video generation with avatars + products.
+
+### Quick ad video workflow
+
+1. **Fetch product:** `higgsfield marketing-studio products fetch --url <url> --wait`
+2. **Pick avatar:** `higgsfield marketing-studio avatars list`
+3. **Generate:**
+   ```bash
+   higgsfield generate create marketing_studio_video \
+     --prompt "..." \
+     --avatars '[{"id":"<avatar_id>","type":"preset"}]' \
+     --product_ids '[<product_id>]' \
+     --mode ugc \
+     --duration 15 \
+     --aspect_ratio 9:16 \
+     --wait
+   ```
+
+Modes: `ugc`, `tutorial`, `ugc_unboxing`, `hyper_motion`, `product_review`, `tv_spot`, `wild_card`, `ugc_virtual_try_on`, `virtual_try_on`.
+
+## File Uploads
+
+```bash
+higgsfield upload create <file_path>
 ```
 
-### Pattern 4 — Manage existing requests
+Returns an upload UUID. Use the UUID in media flags for subsequent generations.
 
-```python
-ctrl = higgsfield_client.submit(...)
+## Model Discovery
 
-ctrl.status()   # check current status
-ctrl.get()      # block until complete, return result
-ctrl.cancel()   # cancel if still queued
+```bash
+higgsfield model list --json          # all models
+higgsfield model get <model_id> --json  # model params/schema
 ```
 
-### File uploads (for image-to-video)
+## Job Management
 
-```python
-import higgsfield_client
-
-# From bytes
-with open('photo.jpg', 'rb') as f:
-    url = higgsfield_client.upload(f.read(), 'image/jpeg')
-
-# From file path
-url = higgsfield_client.upload_file('photo.jpg')
-
-# From PIL Image
-from PIL import Image
-img = Image.open('photo.jpg')
-url = higgsfield_client.upload_image(img, format='jpeg')
+```bash
+higgsfield generate list --json       # past jobs
+higgsfield generate get <id> --json   # specific job details
+higgsfield generate wait <id>         # rejoin a running job
 ```
 
-Use the returned `url` as `image_url` in image-to-video requests.
+## Soul-ID (Personalized Generation)
 
-### Async variants
+Train a face reference for consistent character generation:
 
-All sync functions have async counterparts — prefix with `async_`:
-
-```python
-import higgsfield_client
-
-result = await higgsfield_client.async_subscribe(...)
-ctrl = await higgsfield_client.async_submit(...)
-url = await higgsfield_client.async_upload(data, content_type)
+```bash
+higgsfield soul-id train --name "..." --image <upload_id>...
+higgsfield soul-id list
+higgsfield soul-id status <soul_id>
 ```
 
-## Models
+Use with: `higgsfield generate create text2image_soul_v2 --prompt "..." --soul-id <id> --wait`
 
-Higgsfield hosts 100+ models. Browse all at https://cloud.higgsfield.ai/explore.
-Key models referenced in docs:
+## Account & Credits
 
-### Text-to-image
+```bash
+higgsfield account status    # plan + credits
+higgsfield account balance   # credit balance
+```
 
-| Model ID                              | Notes                     |
-| ------------------------------------- | ------------------------- |
-| `higgsfield-ai/soul/standard`         | Flagship text-to-image    |
-| `reve/text-to-image`                  | Versatile general-purpose |
-| `bytedance/seedream/v4/text-to-image` | High-quality, supports 2K |
-| `bytedance/seedream/v4/edit`          | Image editing             |
+## Error Handling
 
-Common parameters: `prompt`, `aspect_ratio` (e.g. `"16:9"`),
-`resolution` (e.g. `"720p"`, `"2K"`).
-
-### Image-to-video
-
-| Model ID                                   | Notes                |
-| ------------------------------------------ | -------------------- |
-| `higgsfield-ai/dop/standard`               | Higgsfield native    |
-| `higgsfield-ai/dop/preview`                | Preview tier         |
-| `bytedance/seedance/v1/pro/image-to-video` | Professional grade   |
-| `kling-video/v2.1/pro/image-to-video`      | Cinematic animations |
-
-Common parameters: `image_url`, `prompt` (motion description),
-`duration` (seconds, e.g. `5`).
-
-## Prompting Best Practices
-
-### Text-to-image
-
-- Be specific: style, mood, colours, composition.
-- Specify artistic style: "photorealistic", "watercolour", "digital art".
-- Include quality modifiers: "highly detailed", "8k", "professional".
-- Include camera/lens details for photorealistic work.
-
-### Image-to-video (motion prompts)
-
-- Describe the movement explicitly: pan, zoom, rotation, orbit.
-- Set pace: "slowly", "smoothly", "quickly".
-- Specify camera motion: "camera pans left", "zooms in".
-- Add atmosphere: "wind blowing", "water flowing", "lights flickering".
-
-### Source image tips (image-to-video)
-
-- Use high-resolution, minimally compressed source images (PNG or high-quality JPEG).
-- Clear subjects with good composition animate best.
-- Match source aspect ratio to desired output aspect ratio.
-
-## Output Retention
-
-Generated files are stored for a minimum of 7 days. Download and persist
-to your own storage promptly — URLs may expire after the retention window.
-
-## Error Handling Checklist
-
-1. **Auth errors** — Verify `Authorization: Key {key}:{secret}` format.
-2. **`failed` status** — Retry with adjusted prompt or parameters. Credits refunded.
-3. **`nsfw` status** — Content moderation triggered. Revise prompt. Credits refunded.
-4. **Webhook not firing** — Ensure endpoint is publicly reachable, returns 2xx
-   within 10 s, and handles retries idempotently. Fall back to polling.
-5. **Cancel returns 400** — Request already moved past `queued` state.
-6. **Rate limits** — Check your plan limits in the dashboard. Contact
-   support@higgsfield.ai for enterprise limits.
-
-## Integration Patterns
-
-### Poll-based (simple scripts, one-off jobs)
-
-Use `higgsfield_client.subscribe()` — blocks until complete.
-
-### Webhook-based (production pipelines)
-
-Append `?hf_webhook=...` to submit endpoint. Process results in your
-webhook handler. Implement idempotency and fall back to polling on failure.
-
-### Batch processing
-
-Submit multiple requests, store `request_id` values, poll or receive
-webhooks for each. Higgsfield auto-scales — no concurrency limits on
-your side beyond your plan's rate limits.
+1. **`Session expired`** — Run `higgsfield auth login`.
+2. **`Missing required params: prompt`** — Provide a prompt.
+3. **`Invalid values: aspect_ratio=...`** — Check allowed values via `higgsfield model get <model_id>`.
+4. **`failed` job status** — Retry with adjusted prompt. Credits refunded.
+5. **`nsfw` status** — Content moderation. Revise prompt. Credits refunded.
 
 ## What This Skill Does NOT Cover
 
-- Creative direction or prompt writing for specific campaigns (see
-  consuming skills like `ad-creative-builder`).
-- Video editing, timeline assembly, or post-production (see
-  `ai-video-generation` if available).
+- Creative direction or prompt writing for specific campaigns (see consuming skills).
+- Video editing, timeline assembly, or post-production.
 - Billing, pricing, or plan selection — check the dashboard.
-- Models beyond Higgsfield (e.g. direct Runway, Pika, etc.).
+- Models beyond Higgsfield.
