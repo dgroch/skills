@@ -278,6 +278,8 @@ This skill ships with:
 - `scripts/test_playwright_stealth_collector.js` — parser smoke tests for the Playwright collector (run: `npm test`).
 - `scripts/puppeteer_review_collector.js` — **fallback** browser collector using Puppeteer. Use when Playwright is unavailable.
 - `scripts/test_puppeteer_review_collector.js` — parser smoke tests for the Puppeteer collector (run: `npm run test:puppeteer`).
+- `scripts/firecrawl_collector.js` — autonomous Firecrawl-backed ProductReview collector. Uses `/v0/scrape` raw markdown (`skipExtract`, no LLM extraction) plus deterministic parsing for ProductReview short-review strips and full review cards. Writes JSONL to `data/firecrawl/` and deduplicates by review ID/content.
+- `scripts/run_firecrawl.sh` — cron-safe wrapper for the Firecrawl collector with log capture and optional callback.
 - `package.json` — Node/Playwright + playwright-stealth dependency manifest. Also includes Puppeteer as optional fallback.
 - `templates/review_record_schema.json` — JSON schema for one analysed review item.
 - `templates/config.example.json` — default Fig & Bloom / Daily Blooms / LVLY config.
