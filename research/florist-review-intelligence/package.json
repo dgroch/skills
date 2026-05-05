@@ -1,0 +1,14 @@
+{
+  "name": "florist-review-intelligence",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Browser-backed public review collection helpers for the Florist Review Intelligence Hermes skill.",
+  "scripts": {
+    "test": "node scripts/test_puppeteer_review_collector.js",
+    "collect:browser": "node scripts/puppeteer_review_collector.js"
+  },
+  "dependencies": {
+    "puppeteer": "^24.0.0"
+  },
+  "devDependencies": {}
+}

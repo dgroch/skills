@@ -260,6 +260,9 @@ Environment variables:
 This skill ships with:
 
 - `scripts/review_intel_pipeline.py` — stdlib CLI for query generation, URL harvesting, analysis heuristics, CSV export, and Notion sync.
+- `scripts/puppeteer_review_collector.js` — browser-backed collector for JavaScript-heavy public review pages.
+- `scripts/test_puppeteer_review_collector.js` — parser smoke tests for the browser collector.
+- `package.json` — Node/Puppeteer dependency manifest for portable install.
 - `templates/review_record_schema.json` — JSON schema for one analysed review item.
 - `templates/config.example.json` — default Fig & Bloom / Daily Blooms / LVLY config.
 
@@ -267,6 +270,19 @@ Typical usage:
 
 ```bash
 cd /opt/data/skills/research/florist-review-intelligence
+npm install
+npm test
+
+# Browser-backed collection for JS-heavy review pages.
+node scripts/puppeteer_review_collector.js \
+  --brand "Daily Blooms" \
+  --market Melbourne \
+  --source Reviews.io \
+  --url "https://www.reviews.io/company-reviews/store/dailyblooms.com.au" \
+  --out /opt/data/florist-review-intelligence/data/raw/browser-$(date +%F).jsonl \
+  --screenshot /opt/data/florist-review-intelligence/screenshots/dailyblooms-reviewsio-$(date +%F).png
+
+# Stdlib fallback when the page is simple/static.
 python3 scripts/review_intel_pipeline.py seed-queries \
   --config templates/config.example.json \
   --out /opt/data/florist-review-intelligence/queries.txt
@@ -358,6 +374,8 @@ Suggested cadence: daily at 7:30am local time for fresh monitoring; weekly summa
 5. **Losing blocked-source evidence.** Log blocked pages so the next operator knows what was attempted.
 6. **No dedupe key.** Review pages are syndicated and scraped by multiple sources. Use stable IDs.
 7. **Notion as source of truth.** Keep JSONL as canonical. Notion is the human dashboard.
+8. **Using stdlib fetcher on JavaScript review widgets.** If `harvest-url` returns only `blocked_source` or empty records for Reviews.io, ProductReview, Birdeye, or similar widgets, switch to `scripts/puppeteer_review_collector.js` and save a screenshot for evidence.
+9. **Missing Chromium/Puppeteer.** Run `npm install` in the skill directory. If the environment already has system Chromium, set `CHROMIUM_PATH=/usr/bin/chromium`; otherwise Puppeteer can use its downloaded browser.
 
 ## Verification Checklist
 
