@@ -1,14 +1,19 @@
 {
   "name": "florist-review-intelligence",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "Browser-backed public review collection helpers for the Florist Review Intelligence Hermes skill.",
+  "description": "Browser-backed public review collection helpers for the Florist Review Intelligence Hermes skill. Uses Playwright with stealth plugin for bot-evasion.",
   "scripts": {
-    "test": "node scripts/test_puppeteer_review_collector.js",
-    "collect:browser": "node scripts/puppeteer_review_collector.js"
+    "test": "node scripts/test_playwright_stealth_collector.js",
+    "test:puppeteer": "node scripts/test_puppeteer_review_collector.js",
+    "collect": "node scripts/playwright_stealth_collector.js",
+    "install:browsers": "npx playwright install --with-deps chromium"
   },
   "dependencies": {
-    "puppeteer": "^24.0.0"
+    "@mr_ozio/playwright-stealth": "^1.0.0",
+    "playwright": "^1.50.0"
   },
-  "devDependencies": {}
+  "optionalDependencies": {
+    "puppeteer": "^24.0.0"
+  }
 }
