@@ -149,46 +149,105 @@ const FLORIST_SLUGS = [
 
 /**
  * Extract reviews from raw ProductReview markdown/text.
- * Reviews appear as repeating blocks like:
- *   ★★★★★ — reviewerName · 2w ago
- *   Review text goes here...
+ * ProductReview markdown is not semantic; review cards commonly render as either:
+ *   5Michele b8mo · Always deliver...
+ * or full cards:
+ *   ![Laura](avatar)
+ *   LauraVIC
+ *   2w
+ *   Vote
+ *   More
+ *   Do not order!!! ...
  *
- * Returns array of review objects.
+ * Returns array of review objects. Deterministic regex/line parsing only — no LLM.
  */
 function extractReviewsFromText(text, source) {
   const reviews = [];
-  
-  // Pattern: star rating + reviewer + relative time + review body
-  // e.g. "★★★★★ — Sarah · 3w ago\nGreat flowers..."
-  // Also handles: "★★★★☆" (4 stars)
-  const blockRe = /([★☆]{1,5})\s*[—\-–]\s*([^\n]+?)\s*[·•]\s*(\d+\w+\s+ago|[^\n]+?)\n([\s\S?]+?)(?=(?:[★☆]{1,5}\s*[—\-–])|$)/g;
-  
-  let match;
-  while ((match = blockRe.exec(text)) !== null) {
-    const starsStr = match[1];
-    const reviewer  = match[2].trim();
-    const time      = match[3].trim();
-    const body      = match[4].trim();
+  const seen = new Set();
+  const clean = (v) => String(v || '')
+    .replace(/\u00a0/g, ' ')
+    .replace(/…\s*Read more/g, ' ')
+    .replace(/Show reply/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 
-    // Parse star rating
-    const filled = (starsStr.match(/★/g) || []).length;
-    const empty  = (starsStr.match(/☆/g) || []).length;
-    const rating = filled + (empty > 0 ? 0.5 : 0);
-
-    if (body.length < 10) continue; // Skip garbage matches
-
+  function addReview({ reviewer, rating, time, body }) {
+    reviewer = clean(reviewer).replace(/\d+ posts?$/i, '').trim();
+    time = clean(time).replace(/Verified$/i, '').trim();
+    body = clean(body);
+    if (!body || body.length < 25) return;
+    if (/^(hi|thank you|thanks)\b/i.test(body) && reviewer.toLowerCase().includes(source.replace(/-/g, ' '))) return;
+    const key = `${reviewer}|${time}|${body.slice(0, 160)}`.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    const idHash = Buffer.from(key).toString('hex').slice(0, 32);
     reviews.push({
-      id: `pr-${source}-${Buffer.from(`${reviewer}${time}${body}`.slice(0, 80)).toString('hex')}`,
-      source: 'productreview',
+      id: `pr-${source}-${idHash}`,
+      source: 'ProductReview',
       brand: source,
-      reviewer: reviewer.slice(0, 100),
-      rating,
+      brand_alias: source,
+      market: 'National',
+      source_url: `${PR_BASE}/listings/${source}`,
+      review_url: `${PR_BASE}/listings/${source}`,
+      reviewer: reviewer.slice(0, 100) || null,
+      rating: rating ? Number(rating) : null,
+      review_date: null,
       time,
       text: body.slice(0, 2000),
-      url: `${PR_BASE}/listings/${source}`,
+      language: 'en',
+      collected_at: new Date().toISOString(),
       date_collected: today,
-      sentiment: rating >= 4 ? 'positive' : rating === 3 ? 'mixed' : 'negative'
+      sentiment: rating ? (rating >= 4 ? 'positive' : rating === 3 ? 'mixed' : 'negative') : 'unknown',
+      status: 'new'
     });
+  }
+
+  // Short-review strip near the top of ProductReview pages.
+  const shortRe = /^([1-5])([^\n]{2,80}?)(\d{1,2}\s*(?:d|w|mo|y|m))\s*[·•]\s*(.+)$/gmi;
+  let sm;
+  while ((sm = shortRe.exec(text)) !== null) {
+    addReview({ rating: Number(sm[1]), reviewer: sm[2], time: sm[3], body: sm[4] });
+  }
+
+  // Full review cards: split after the Vote/More controls, then infer reviewer/time from preceding lines.
+  const marker = /\n\s*Vote\s*\n\s*\n\s*More\s*\n\s*\n/g;
+  let m;
+  while ((m = marker.exec(text)) !== null) {
+    const beforeLines = text.slice(Math.max(0, m.index - 700), m.index)
+      .split(/\n+/).map(clean).filter(Boolean)
+      .filter(l => !l.startsWith('![') && !/^More$|^Vote$/i.test(l));
+    let time = null;
+    let reviewer = null;
+    for (let i = beforeLines.length - 1; i >= 0; i--) {
+      const l = beforeLines[i];
+      if (!time && /^(\d{1,2}\s*(?:d|w|mo|y|m))(?:\s*Verified)?$/i.test(l)) {
+        time = l;
+        reviewer = beforeLines[i - 1] || null;
+        break;
+      }
+      const inline = l.match(/^(.+?)(\d{1,2}\s*(?:d|w|mo|y|m))(?:\s*Verified)?$/i);
+      if (inline) {
+        reviewer = inline[1];
+        time = inline[2];
+        break;
+      }
+    }
+    if (!reviewer || !time) continue;
+
+    let after = text.slice(marker.lastIndex, marker.lastIndex + 2500);
+    const stops = [
+      '\n\n![Fig & Bloom]', '\n\n![Daily', '\n\n![LVLY', '\n\n![Sarah', '\n\n![Roses',
+      '\n\n### ', '\n\nPrevious', '\n\nNext', '\n\n- ![Thumbnail]'
+    ];
+    let cut = after.length;
+    for (const stop of stops) {
+      const idx = after.indexOf(stop);
+      if (idx >= 0 && idx < cut) cut = idx;
+    }
+    after = after.slice(0, cut);
+    // Remove any brand manager reply that slipped in.
+    after = after.replace(/\n\n[A-Za-z &]+\d{1,2}\s*(?:d|w|mo|y|m)[\s\S]*$/i, '');
+    addReview({ rating: null, reviewer, time, body: after });
   }
 
   return reviews;
