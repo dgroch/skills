@@ -751,8 +751,26 @@ def notion_property_type(key: str, value) -> dict:
     if isinstance(value, (int, float)):
         return {"number": float(value)}
     if isinstance(value, list):
-        return {"multi_select": [{"name": str(v)} for v in value]}
-    return {"rich_text": [{"text": {"content": str(value)}}]}
+        # Notion multi-select option names are limited (100 chars) and should be
+        # compact labels, not full raw review snippets. Truncate defensively so
+        # sync never fails because a customer phrase is too long.
+        options = []
+        seen = set()
+        for v in value:
+            name = re.sub(r"\s+", " ", str(v)).strip()
+            name = name.replace(",", " ")
+            if not name:
+                continue
+            if len(name) > 95:
+                name = name[:92].rstrip() + "..."
+            if name not in seen:
+                seen.add(name)
+                options.append({"name": name})
+        return {"multi_select": options}
+    text = str(value)
+    if len(text) > 1900:
+        text = text[:1897] + "..."
+    return {"rich_text": [{"text": {"content": text}}]}
 
 
 def create_notion_page(record: dict) -> Optional[str]:
