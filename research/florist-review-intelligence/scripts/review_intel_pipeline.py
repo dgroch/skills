@@ -437,7 +437,10 @@ def analyse_record(record: dict) -> dict:
     """Heuristic analysis of a single review record. Mutates and returns it."""
     text = (record.get("text") or "").lower()
     title = (record.get("title") or "").lower()
-    combined = f"{title} {text}"
+    # Keep combined text aligned with `text` when there is no title; a leading
+    # separator shifts regex match offsets and clips the first character of
+    # extracted customer snippets.
+    combined = f"{title} {text}".strip()
 
     rating = record.get("rating")
     sentiment = "unknown"
