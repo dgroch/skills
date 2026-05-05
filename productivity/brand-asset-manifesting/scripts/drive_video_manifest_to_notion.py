@@ -2,20 +2,26 @@
 """Manifest Google Drive/shared-drive videos into a Notion brand asset database.
 
 Env:
-  DRIVE_FOLDER_ID                         required source folder
-  MANIFEST_LIMIT                          optional max videos, 0/all if omitted
-  GEMINI_MODEL                            default google/gemini-3-flash-preview
+  DRIVE_FOLDER_ID                         required source folder or shared-drive root
+  MANIFEST_LIMIT                          optional max assets, 0/all if omitted
+  MANIFEST_RECURSIVE                      default true; crawl nested folders
+  GEMINI_PROVIDER/GEMINI_MODEL            openrouter or google direct Gemini
   NOTION_BRAND_ASSET_DATABASE_ID          existing Notion database (recommended)
   NOTION_BRAND_ASSET_PARENT_PAGE_ID       parent page if DB should be created
-  OPENROUTER_API_KEY, NOTION_API_KEY      required
+  NOTION_API_KEY plus OPENROUTER_API_KEY or GEMINI_API_KEY required privately
 """
 from __future__ import annotations
 
-import base64, datetime as dt, json, math, mimetypes, os, re, subprocess, sys, time, urllib.request, urllib.error
+import base64, datetime as dt, json, math, mimetypes, os, re, shutil, subprocess, sys, time, urllib.parse, urllib.request, urllib.error
 from pathlib import Path
 
 DRIVE_FOLDER_ID = os.environ.get("DRIVE_FOLDER_ID")
 LIMIT = int(os.environ.get("MANIFEST_LIMIT") or "0")
+RECURSIVE = os.environ.get("MANIFEST_RECURSIVE", "true").lower() not in {"0", "false", "no"}
+RENAME_FILES = os.environ.get("MANIFEST_RENAME_FILES", "true").lower() not in {"0", "false", "no"}
+TAXONOMY_VERSION = os.environ.get("ASSET_TAXONOMY_VERSION", "v0-discovery")
+BRAND_CDN_BASE_URL = (os.environ.get("BRAND_CDN_BASE_URL") or "").rstrip("/")
+BRAND_CDN_UPLOAD_DIR = os.environ.get("BRAND_CDN_UPLOAD_DIR")
 GEMINI_PROVIDER = os.environ.get("GEMINI_PROVIDER", "openrouter").lower()
 MODEL = os.environ.get("GEMINI_MODEL", "google/gemini-3-flash-preview" if GEMINI_PROVIDER == "openrouter" else "gemini-2.5-flash")
 NOTION_VERSION = os.environ.get("NOTION_VERSION", "2022-06-28")
@@ -32,6 +38,7 @@ Required source/destination:
     OR
   NOTION_BRAND_ASSET_PARENT_PAGE_ID=<Notion page ID where the script can create a database>
   MANIFEST_WORKDIR=/private/local/output/path
+  Optional: BRAND_CDN_BASE_URL + BRAND_CDN_UPLOAD_DIR to publish thumbnails.
 
 Gemini access path, choose one:
   # Option A: Gemini via OpenRouter
@@ -117,7 +124,8 @@ def db_properties():
         "Overall Description": {"rich_text": {}}, "Content Type": {"select": {}}, "Mood Tone": {"multi_select": {}},
         "Visual Tags": {"multi_select": {}}, "People Present": {"rich_text": {}}, "Products / Flowers": {"multi_select": {}},
         "Setting / Location": {"rich_text": {}}, "Usable For": {"multi_select": {}}, "Reorg Notes": {"rich_text": {}},
-        "Timestamp Beats": {"rich_text": {}}, "Manifest Model": {"rich_text": {}}, "Manifested At": {"date": {}}
+        "Timestamp Beats": {"rich_text": {}}, "Manifest Model": {"rich_text": {}}, "Taxonomy Version": {"rich_text": {}},
+        "Taxonomy Candidates": {"multi_select": {}}, "Original Filename": {"rich_text": {}}, "Renamed At": {"date": {}}, "Manifested At": {"date": {}}
     }
 
 
@@ -148,19 +156,95 @@ def ensure_db():
     return DB_ID
 
 
-def list_videos(folder_id):
+def list_children(folder_id):
     files, token = [], None
     while True:
-        params = {"q": f'"{folder_id}" in parents and trashed=false and mimeType contains "video/"', "includeItemsFromAllDrives": True, "supportsAllDrives": True, "pageSize": 100, "fields": "files(id,name,mimeType,parents,driveId,size,videoMediaMetadata,webViewLink,thumbnailLink,modifiedTime),nextPageToken"}
+        params = {"q": f'"{folder_id}" in parents and trashed=false', "includeItemsFromAllDrives": True, "supportsAllDrives": True, "pageSize": 100, "fields": "files(id,name,mimeType,parents,driveId,size,videoMediaMetadata,webViewLink,thumbnailLink,modifiedTime),nextPageToken"}
         if token: params["pageToken"] = token
         data = gws_json(["drive", "files", "list", "--params", json.dumps(params)])
         files += data.get("files", [])
         token = data.get("nextPageToken")
         if not token: break
-    return files[:LIMIT] if LIMIT else files
+    return files
+
+
+def list_assets(folder_id):
+    assets, seen_folders, queue = [], set(), [(folder_id, folder_id)]
+    while queue:
+        current, path = queue.pop(0)
+        if current in seen_folders: continue
+        seen_folders.add(current)
+        for f in list_children(current):
+            mt = f.get("mimeType", "")
+            f["folderPath"] = path
+            if mt == "application/vnd.google-apps.folder" and RECURSIVE:
+                queue.append((f["id"], path + "/" + f.get("name", f["id"])))
+            elif mt.startswith("video/") or mt.startswith("image/"):
+                assets.append(f)
+                if LIMIT and len(assets) >= LIMIT:
+                    return assets
+    return assets
+
+
+def asset_type(file):
+    mt = file.get("mimeType", "")
+    if mt.startswith("video/"): return "video"
+    if mt.startswith("image/"): return "image"
+    return "other"
 
 
 def clean(name): return re.sub(r"[^A-Za-z0-9._-]+", "_", name)[:150]
+
+
+def slugify(text, max_len=52):
+    text = (text or "asset").lower()
+    text = re.sub(r"&", " and ", text)
+    text = re.sub(r"[^a-z0-9]+", "-", text).strip("-")
+    return (text or "asset")[:max_len].strip("-") or "asset"
+
+
+def intuitive_basename(file, analysis, kind):
+    # Use the model's concise category/tags, but keep it short and Drive-friendly.
+    parts = []
+    for key in ("content_type", "setting_location"):
+        val = str(analysis.get(key) or "").strip()
+        if val: parts.append(val)
+    for key in ("products_or_flowers", "visual_tags", "usable_for"):
+        vals = analysis.get(key) or []
+        if isinstance(vals, str): vals = [vals]
+        for v in vals[:3]:
+            if v and len(parts) < 5: parts.append(str(v))
+    base = slugify(" ".join(parts), 64)
+    if base == "asset": base = slugify(Path(file.get("name", kind)).stem, 64)
+    return f"{base}-{file['id'][:6]}"
+
+
+def rename_drive_file(file, analysis, kind):
+    if not RENAME_FILES: return file.get("name"), None
+    old = file.get("name") or "asset"
+    ext = Path(old).suffix or mimetypes.guess_extension(file.get("mimeType", "")) or (".mp4" if kind == "video" else ".jpg")
+    new_name = intuitive_basename(file, analysis, kind) + ext.lower()
+    if new_name == old: return old, None
+    params = {"fileId": file["id"], "supportsAllDrives": True, "fields": "id,name,webViewLink"}
+    updated = gws_json(["drive", "files", "update", "--params", json.dumps(params), "--json", json.dumps({"name": new_name})])
+    file["name"] = updated.get("name", new_name)
+    file["webViewLink"] = updated.get("webViewLink", file.get("webViewLink"))
+    return old, file["name"]
+
+
+def sync_thumbnail_to_cdn(file, frs, analysis, kind):
+    # Publish a generated thumbnail/contact frame to a public CDN path when configured.
+    # Expected setup: BRAND_CDN_UPLOAD_DIR is a local/static directory served at BRAND_CDN_BASE_URL.
+    if not (BRAND_CDN_BASE_URL and BRAND_CDN_UPLOAD_DIR and frs):
+        return file.get("thumbnailLink")
+    src = Path(frs[0]["path"])
+    if not src.exists(): return file.get("thumbnailLink")
+    date_path = dt.datetime.now(dt.timezone.utc).strftime("%Y/%m")
+    rel = Path("asset-manifest") / date_path / f"{intuitive_basename(file, analysis, kind)}.jpg"
+    dest = Path(BRAND_CDN_UPLOAD_DIR) / rel
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(src, dest)
+    return BRAND_CDN_BASE_URL + "/" + urllib.parse.quote(str(rel).replace(os.sep, "/"), safe="/")
 
 
 def download(file):
@@ -184,8 +268,13 @@ def ratio(w,h):
     g = math.gcd(w,h); return f"{w//g}:{h//g}"
 
 
-def frames(path, file_id, duration):
+def frames(path, file_id, duration, mime_type="video/mp4"):
     outdir = FRAMES / file_id; outdir.mkdir(parents=True, exist_ok=True)
+    if mime_type.startswith("image/"):
+        out = outdir / "image_preview.jpg"
+        if not out.exists() or out.stat().st_size == 0:
+            run(["ffmpeg", "-y", "-i", str(path), "-frames:v", "1", "-vf", "scale='min(640,iw)':-2", "-q:v", "4", str(out)], check=False)
+        return [{"time": 0, "path": out}] if out.exists() and out.stat().st_size > 0 else []
     safe_end = max(0, duration - 1.0) if duration > 2 else max(0, duration * .75)
     n = min(8, max(4, int(duration // 3) + 2)) if duration else 4
     times = sorted(set(round(safe_end * i / max(1, n-1), 2) for i in range(n)))
@@ -207,7 +296,9 @@ def frames(path, file_id, duration):
 def data_url(path): return "data:image/jpeg;base64," + base64.b64encode(Path(path).read_bytes()).decode()
 
 
-def gemini_prompt(file, meta):
+def gemini_prompt(file, meta, kind):
+    if kind == "image":
+        return f"""Create a brand asset manifest entry for this image. Original filename: {file['name']}. Drive file ID: {file['id']}. Dimensions {meta['width']}x{meta['height']}, aspect {ratio(meta['width'], meta['height'])}. Return ONLY JSON: {{"overall_description":"2-4 sentences", "content_type":"short category", "mood_tone":["tags"], "visual_tags":["tags"], "people_present":"none/one/multiple/unclear plus brief notes", "products_or_flowers":["items"], "setting_location":"brief", "usable_for":["future AI/content uses"], "reorg_notes":"how to file/group this", "beats":[{{"start_s":0,"end_s":0,"shot_description":"visual composition and subject", "shot_type":"wide/medium/close-up/detail/product/lifestyle", "ai_usefulness":"why useful"}}]}}"""
     return f"""Create a brand asset manifest entry for this video. Original filename: {file['name']}. Drive file ID: {file['id']}. Duration {meta['duration']:.2f}s, dimensions {meta['width']}x{meta['height']}, aspect {ratio(meta['width'], meta['height'])}. Analyse the video as a whole from sampled timestamp frames. Return ONLY JSON: {{"overall_description":"2-4 sentences", "content_type":"short category", "mood_tone":["tags"], "visual_tags":["tags"], "people_present":"none/one/multiple/unclear plus brief notes", "products_or_flowers":["items"], "setting_location":"brief", "usable_for":["future AI/content uses"], "reorg_notes":"how to file/group this", "beats":[{{"start_s":0,"end_s":1.5,"shot_description":"visual action", "shot_type":"wide/medium/close-up/detail/movement/text-overlay", "ai_usefulness":"why useful"}}]}}"""
 
 
@@ -216,8 +307,8 @@ def parse_json_text(text):
     return json.loads(text)
 
 
-def gemini(file, meta, frs):
-    prompt = gemini_prompt(file, meta)
+def gemini(file, meta, frs, kind):
+    prompt = gemini_prompt(file, meta, kind)
     if GEMINI_PROVIDER == "google":
         key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY") or os.environ.get("GOOGLE_GENAI_API_KEY")
         if not key: raise RuntimeError("Direct Gemini selected but GEMINI_API_KEY/GOOGLE_API_KEY is missing.\n" + SETUP_TEXT)
@@ -262,27 +353,52 @@ def beat_text(beats):
     return "\n".join(lines)[:1900]
 
 
-def sync_page(db_id, existing, file, meta, analysis):
+def sync_page(db_id, existing, file, meta, analysis, preview_url=None, original_name=None, renamed_name=None):
+    kind = asset_type(file)
     w,h=meta['width'],meta['height']; orient = 'portrait' if h>w else 'landscape' if w>h else 'square' if w and h else 'unknown'
-    preview_url = os.environ.get("BRAND_CDN_PREVIEW_URL") or file.get("thumbnailLink")
+    preview_url = preview_url or file.get("thumbnailLink")
     props = {
         "Asset": title(file["name"]), "Drive File ID": rt(file["id"]), "File Handle": rt(f"drive:{file['id']} | {file['name']}"),
         "Drive Link": {"url": file.get("webViewLink", f"https://drive.google.com/file/d/{file['id']}/view")},
         "Preview URL": {"url": preview_url} if preview_url else {"url": None},
         "Preview": {"files": [{"name": "preview", "external": {"url": preview_url}}]} if preview_url else {"files": []},
-        "Source Folder": rt(DRIVE_FOLDER_ID), "Folder Path": rt(DRIVE_FOLDER_ID), "Mime Type": rt(file.get("mimeType","")), "Asset Type": sel("video"),
+        "Source Folder": rt(DRIVE_FOLDER_ID), "Folder Path": rt(file.get("folderPath", DRIVE_FOLDER_ID)), "Mime Type": rt(file.get("mimeType","")), "Asset Type": sel(kind),
         "Duration Seconds": {"number": round(meta["duration"],2)}, "Dimensions": rt(f"{w}x{h}"), "Aspect Ratio": sel(ratio(w,h)), "Orientation": sel(orient),
         "Size MB": {"number": round(int(file.get("size") or 0)/1048576, 2)},
         "Overall Description": rt(analysis.get("overall_description","")), "Content Type": sel(analysis.get("content_type","")),
         "Mood Tone": ms(analysis.get("mood_tone")), "Visual Tags": ms(analysis.get("visual_tags")), "People Present": rt(analysis.get("people_present","")),
         "Products / Flowers": ms(analysis.get("products_or_flowers")), "Setting / Location": rt(analysis.get("setting_location","")),
         "Usable For": ms(analysis.get("usable_for")), "Reorg Notes": rt(analysis.get("reorg_notes","")),
-        "Timestamp Beats": rt(beat_text(analysis.get("beats"))), "Manifest Model": rt(MODEL), "Manifested At": {"date":{"start": dt.datetime.now(dt.timezone.utc).isoformat()}},
+        "Timestamp Beats": rt(beat_text(analysis.get("beats"))), "Manifest Model": rt(MODEL), "Taxonomy Version": rt(TAXONOMY_VERSION),
+        "Taxonomy Candidates": ms((analysis.get("visual_tags") or []) + (analysis.get("usable_for") or []) + (analysis.get("products_or_flowers") or []), maxn=16),
+        "Original Filename": rt(original_name or file.get("name", "")), "Renamed At": {"date":{"start": dt.datetime.now(dt.timezone.utc).isoformat()}} if renamed_name else {"date": None},
+        "Manifested At": {"date":{"start": dt.datetime.now(dt.timezone.utc).isoformat()}},
     }
     page_id = existing.get(file["id"])
     if page_id:
         notion("PATCH", f"/pages/{page_id}", {"properties": props}); return "updated"
     notion("POST", "/pages", {"parent": {"database_id": db_id}, "properties": props}); return "created"
+
+
+def taxonomy_report(records, out_dir):
+    from collections import Counter
+    counters = {"content_type": Counter(), "visual_tags": Counter(), "usable_for": Counter(), "products_or_flowers": Counter(), "mood_tone": Counter()}
+    for r in records:
+        a = r.get("analysis") or {}
+        for key, c in counters.items():
+            vals = a.get(key) or []
+            if isinstance(vals, str): vals = [vals]
+            for v in vals:
+                v = str(v).strip().lower()
+                if v: c[v] += 1
+    report = {"taxonomy_version": TAXONOMY_VERSION, "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(), "top_terms": {k: c.most_common(40) for k,c in counters.items()}, "recommendations": []}
+    for key, terms in report["top_terms"].items():
+        rare = [t for t,n in terms if n == 1][:10]
+        if rare:
+            report["recommendations"].append(f"Review one-off {key} values for synonyms/merge candidates: {', '.join(rare[:6])}")
+    path = out_dir / f"taxonomy-review-{dt.datetime.now().strftime('%Y%m%d-%H%M%S')}.json"
+    path.write_text(json.dumps(report, indent=2, ensure_ascii=False))
+    return str(path)
 
 
 def main():
@@ -298,23 +414,26 @@ def main():
         raise RuntimeError("Missing setup: " + ", ".join(missing) + "\n\n" + SETUP_TEXT)
     for d in (DOWNLOADS, FRAMES, OUT): d.mkdir(parents=True, exist_ok=True)
     db_id = ensure_db(); existing = query_existing(db_id)
-    videos = list_videos(DRIVE_FOLDER_ID); log(f"found {len(videos)} videos to consider; existing Notion IDs {len(existing)}")
+    assets = list_assets(DRIVE_FOLDER_ID); log(f"found {len(assets)} assets to consider; existing Notion IDs {len(existing)}")
     records=[]; created=updated=failed=0
-    for i, file in enumerate(videos,1):
+    for i, file in enumerate(assets,1):
         try:
             if file["id"] in existing:
-                log(f"{i}/{len(videos)} refresh {file['name']}")
+                log(f"{i}/{len(assets)} refresh {file['name']}")
             else:
-                log(f"{i}/{len(videos)} create {file['name']}")
-            local=download(file); meta=ffprobe(local); frs=frames(local,file["id"],meta["duration"]); analysis=gemini(file,meta,frs)
-            status=sync_page(db_id, existing, file, meta, analysis)
+                log(f"{i}/{len(assets)} create {file['name']}")
+            local=download(file); meta=ffprobe(local); kind=asset_type(file); frs=frames(local,file["id"],meta["duration"],file.get("mimeType","")); analysis=gemini(file,meta,frs,kind)
+            original_name, renamed_name = rename_drive_file(file, analysis, kind)
+            preview_url = sync_thumbnail_to_cdn(file, frs, analysis, kind)
+            status=sync_page(db_id, existing, file, meta, analysis, preview_url=preview_url, original_name=original_name, renamed_name=renamed_name)
             created += status=="created"; updated += status=="updated"; existing[file["id"]]="synced"
-            records.append({"file":file,"meta":meta,"analysis":analysis,"status":status})
+            records.append({"file":file,"meta":meta,"analysis":analysis,"status":status,"original_name":original_name,"renamed_name":renamed_name,"preview_url":preview_url})
         except Exception as e:
             failed += 1; log(f"FAILED {file.get('id')} {file.get('name')}: {e}"); records.append({"file":file,"error":repr(e)})
         time.sleep(0.35)
     out = OUT / f"drive-video-manifest-{dt.datetime.now().strftime('%Y%m%d-%H%M%S')}.json"
-    out.write_text(json.dumps({"db_id":db_id,"folder_id":DRIVE_FOLDER_ID,"model":MODEL,"created":created,"updated":updated,"failed":failed,"records":records}, indent=2, ensure_ascii=False))
-    print(json.dumps({"status":"complete","db_id":db_id,"videos":len(videos),"created":created,"updated":updated,"failed":failed,"backup":str(out)}, indent=2))
+    taxonomy_path = taxonomy_report(records, OUT)
+    out.write_text(json.dumps({"db_id":db_id,"folder_id":DRIVE_FOLDER_ID,"model":MODEL,"taxonomy_version":TAXONOMY_VERSION,"taxonomy_report":taxonomy_path,"created":created,"updated":updated,"failed":failed,"records":records}, indent=2, ensure_ascii=False))
+    print(json.dumps({"status":"complete","db_id":db_id,"assets":len(assets),"created":created,"updated":updated,"failed":failed,"backup":str(out),"taxonomy_report":taxonomy_path}, indent=2))
 
 if __name__ == "__main__": main()
