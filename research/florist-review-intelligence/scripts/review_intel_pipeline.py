@@ -260,7 +260,7 @@ def _parse_html_reviews(html: str, url: str, brand: str, market: str, source: st
             if isinstance(data, dict):
                 data = [data]
             for item in data:
-                @item_type = item.get("@type", "")
+                item_type = item.get("@type", "")
                 if "Review" not in item_type and "ReviewAggregateRating" not in item_type:
                     continue
                 review_body = (
