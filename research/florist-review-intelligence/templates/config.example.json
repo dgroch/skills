@@ -1,0 +1,41 @@
+{
+  "project": "fig-bloom-florist-review-intelligence",
+  "brands": [
+    {
+      "name": "Fig & Bloom",
+      "aliases": ["Fig and Bloom", "figandbloom", "Fig & Bloom flowers"],
+      "role": "owned"
+    },
+    {
+      "name": "Daily Blooms",
+      "aliases": ["DailyBlooms", "Daily Blooms flowers"],
+      "role": "competitor"
+    },
+    {
+      "name": "LVLY",
+      "aliases": ["Lovely flowers", "LVLY flowers", "LVLY gifts"],
+      "role": "competitor"
+    }
+  ],
+  "markets": ["Melbourne", "Sydney", "Brisbane"],
+  "sources": ["Google", "ProductReview", "Trustpilot", "Facebook", "Reddit", "Website", "Yelp", "Tripadvisor", "Other"],
+  "query_templates": [
+    "{brand} reviews {market} florist",
+    "{brand} flowers reviews {market}",
+    "{brand} florist complaints",
+    "{brand} late delivery flowers",
+    "{brand} refund flowers",
+    "{brand} not fresh flowers",
+    "{brand} photo did not match flowers",
+    "site:productreview.com.au {brand} flowers reviews",
+    "site:trustpilot.com {brand} reviews flowers",
+    "site:facebook.com {brand} reviews flowers",
+    "site:reddit.com {brand} florist reviews {market}"
+  ],
+  "notion": {
+    "database_title": "Fig & Bloom Review Intelligence",
+    "database_id_env": "NOTION_FLORIST_REVIEW_DATABASE_ID",
+    "data_source_id_env": "NOTION_FLORIST_REVIEW_DATA_SOURCE_ID",
+    "parent_page_id_env": "NOTION_FLORIST_REVIEW_PARENT_PAGE_ID"
+  }
+}
