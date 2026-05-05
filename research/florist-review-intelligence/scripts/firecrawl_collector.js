@@ -23,6 +23,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const crypto = require('crypto');
 
 // ── Config ───────────────────────────────────────────────────────────────────
 
@@ -180,7 +181,7 @@ function extractReviewsFromText(text, source) {
     const key = `${reviewer}|${time}|${body.slice(0, 160)}`.toLowerCase();
     if (seen.has(key)) return;
     seen.add(key);
-    const idHash = Buffer.from(key).toString('hex').slice(0, 32);
+    const idHash = crypto.createHash('sha256').update(key).digest('hex').slice(0, 24);
     reviews.push({
       id: `pr-${source}-${idHash}`,
       source: 'ProductReview',
