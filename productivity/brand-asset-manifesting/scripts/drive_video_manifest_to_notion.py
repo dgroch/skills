@@ -21,6 +21,9 @@ LIMIT = int(os.environ.get("MANIFEST_LIMIT") or "0")
 RECURSIVE = os.environ.get("MANIFEST_RECURSIVE", "true").lower() not in {"0", "false", "no"}
 RENAME_FILES = os.environ.get("MANIFEST_RENAME_FILES", "true").lower() not in {"0", "false", "no"}
 SKIP_EXISTING = os.environ.get("MANIFEST_SKIP_EXISTING", "false").lower() in {"1", "true", "yes"}
+PRODUCT_CLASSIFICATION_ENABLED = os.environ.get("PRODUCT_CLASSIFICATION_ENABLED", "false").lower() in {"1", "true", "yes"}
+PRODUCT_MATCH_THRESHOLD = float(os.environ.get("PRODUCT_MATCH_THRESHOLD") or "0.8")
+PRODUCT_CATALOG_JSON = os.environ.get("PRODUCT_CATALOG_JSON")
 TAXONOMY_VERSION = os.environ.get("ASSET_TAXONOMY_VERSION", "v0-discovery")
 BRAND_CDN_BASE_URL = (os.environ.get("BRAND_CDN_BASE_URL") or "").rstrip("/")
 BRAND_CDN_UPLOAD_DIR = os.environ.get("BRAND_CDN_UPLOAD_DIR")
@@ -131,7 +134,8 @@ def db_properties():
         "Visual Tags": {"multi_select": {}}, "People Present": {"rich_text": {}}, "Products / Flowers": {"multi_select": {}},
         "Setting / Location": {"rich_text": {}}, "Usable For": {"multi_select": {}}, "Reorg Notes": {"rich_text": {}},
         "Timestamp Beats": {"rich_text": {}}, "Manifest Model": {"rich_text": {}}, "Taxonomy Version": {"rich_text": {}},
-        "Taxonomy Candidates": {"multi_select": {}}, "Original Filename": {"rich_text": {}}, "Renamed At": {"date": {}}, "Manifested At": {"date": {}}
+        "Taxonomy Candidates": {"multi_select": {}}, "Original Filename": {"rich_text": {}}, "Renamed At": {"date": {}}, "Manifested At": {"date": {}},
+        "Contains Product": {"select": {"options": [{"name":"yes"},{"name":"no"}]}}, "Product Name": {"rich_text": {}}, "Product Match Confidence": {"number": {"format":"percent"}}
     }
 
 
@@ -362,10 +366,19 @@ def frames(path, file_id, duration, mime_type="video/mp4"):
 def data_url(path): return "data:image/jpeg;base64," + base64.b64encode(Path(path).read_bytes()).decode()
 
 
-def gemini_prompt(file, meta, kind):
+def gemini_prompt(file, meta, kind, product_catalog=None):
+    product_instruction = ""
+    if PRODUCT_CLASSIFICATION_ENABLED:
+        candidates = product_catalog or []
+        catalog_text = json.dumps([p.get("product_name") for p in candidates[:80]], ensure_ascii=False)
+        product_instruction = f"""
+Also classify whether this asset clearly features a specific Fig & Bloom product from this candidate catalogue: {catalog_text}
+Only choose an exact product_name from the candidate catalogue. If no exact product match is visually clear, use null. Return confidence as 0-1. Use confidence >= {PRODUCT_MATCH_THRESHOLD:.2f} only when the match is visually strong, not just because words appear in the filename.
+Include this JSON field: "product_classification": {{"contains_product": true/false, "product_name": "exact catalogue name or null", "confidence": 0.0}}.
+""".strip()
     if kind == "image":
-        return f"""Create a brand asset manifest entry for this image. Original filename: {file['name']}. Drive file ID: {file['id']}. Dimensions {meta['width']}x{meta['height']}, aspect {ratio(meta['width'], meta['height'])}. Return ONLY JSON: {{"overall_description":"2-4 sentences", "content_type":"short category", "mood_tone":["tags"], "visual_tags":["tags"], "people_present":"none/one/multiple/unclear plus brief notes", "products_or_flowers":["items"], "setting_location":"brief", "usable_for":["future AI/content uses"], "reorg_notes":"how to file/group this", "beats":[{{"start_s":0,"end_s":0,"shot_description":"visual composition and subject", "shot_type":"wide/medium/close-up/detail/product/lifestyle", "ai_usefulness":"why useful"}}]}}"""
-    return f"""Create a brand asset manifest entry for this video. Original filename: {file['name']}. Drive file ID: {file['id']}. Duration {meta['duration']:.2f}s, dimensions {meta['width']}x{meta['height']}, aspect {ratio(meta['width'], meta['height'])}. Analyse the video as a whole from sampled timestamp frames. Return ONLY JSON: {{"overall_description":"2-4 sentences", "content_type":"short category", "mood_tone":["tags"], "visual_tags":["tags"], "people_present":"none/one/multiple/unclear plus brief notes", "products_or_flowers":["items"], "setting_location":"brief", "usable_for":["future AI/content uses"], "reorg_notes":"how to file/group this", "beats":[{{"start_s":0,"end_s":1.5,"shot_description":"visual action", "shot_type":"wide/medium/close-up/detail/movement/text-overlay", "ai_usefulness":"why useful"}}]}}"""
+        return f"""Create a brand asset manifest entry for this image. Original filename: {file['name']}. Drive file ID: {file['id']}. Dimensions {meta['width']}x{meta['height']}, aspect {ratio(meta['width'], meta['height'])}. {product_instruction} Return ONLY JSON: {{"overall_description":"2-4 sentences", "content_type":"short category", "mood_tone":["tags"], "visual_tags":["tags"], "people_present":"none/one/multiple/unclear plus brief notes", "products_or_flowers":["items"], "setting_location":"brief", "usable_for":["future AI/content uses"], "reorg_notes":"how to file/group this", "product_classification":{{"contains_product":false,"product_name":null,"confidence":0.0}}, "beats":[{{"start_s":0,"end_s":0,"shot_description":"visual composition and subject", "shot_type":"wide/medium/close-up/detail/product/lifestyle", "ai_usefulness":"why useful"}}]}}"""
+    return f"""Create a brand asset manifest entry for this video. Original filename: {file['name']}. Drive file ID: {file['id']}. Duration {meta['duration']:.2f}s, dimensions {meta['width']}x{meta['height']}, aspect {ratio(meta['width'], meta['height'])}. Analyse the video as a whole from sampled timestamp frames. {product_instruction} Return ONLY JSON: {{"overall_description":"2-4 sentences", "content_type":"short category", "mood_tone":["tags"], "visual_tags":["tags"], "people_present":"none/one/multiple/unclear plus brief notes", "products_or_flowers":["items"], "setting_location":"brief", "usable_for":["future AI/content uses"], "reorg_notes":"how to file/group this", "product_classification":{{"contains_product":false,"product_name":null,"confidence":0.0}}, "beats":[{{"start_s":0,"end_s":1.5,"shot_description":"visual action", "shot_type":"wide/medium/close-up/detail/movement/text-overlay", "ai_usefulness":"why useful"}}]}}"""
 
 
 def parse_json_text(text):
@@ -384,8 +397,73 @@ def as_list(value):
     return [value]
 
 
-def gemini(file, meta, frs, kind):
-    prompt = gemini_prompt(file, meta, kind)
+def load_product_catalog():
+    if not PRODUCT_CATALOG_JSON:
+        return []
+    path = Path(PRODUCT_CATALOG_JSON)
+    if not path.exists():
+        log(f"product catalog not found: {path}")
+        return []
+    data = json.loads(path.read_text(encoding="utf-8"))
+    raw = data.get("products", data) if isinstance(data, dict) else data
+    products = []
+    for item in raw or []:
+        if isinstance(item, str):
+            name, aliases = item, []
+        elif isinstance(item, dict):
+            name, aliases = item.get("product_name") or item.get("name") or item.get("title"), item.get("aliases") or []
+        else:
+            continue
+        name = str(name or "").strip()
+        if name:
+            products.append({"product_name": name[:120], "aliases": [str(a)[:120] for a in aliases[:6] if str(a).strip()]})
+    return products
+
+
+def product_tokens(text):
+    stop = {"the","and","for","with","from","fig","bloom","figandbloom","photo","photos","image","video","final","copy","px","jpg","png","mov","mp4","day","2026","2025","2024"}
+    return {t for t in re.findall(r"[a-z0-9]+", str(text).lower()) if len(t) > 2 and t not in stop}
+
+
+def product_candidates(file, catalog, maxn=80):
+    if not catalog:
+        return []
+    hay = " ".join([file.get("name", ""), file.get("folderPath", "")])
+    ht = product_tokens(hay)
+    scored = []
+    for p in catalog:
+        text = " ".join([p["product_name"]] + p.get("aliases", []))
+        pt = product_tokens(text)
+        score = len(ht & pt)
+        if score:
+            scored.append((score, p))
+    if not scored:
+        return catalog[:maxn]
+    scored.sort(key=lambda x: (-x[0], x[1]["product_name"].lower()))
+    return [p for _, p in scored[:maxn]]
+
+
+def normalise_product_classification(analysis):
+    pc = analysis.get("product_classification") or {}
+    if not isinstance(pc, dict):
+        pc = {}
+    try:
+        conf = float(pc.get("confidence") or 0)
+    except Exception:
+        conf = 0.0
+    if conf > 1:
+        conf = conf / 100.0
+    conf = max(0.0, min(1.0, conf))
+    raw_name = str(pc.get("product_name") or "").strip()
+    raw_contains = pc.get("contains_product")
+    if isinstance(raw_contains, str):
+        raw_contains = raw_contains.strip().lower() in {"1", "true", "yes"}
+    contains = bool(raw_contains) and conf >= PRODUCT_MATCH_THRESHOLD and raw_name.lower() not in {"", "null", "none", "unknown"}
+    return {"contains_product": contains, "product_name": raw_name if contains else "", "confidence": conf}
+
+
+def gemini(file, meta, frs, kind, product_catalog=None):
+    prompt = gemini_prompt(file, meta, kind, product_catalog=product_candidates(file, product_catalog or []))
     if GEMINI_PROVIDER == "google":
         key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY") or os.environ.get("GOOGLE_GENAI_API_KEY")
         if not key: raise RuntimeError("Direct Gemini selected but GEMINI_API_KEY/GOOGLE_API_KEY is missing.\n" + SETUP_TEXT)
@@ -434,6 +512,7 @@ def sync_page(db_id, existing, file, meta, analysis, preview_url=None, original_
     kind = asset_type(file)
     w,h=meta['width'],meta['height']; orient = 'portrait' if h>w else 'landscape' if w>h else 'square' if w and h else 'unknown'
     preview_url = preview_url or file.get("thumbnailLink")
+    product_match = normalise_product_classification(analysis) if PRODUCT_CLASSIFICATION_ENABLED else {"contains_product": False, "product_name": "", "confidence": 0.0}
     props = {
         "Asset": title(file["name"]), "Drive File ID": rt(file["id"]), "File Handle": rt(f"drive:{file['id']} | {file['name']}"),
         "Drive Link": {"url": file.get("webViewLink", f"https://drive.google.com/file/d/{file['id']}/view")},
@@ -450,6 +529,8 @@ def sync_page(db_id, existing, file, meta, analysis, preview_url=None, original_
         "Taxonomy Candidates": ms(as_list(analysis.get("visual_tags")) + as_list(analysis.get("usable_for")) + as_list(analysis.get("products_or_flowers")), maxn=16),
         "Original Filename": rt(original_name or file.get("name", "")), "Renamed At": {"date":{"start": dt.datetime.now(dt.timezone.utc).isoformat()}} if renamed_name else {"date": None},
         "Manifested At": {"date":{"start": dt.datetime.now(dt.timezone.utc).isoformat()}},
+        "Contains Product": sel("yes" if product_match["contains_product"] else "no"), "Product Name": rt(product_match["product_name"]),
+        "Product Match Confidence": {"number": product_match["confidence"]},
     }
     page_id = existing.get(file["id"])
     if page_id:
@@ -491,6 +572,9 @@ def main():
         raise RuntimeError("Missing setup: " + ", ".join(missing) + "\n\n" + SETUP_TEXT)
     for d in (DOWNLOADS, FRAMES, OUT): d.mkdir(parents=True, exist_ok=True)
     db_id = ensure_db(); existing = query_existing(db_id)
+    product_catalog = load_product_catalog() if PRODUCT_CLASSIFICATION_ENABLED else []
+    if PRODUCT_CLASSIFICATION_ENABLED:
+        log(f"product classification enabled; catalog candidates loaded {len(product_catalog)}; threshold {PRODUCT_MATCH_THRESHOLD:.2f}")
     assets = load_input_assets(MANIFEST_INPUT_JSON) if MANIFEST_INPUT_JSON else list_assets(DRIVE_FOLDER_ID)
     if SKIP_EXISTING:
         before = len(assets)
@@ -504,7 +588,7 @@ def main():
                 log(f"{i}/{len(assets)} refresh {file['name']}")
             else:
                 log(f"{i}/{len(assets)} create {file['name']}")
-            local=download(file); meta=ffprobe(local); kind=asset_type(file); frs=frames(local,file["id"],meta["duration"],file.get("mimeType","")); analysis=gemini(file,meta,frs,kind)
+            local=download(file); meta=ffprobe(local); kind=asset_type(file); frs=frames(local,file["id"],meta["duration"],file.get("mimeType","")); analysis=gemini(file,meta,frs,kind,product_catalog=product_catalog)
             original_name, renamed_name = rename_drive_file(file, analysis, kind)
             preview_url = sync_thumbnail_to_cdn(file, frs, analysis, kind)
             status=sync_page(db_id, existing, file, meta, analysis, preview_url=preview_url, original_name=original_name, renamed_name=renamed_name)
