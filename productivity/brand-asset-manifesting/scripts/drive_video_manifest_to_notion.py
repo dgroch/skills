@@ -16,9 +16,11 @@ import base64, datetime as dt, json, math, mimetypes, os, re, shutil, subprocess
 from pathlib import Path
 
 DRIVE_FOLDER_ID = os.environ.get("DRIVE_FOLDER_ID")
+MANIFEST_INPUT_JSON = os.environ.get("MANIFEST_INPUT_JSON")
 LIMIT = int(os.environ.get("MANIFEST_LIMIT") or "0")
 RECURSIVE = os.environ.get("MANIFEST_RECURSIVE", "true").lower() not in {"0", "false", "no"}
 RENAME_FILES = os.environ.get("MANIFEST_RENAME_FILES", "true").lower() not in {"0", "false", "no"}
+SKIP_EXISTING = os.environ.get("MANIFEST_SKIP_EXISTING", "false").lower() in {"1", "true", "yes"}
 TAXONOMY_VERSION = os.environ.get("ASSET_TAXONOMY_VERSION", "v0-discovery")
 BRAND_CDN_BASE_URL = (os.environ.get("BRAND_CDN_BASE_URL") or "").rstrip("/")
 BRAND_CDN_UPLOAD_DIR = os.environ.get("BRAND_CDN_UPLOAD_DIR")
@@ -188,6 +190,29 @@ def list_assets(folder_id):
                 if LIMIT and len(assets) >= LIMIT:
                     return assets
     return assets
+
+
+def load_input_assets(path):
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    if isinstance(data, list):
+        assets = data
+    elif isinstance(data, dict) and isinstance(data.get("files"), list):
+        assets = data["files"]
+    elif isinstance(data, dict) and isinstance(data.get("records"), list):
+        assets = [r.get("file") for r in data["records"] if isinstance(r.get("file"), dict)]
+    else:
+        raise RuntimeError(f"MANIFEST_INPUT_JSON must contain a list or a dict with files/records: {path}")
+    normalized = []
+    for f in assets:
+        if not isinstance(f, dict) or not f.get("id"):
+            continue
+        mt = f.get("mimeType", "")
+        if mt.startswith("video/") or mt.startswith("image/"):
+            f.setdefault("folderPath", f.get("folderPath") or f.get("sourceFolder") or DRIVE_FOLDER_ID or "manifest-input")
+            normalized.append(f)
+            if LIMIT and len(normalized) >= LIMIT:
+                break
+    return normalized
 
 
 def asset_type(file):
@@ -466,7 +491,12 @@ def main():
         raise RuntimeError("Missing setup: " + ", ".join(missing) + "\n\n" + SETUP_TEXT)
     for d in (DOWNLOADS, FRAMES, OUT): d.mkdir(parents=True, exist_ok=True)
     db_id = ensure_db(); existing = query_existing(db_id)
-    assets = list_assets(DRIVE_FOLDER_ID); log(f"found {len(assets)} assets to consider; existing Notion IDs {len(existing)}")
+    assets = load_input_assets(MANIFEST_INPUT_JSON) if MANIFEST_INPUT_JSON else list_assets(DRIVE_FOLDER_ID)
+    if SKIP_EXISTING:
+        before = len(assets)
+        assets = [f for f in assets if f.get("id") not in existing]
+        log(f"skipped {before - len(assets)} existing Notion assets via MANIFEST_SKIP_EXISTING")
+    log(f"found {len(assets)} assets to consider; existing Notion IDs {len(existing)}")
     records=[]; created=updated=failed=0
     for i, file in enumerate(assets,1):
         try:
