@@ -44,7 +44,9 @@ Local JSON remains the deterministic backup/source artifact for reruns, but Goog
   - `GEMINI_PROVIDER=google` + `GEMINI_API_KEY` / `GOOGLE_API_KEY`.
 - `NOTION_API_KEY` for Notion sync.
 - `ffmpeg` and `ffprobe` for video frame/thumbnail extraction.
-- Optional public brand CDN path: `BRAND_CDN_BASE_URL` + `BRAND_CDN_UPLOAD_DIR` for public thumbnails that render directly in Notion file/media properties.
+- Public brand CDN for thumbnails that render directly in Notion file/media properties:
+  - Preferred Worker/R2 upload mode: `BRAND_CDN_BASE_URL` + `BRAND_CDN_UPLOAD_TOKEN` + `BRAND_CDN_UPLOAD_BUCKET`.
+  - Static/mount fallback: `BRAND_CDN_BASE_URL` + `BRAND_CDN_UPLOAD_DIR`.
 
 The script is intentionally fail-fast on first run. If required access/config is missing, it prints setup instructions rather than guessing or writing secrets anywhere.
 
@@ -66,8 +68,12 @@ export MANIFEST_LIMIT=50                         # omit/0 for all files
 export MANIFEST_RECURSIVE=true                   # crawl nested folders by default
 export MANIFEST_RENAME_FILES=true                 # rename Drive files after analysis
 export ASSET_TAXONOMY_VERSION=v0-discovery        # reviewed/evolving taxonomy label
-export BRAND_CDN_BASE_URL="https://cdn.example.com"
-export BRAND_CDN_UPLOAD_DIR="/srv/brand-cdn/public"
+export BRAND_CDN_BASE_URL="https://brand-cdn.figandbloom.workers.dev"
+export BRAND_CDN_UPLOAD_TOKEN="<worker-upload-token>"
+export BRAND_CDN_UPLOAD_BUCKET="figandbloom"       # public Worker bucket slug: figandbloom/whoosh/bower
+export BRAND_CDN_UPLOAD_URL_TEMPLATE="${BRAND_CDN_BASE_URL}/upload/{bucket}/{key}"  # optional
+# Static fallback only:
+# export BRAND_CDN_UPLOAD_DIR="/srv/brand-cdn/public"
 export GEMINI_PROVIDER=openrouter                # or google
 export GEMINI_MODEL="google/gemini-3-flash-preview"  # OpenRouter example
 export NOTION_BRAND_ASSET_DATABASE_ID="<existing-notion-db-id>"
@@ -217,6 +223,7 @@ Good taxonomy reports should answer:
 5. **Overloading multi-selects.** Long phrases and commas create messy Notion options. Put long text in rich text/body blocks.
 6. **Assuming shared-drive root equals folder ID.** A shared-drive root parent is usually the `driveId`, while a normal folder parent is the folder ID.
 7. **Forgetting API versions.** If newer Notion versions behave differently, use the older database endpoints with `Notion-Version: 2022-06-28` for stable database/page sync.
+8. **Reconstructing CDN URLs manually.** In Worker/R2 upload mode, always store the `url` returned by the `brand-cdn` Worker response. The current Worker endpoint uses public bucket slugs such as `figandbloom`, `whoosh`, and `bower` in `POST /upload/:bucket/:key`; do not use Cloudflare binding variable names like `FIGANDBLOOM_BUCKET` unless the Worker source has explicitly been changed to accept them.
 
 ## Verification Checklist
 
