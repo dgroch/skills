@@ -135,7 +135,8 @@ def db_properties():
         "Setting / Location": {"rich_text": {}}, "Usable For": {"multi_select": {}}, "Reorg Notes": {"rich_text": {}},
         "Timestamp Beats": {"rich_text": {}}, "Manifest Model": {"rich_text": {}}, "Taxonomy Version": {"rich_text": {}},
         "Taxonomy Candidates": {"multi_select": {}}, "Original Filename": {"rich_text": {}}, "Renamed At": {"date": {}}, "Manifested At": {"date": {}},
-        "Contains Product": {"select": {"options": [{"name":"yes"},{"name":"no"}]}}, "Product Name": {"rich_text": {}}, "Product Match Confidence": {"number": {"format":"percent"}}
+        "Contains Product": {"select": {"options": [{"name":"yes"},{"name":"no"}]}}, "Product Name": {"rich_text": {}}, "Product Match Confidence": {"number": {"format":"percent"}},
+        "Human Product Name": {"rich_text": {}}, "Product Match Review": {"select": {"options": [{"name":"unreviewed"},{"name":"correct"},{"name":"incorrect"},{"name":"not a product"},{"name":"unclear/multiple"}]}}
     }
 
 
@@ -534,8 +535,11 @@ def sync_page(db_id, existing, file, meta, analysis, preview_url=None, original_
     }
     page_id = existing.get(file["id"])
     if page_id:
+        # Never overwrite human review/classification fields during automated refreshes.
         notion("PATCH", f"/pages/{page_id}", {"properties": props}); return "updated"
-    notion("POST", "/pages", {"parent": {"database_id": db_id}, "properties": props}); return "created"
+    create_props = dict(props)
+    create_props.update({"Human Product Name": rt(""), "Product Match Review": sel("unreviewed")})
+    notion("POST", "/pages", {"parent": {"database_id": db_id}, "properties": create_props}); return "created"
 
 
 def taxonomy_report(records, out_dir):

@@ -108,6 +108,11 @@ Recommended properties:
 - `Visual Tags` — multi-select.
 - `People Present` — rich text.
 - `Products / Flowers` — multi-select.
+- `Contains Product` — AI select: yes/no; model-derived and not trusted as canonical.
+- `Product Name` — AI-suggested product name from the controlled catalogue; use as a suggestion/training signal, not the source of truth.
+- `Product Match Confidence` — AI confidence score; useful for sorting/calibration but not sufficient proof of correctness.
+- `Human Product Name` — human-verified product name; use this as the canonical product field for downstream pulls when populated.
+- `Product Match Review` — select: unreviewed, correct, incorrect, not a product, unclear/multiple.
 - `Setting / Location` — rich text.
 - `Usable For` — multi-select.
 - `Reorg Notes` — rich text.
@@ -196,6 +201,16 @@ Each video should include:
 - Practical reuse notes: ad hooks, product detail, texture/background, UGC, seasonal content, behind-the-scenes, delivery, founder/team, etc.
 
 For very short videos, 3–5 beats is enough. For longer videos, sample 6–10 visual frames and ask Gemini to infer coherent beats; do not pretend frame sampling is a full frame-by-frame analysis.
+
+## Product Classification Review Loop
+
+Treat exact product tagging as a review/calibration layer, not as fully automated truth:
+
+- Keep `Product Name`, `Contains Product`, and `Product Match Confidence` as AI-generated suggestion fields.
+- Use `Human Product Name` as the canonical downstream product value whenever a human has reviewed the asset.
+- Use `Product Match Review` to label the AI suggestion: `unreviewed`, `correct`, `incorrect`, `not a product`, or `unclear/multiple`.
+- Automated reruns must not overwrite `Human Product Name` or `Product Match Review` on existing pages.
+- Reviewed rows become an evaluation set for improving candidate filtering, prompts, thresholds, and later possible fine-tuning.
 
 ## Evolving Taxonomy Strategy
 
