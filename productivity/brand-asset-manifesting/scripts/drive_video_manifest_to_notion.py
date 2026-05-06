@@ -22,6 +22,9 @@ RENAME_FILES = os.environ.get("MANIFEST_RENAME_FILES", "true").lower() not in {"
 TAXONOMY_VERSION = os.environ.get("ASSET_TAXONOMY_VERSION", "v0-discovery")
 BRAND_CDN_BASE_URL = (os.environ.get("BRAND_CDN_BASE_URL") or "").rstrip("/")
 BRAND_CDN_UPLOAD_DIR = os.environ.get("BRAND_CDN_UPLOAD_DIR")
+BRAND_CDN_UPLOAD_TOKEN = os.environ.get("BRAND_CDN_UPLOAD_TOKEN")
+BRAND_CDN_UPLOAD_BUCKET = os.environ.get("BRAND_CDN_UPLOAD_BUCKET")
+BRAND_CDN_UPLOAD_URL_TEMPLATE = os.environ.get("BRAND_CDN_UPLOAD_URL_TEMPLATE")
 GEMINI_PROVIDER = os.environ.get("GEMINI_PROVIDER", "openrouter").lower()
 MODEL = os.environ.get("GEMINI_MODEL", "google/gemini-3-flash-preview" if GEMINI_PROVIDER == "openrouter" else "gemini-2.5-flash")
 NOTION_VERSION = os.environ.get("NOTION_VERSION", "2022-06-28")
@@ -38,7 +41,8 @@ Required source/destination:
     OR
   NOTION_BRAND_ASSET_PARENT_PAGE_ID=<Notion page ID where the script can create a database>
   MANIFEST_WORKDIR=/private/local/output/path
-  Optional: BRAND_CDN_BASE_URL + BRAND_CDN_UPLOAD_DIR to publish thumbnails.
+  Optional: BRAND_CDN_BASE_URL + BRAND_CDN_UPLOAD_DIR to publish thumbnails via local/static mount.
+  Optional: BRAND_CDN_BASE_URL + BRAND_CDN_UPLOAD_TOKEN + BRAND_CDN_UPLOAD_BUCKET to publish via Worker HTTP upload.
 
 Gemini access path, choose one:
   # Option A: Gemini via OpenRouter
@@ -234,17 +238,54 @@ def rename_drive_file(file, analysis, kind):
 
 def sync_thumbnail_to_cdn(file, frs, analysis, kind):
     # Publish a generated thumbnail/contact frame to a public CDN path when configured.
-    # Expected setup: BRAND_CDN_UPLOAD_DIR is a local/static directory served at BRAND_CDN_BASE_URL.
-    if not (BRAND_CDN_BASE_URL and BRAND_CDN_UPLOAD_DIR and frs):
+    # Supported modes:
+    # 1) BRAND_CDN_UPLOAD_DIR: copy to a local/static directory served at BRAND_CDN_BASE_URL.
+    # 2) BRAND_CDN_UPLOAD_TOKEN + BRAND_CDN_UPLOAD_BUCKET: POST bytes to a Worker upload endpoint.
+    if not (BRAND_CDN_BASE_URL and frs):
         return file.get("thumbnailLink")
     src = Path(frs[0]["path"])
     if not src.exists(): return file.get("thumbnailLink")
     date_path = dt.datetime.now(dt.timezone.utc).strftime("%Y/%m")
     rel = Path("asset-manifest") / date_path / f"{intuitive_basename(file, analysis, kind)}.jpg"
-    dest = Path(BRAND_CDN_UPLOAD_DIR) / rel
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(src, dest)
-    return BRAND_CDN_BASE_URL + "/" + urllib.parse.quote(str(rel).replace(os.sep, "/"), safe="/")
+    rel_url = urllib.parse.quote(str(rel).replace(os.sep, "/"), safe="/")
+
+    if BRAND_CDN_UPLOAD_DIR:
+        dest = Path(BRAND_CDN_UPLOAD_DIR) / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, dest)
+        return BRAND_CDN_BASE_URL + "/" + rel_url
+
+    if BRAND_CDN_UPLOAD_TOKEN and BRAND_CDN_UPLOAD_BUCKET:
+        template = BRAND_CDN_UPLOAD_URL_TEMPLATE or (BRAND_CDN_BASE_URL + "/upload/{bucket}/{key}")
+        key = str(rel).replace(os.sep, "/")
+        url = template.format(
+            base=BRAND_CDN_BASE_URL,
+            bucket=urllib.parse.quote(BRAND_CDN_UPLOAD_BUCKET, safe=""),
+            key=urllib.parse.quote(key, safe="/"),
+            key_encoded=urllib.parse.quote(key, safe=""),
+        )
+        data = src.read_bytes()
+        req = urllib.request.Request(url, data=data, method="POST", headers={
+            "Authorization": "Bearer " + BRAND_CDN_UPLOAD_TOKEN,
+            "Content-Type": "image/jpeg",
+            "User-Agent": "HermesAgent/brand-asset-manifesting",
+        })
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r:
+                body = r.read().decode("utf-8", "replace")
+            try:
+                payload = json.loads(body)
+                if payload.get("url"):
+                    return payload["url"]
+            except json.JSONDecodeError:
+                pass
+            return BRAND_CDN_BASE_URL + "/" + urllib.parse.quote(BRAND_CDN_UPLOAD_BUCKET, safe="") + "/" + rel_url
+        except urllib.error.HTTPError as e:
+            body = e.read().decode("utf-8", "replace")[:300]
+            log(f"CDN upload failed {e.code}; using Drive thumbnail fallback: {body}")
+            return file.get("thumbnailLink")
+
+    return file.get("thumbnailLink")
 
 
 def download(file):
@@ -304,7 +345,18 @@ def gemini_prompt(file, meta, kind):
 
 def parse_json_text(text):
     text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text.strip(), flags=re.S|re.I)
-    return json.loads(text)
+    data = json.loads(text)
+    # Some vision responses wrap the object in a one-item list. Normalise so
+    # downstream Notion sync can always use analysis.get(...).
+    if isinstance(data, list):
+        data = data[0] if data and isinstance(data[0], dict) else {"overall_description": str(data)[:500], "beats": []}
+    return data
+
+
+def as_list(value):
+    if value is None: return []
+    if isinstance(value, list): return value
+    return [value]
 
 
 def gemini(file, meta, frs, kind):
@@ -370,7 +422,7 @@ def sync_page(db_id, existing, file, meta, analysis, preview_url=None, original_
         "Products / Flowers": ms(analysis.get("products_or_flowers")), "Setting / Location": rt(analysis.get("setting_location","")),
         "Usable For": ms(analysis.get("usable_for")), "Reorg Notes": rt(analysis.get("reorg_notes","")),
         "Timestamp Beats": rt(beat_text(analysis.get("beats"))), "Manifest Model": rt(MODEL), "Taxonomy Version": rt(TAXONOMY_VERSION),
-        "Taxonomy Candidates": ms((analysis.get("visual_tags") or []) + (analysis.get("usable_for") or []) + (analysis.get("products_or_flowers") or []), maxn=16),
+        "Taxonomy Candidates": ms(as_list(analysis.get("visual_tags")) + as_list(analysis.get("usable_for")) + as_list(analysis.get("products_or_flowers")), maxn=16),
         "Original Filename": rt(original_name or file.get("name", "")), "Renamed At": {"date":{"start": dt.datetime.now(dt.timezone.utc).isoformat()}} if renamed_name else {"date": None},
         "Manifested At": {"date":{"start": dt.datetime.now(dt.timezone.utc).isoformat()}},
     }
