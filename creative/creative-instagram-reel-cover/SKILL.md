@@ -75,13 +75,13 @@ The bundled script expects:
 
 - `uvx` so it can run `yt-dlp` without a permanent install.
 - `ffmpeg` and `ffprobe`.
-- `OPENAI_API_KEY` because GPT Image enhancement is **enabled by default**.
+- Codex CLI logged in with the user's ChatGPT/Codex subscription because GPT Image enhancement is **enabled by default** via Codex, not a raw OpenAI API key.
 
 Optional:
 
-- `REEL_COVER_IMAGE_MODEL`, default `gpt-image-2`.
-- `REEL_COVER_IMAGE_QUALITY`, default `high`.
-- `REEL_COVER_AI_EDIT_CMD` for a custom image-to-image finishing/upscale command. If set, it overrides the built-in OpenAI Images edit call.
+- `REEL_COVER_IMAGE_MODEL`, default `gpt-image-2`, passed to Codex CLI.
+- `REEL_COVER_AI_BACKEND`, default `codex`. Other values: `openai-api`, `external`, `none`.
+- `REEL_COVER_AI_EDIT_CMD` for a custom image-to-image finishing/upscale command when `--ai-backend external` is used.
 - `--no-ai-enhance` for debugging only; production/default usage should keep AI enhancement on.
 
 Instagram access notes:
@@ -207,11 +207,12 @@ Guidelines:
 
 ### 6. Default GPT Image enhancement
 
-AI image enhancement is the default because it is how the final image is made consistent with the Fig & Bloom social-feed rubric.
+AI image enhancement is the default because it is how the final image is made consistent with the Fig & Bloom social-feed rubric. Use **Codex CLI** by default so the user's Codex/ChatGPT subscription is used rather than requiring a separate OpenAI API key.
 
-Default model:
+Default backend/model:
 
 ```bash
+REEL_COVER_AI_BACKEND=codex
 REEL_COVER_IMAGE_MODEL=gpt-image-2
 ```
 
@@ -222,7 +223,7 @@ Enhance this Instagram Reel still into a premium Fig & Bloom feed cover.
 Light, bright, editorial, botanical, romantic, premium. Premium fashion-florist feel with realistic flowers, clean whites, airy exposure, cream/soft grey/sage/blush tones, subtle contrast, and elegant negative space. Avoid warm/red casts; do not amplify burgundy/red tones unless already naturally present. Preserve the real bouquet/product and composition. Remove only video compression, minor noise, distracting floor/cabinet clutter, and small artefacts where safe. Do not add text, logos, new flowers, neon colour, cartoon styling, or corporate stock-photo polish. Output must remain a 4:5 vertical cover.
 ```
 
-The image editor may return a different vertical size, so the script always normalizes the final deliverable back to exact `1080x1350`.
+The Codex image editor may return a different vertical size, so the script always normalizes the final deliverable back to exact `1080x1350`. If Codex is not logged in or this install lacks native image editing, the script fails loudly rather than silently falling back to API usage.
 
 Only use `--no-ai-enhance` when debugging the frame/crop algorithm or when the user explicitly asks for deterministic-only output.
 

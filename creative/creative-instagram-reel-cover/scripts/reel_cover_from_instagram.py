@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Create a polished 4:5 Instagram cover from a Reel URL.
 
-Dependencies: uvx, yt-dlp via uvx, ffmpeg/ffprobe, OPENAI_API_KEY for default GPT Image enhancement.
+Dependencies: uvx, yt-dlp via uvx, ffmpeg/ffprobe, Codex CLI login for default GPT Image enhancement.
 """
 from __future__ import annotations
 
@@ -24,6 +24,7 @@ from typing import Any
 
 OPENAI_IMAGES_EDIT_URL = "https://api.openai.com/v1/images/edits"
 DEFAULT_IMAGE_MODEL = os.environ.get("REEL_COVER_IMAGE_MODEL", "gpt-image-2")
+DEFAULT_AI_BACKEND = os.environ.get("REEL_COVER_AI_BACKEND", "codex")
 
 FIG_BLOOM_SOCIAL_FEED_RUBRIC = """
 Fig & Bloom social-feed direction: light, bright, editorial, botanical, romantic, and premium — not warm/red.
@@ -336,19 +337,60 @@ def openai_image_enhance(input_path: Path, output_path: Path, *, model: str, siz
     return output_path, f"openai_image_edit:{model}"
 
 
-def maybe_ai_finish(input_path: Path, output_path: Path, *, enabled: bool, model: str, size: str) -> tuple[Path, str]:
-    if not enabled:
+def codex_image_enhance(input_path: Path, output_path: Path, *, model: str) -> tuple[Path, str]:
+    codex = shutil.which("codex")
+    if not codex:
+        raise RuntimeError("Codex CLI is required for the default AI backend. Install with: npm install -g @openai/codex")
+    prompt = f"""
+Use GPT Image 2 / Codex image editing capabilities from the logged-in Codex subscription to enhance the attached image.
+
+Input image: {input_path}
+Output path you must create: {output_path}
+
+Edit direction:
+{FIG_BLOOM_SOCIAL_FEED_RUBRIC}
+
+Requirements:
+- Save the enhanced image exactly at the output path above.
+- Keep the same 4:5 cover composition and preserve the real bouquet/product and subject geometry.
+- Make it light and bright with clean whites; do not make it warm, red, beige, or yellow.
+- Do not add text, logos, new flowers, extra objects, or change the arrangement.
+- If native image editing is unavailable in this Codex install, say so and do not fake success.
+""".strip()
+    cmd = [
+        codex, "exec",
+        "--skip-git-repo-check",
+        "--dangerously-bypass-approvals-and-sandbox",
+        "--image", str(input_path),
+        "-m", model,
+        prompt,
+    ]
+    p = subprocess.run(cmd, capture_output=True, text=True, timeout=900)
+    log_path = output_path.with_suffix(".codex.log")
+    log_path.write_text(f"STDOUT:\n{p.stdout}\n\nSTDERR:\n{p.stderr}\n")
+    if p.returncode or not output_path.exists():
+        raise RuntimeError(f"Codex image enhancement failed or did not create {output_path}. See log: {log_path}")
+    return output_path, f"codex_cli_image_edit:{model}"
+
+
+def maybe_ai_finish(input_path: Path, output_path: Path, *, enabled: bool, model: str, size: str, backend: str) -> tuple[Path, str]:
+    if not enabled or backend == "none":
         return input_path, "ffmpeg_deterministic_enhancement_ai_disabled"
-    # Custom command remains available for non-OpenAI backends, but OpenAI is the default.
     cmd_tmpl = os.environ.get("REEL_COVER_AI_EDIT_CMD")
-    if cmd_tmpl:
+    if backend == "external" or cmd_tmpl:
+        if not cmd_tmpl:
+            raise RuntimeError("REEL_COVER_AI_EDIT_CMD is required when --ai-backend external is used")
         prompt = FIG_BLOOM_SOCIAL_FEED_RUBRIC
         cmd = cmd_tmpl.format(input=str(input_path), output=str(output_path), prompt=prompt)
         p = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=600)
         if p.returncode or not output_path.exists():
             raise RuntimeError(f"AI edit command failed. STDERR={p.stderr[-1000:]}")
         return output_path, "external_ai_edit"
-    return openai_image_enhance(input_path, output_path, model=model, size=size)
+    if backend == "codex":
+        return codex_image_enhance(input_path, output_path, model=model)
+    if backend == "openai-api":
+        return openai_image_enhance(input_path, output_path, model=model, size=size)
+    raise RuntimeError(f"Unknown AI backend: {backend}")
 
 
 def main() -> None:
@@ -360,8 +402,9 @@ def main() -> None:
     ap.add_argument("--cookies", help="Path to cookies.txt or browser name for yt-dlp --cookies-from-browser")
     ap.add_argument("--target-width", type=int, default=1080)
     ap.add_argument("--target-height", type=int, default=1350)
-    ap.add_argument("--image-model", default=DEFAULT_IMAGE_MODEL, help="OpenAI image edit model; default REEL_COVER_IMAGE_MODEL or gpt-image-2")
-    ap.add_argument("--image-size", default="1024x1536", help="OpenAI image output size closest to 4:5/vertical; final is normalized back to target size")
+    ap.add_argument("--image-model", default=DEFAULT_IMAGE_MODEL, help="Image edit model; default REEL_COVER_IMAGE_MODEL or gpt-image-2")
+    ap.add_argument("--ai-backend", choices=["codex", "openai-api", "external", "none"], default=DEFAULT_AI_BACKEND, help="AI enhancement backend; default REEL_COVER_AI_BACKEND or codex")
+    ap.add_argument("--image-size", default="1024x1536", help="OpenAI API output size closest to 4:5/vertical; final is normalized back to target size")
     ap.add_argument("--no-ai-enhance", action="store_true", help="Disable default AI image enhancement and return deterministic ffmpeg output")
     args = ap.parse_args()
 
@@ -393,6 +436,7 @@ def main() -> None:
         enabled=not args.no_ai_enhance,
         model=args.image_model,
         size=args.image_size,
+        backend=args.ai_backend,
     )
 
     # Always normalize the final deliverable back to exact 4:5 JPEG, regardless of image-editor output size.
@@ -421,6 +465,7 @@ def main() -> None:
         "crop": crop,
         "enhancement_method": method,
         "ai_enhance_enabled": not args.no_ai_enhance,
+        "ai_backend": args.ai_backend if not args.no_ai_enhance else "none",
         "image_model": args.image_model if not args.no_ai_enhance else None,
         "deterministic_cover": str(deterministic),
         "final_cover": str(final_path),
