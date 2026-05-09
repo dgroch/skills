@@ -82,12 +82,12 @@ The bundled script expects:
 
 - `uvx` so it can run `yt-dlp` without a permanent install.
 - `ffmpeg` and `ffprobe`.
-- `OPENROUTER_API_KEY` for Nano Banana Pro via OpenRouter, or `GEMINI_API_KEY` / `GOOGLE_API_KEY` for direct Google Gemini API. Nano Banana Pro enhancement is **enabled by default**.
+- `GEMINI_API_KEY` / `GOOGLE_API_KEY` for direct Google Gemini API access to Nano Banana Pro. Nano Banana Pro enhancement is **enabled by default**. Do not use OpenRouter unless explicitly requested with `--ai-backend openrouter`.
 
 Optional:
 
 - `REEL_COVER_IMAGE_MODEL`, default `google/gemini-3-pro-image-preview` (Nano Banana Pro).
-- `REEL_COVER_AI_BACKEND`, default `nanobanana-pro`. Other values: `gemini-api`, `openrouter`, `openai-api`, `external`, `none`.
+- `REEL_COVER_AI_BACKEND`, default `gemini-api` for direct Google access. Other values: `nanobanana-pro` alias for direct Google, `openrouter` only when explicitly requested, `openai-api`, `external`, `none`.
 - `REEL_COVER_AI_EDIT_CMD` for a custom image-to-image finishing/upscale command when using `--ai-backend external`.
 - `--no-ai-enhance` for debugging only; production/default usage should keep AI enhancement on.
 
@@ -214,12 +214,12 @@ Guidelines:
 
 ### 6. Default Nano Banana Pro enhancement
 
-AI image enhancement is the default because it is how the final image is made consistent with the Fig & Bloom social-feed rubric. The default finisher is **Nano Banana Pro** (`google/gemini-3-pro-image-preview`), not GPT Image 2.
+AI image enhancement is the default because it is how the final image is made consistent with the Fig & Bloom social-feed rubric. The default finisher is **Nano Banana Pro** (`google/gemini-3-pro-image-preview`) via direct Google Gemini API, not GPT Image 2 and not OpenRouter.
 
 Default backend/model:
 
 ```bash
-REEL_COVER_AI_BACKEND=nanobanana-pro
+REEL_COVER_AI_BACKEND=gemini-api
 REEL_COVER_IMAGE_MODEL=google/gemini-3-pro-image-preview
 ```
 

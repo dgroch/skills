@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Create a polished 4:5 Instagram cover from a Reel URL.
 
-Dependencies: uvx, yt-dlp via uvx, ffmpeg/ffprobe, OpenRouter or Gemini API key for default Nano Banana Pro enhancement.
+Dependencies: uvx, yt-dlp via uvx, ffmpeg/ffprobe, Google Gemini API key for default direct Nano Banana Pro enhancement.
 """
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ from typing import Any
 OPENAI_IMAGES_EDIT_URL = "https://api.openai.com/v1/images/edits"
 OPENROUTER_CHAT_URL = "https://openrouter.ai/api/v1/chat/completions"
 DEFAULT_IMAGE_MODEL = os.environ.get("REEL_COVER_IMAGE_MODEL", "google/gemini-3-pro-image-preview")
-DEFAULT_AI_BACKEND = os.environ.get("REEL_COVER_AI_BACKEND", "nanobanana-pro")
+DEFAULT_AI_BACKEND = os.environ.get("REEL_COVER_AI_BACKEND", "gemini-api")
 
 FIG_BLOOM_SOCIAL_FEED_RUBRIC = """
 Fig & Bloom social-feed direction: editorial lifestyle photography with a soft documentary edge — premium and lived-in, not glossy or commercial.
@@ -470,12 +470,9 @@ def maybe_ai_finish(input_path: Path, output_path: Path, *, enabled: bool, model
         return output_path, "external_ai_edit"
     if backend == "openai-api":
         return openai_image_enhance(input_path, output_path, model=model, size=size)
-    if backend == "gemini-api":
+    if backend in ("gemini-api", "nanobanana-pro"):
         return gemini_api_nanobanana_enhance(input_path, output_path, model=model)
-    if backend in ("openrouter", "nanobanana-pro"):
-        # Prefer direct Gemini when configured for nanobanana-pro, otherwise use the existing OpenRouter pool.
-        if backend == "nanobanana-pro" and any(os.environ.get(k) for k in ("GEMINI_API_KEY", "GOOGLE_API_KEY", "GOOGLE_GENAI_API_KEY", "GOOGLE_AI_API_KEY")):
-            return gemini_api_nanobanana_enhance(input_path, output_path, model=model)
+    if backend == "openrouter":
         return openrouter_nanobanana_enhance(input_path, output_path, model=model)
     raise RuntimeError(f"Unknown AI backend: {backend}")
 
@@ -490,8 +487,8 @@ def main() -> None:
     ap.add_argument("--target-width", type=int, default=1080)
     ap.add_argument("--target-height", type=int, default=1350)
     ap.add_argument("--image-model", default=DEFAULT_IMAGE_MODEL, help="Image edit model; default REEL_COVER_IMAGE_MODEL or google/gemini-3-pro-image-preview")
-    ap.add_argument("--ai-backend", choices=["nanobanana-pro", "gemini-api", "openrouter", "openai-api", "external", "none"], default=DEFAULT_AI_BACKEND, help="AI enhancement backend; default REEL_COVER_AI_BACKEND or nanobanana-pro")
-    ap.add_argument("--image-size", default="1024x1536", help="OpenAI API output size closest to 4:5/vertical; final is normalized back to target size")
+    ap.add_argument("--ai-backend", choices=["nanobanana-pro", "gemini-api", "openrouter", "openai-api", "external", "none"], default=DEFAULT_AI_BACKEND, help="AI enhancement backend; default REEL_COVER_AI_BACKEND or gemini-api direct Google access")
+    ap.add_argument("--image-size", default="1024x1536", help="OpenAI API output size when --ai-backend openai-api is used; final is normalized back to target size")
     ap.add_argument("--no-ai-enhance", action="store_true", help="Disable default AI image enhancement and return deterministic ffmpeg output")
     args = ap.parse_args()
 
