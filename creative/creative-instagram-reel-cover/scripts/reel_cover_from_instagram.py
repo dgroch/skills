@@ -256,6 +256,33 @@ def generate_crop_candidates(video: Path, timestamp: float, outdir: Path, target
     return out
 
 
+def extract_full_frame(video: Path, timestamp: float, outdir: Path) -> Path:
+    dest = outdir / "selected_full_frame.jpg"
+    run(["ffmpeg", "-y", "-ss", f"{timestamp:.3f}", "-i", str(video), "-frames:v", "1", "-q:v", "2", str(dest)], timeout=120)
+    return dest
+
+
+def build_cover_options(raw_frame_path: Path, crop_candidates: list[dict[str, Any]], crop_mode: str, num_options: int) -> list[dict[str, Any]]:
+    num_options = max(1, int(num_options))
+    if crop_mode == "none":
+        return [
+            {"label": f"option_{i}", "path": str(raw_frame_path), "crop": None, "input_mode": "full_frame_no_precrop"}
+            for i in range(1, num_options + 1)
+        ]
+    ranked = sorted(crop_candidates, key=lambda c: float(c.get("metrics", {}).get("score", 0)), reverse=True)
+    options: list[dict[str, Any]] = []
+    for i, crop in enumerate(ranked[:num_options], 1):
+        options.append({
+            "label": f"option_{i}",
+            "path": str(crop["path"]),
+            "crop": crop,
+            "input_mode": "pre_crop_candidate",
+        })
+    if not options:
+        options.append({"label": "option_1", "path": str(raw_frame_path), "crop": None, "input_mode": "full_frame_no_precrop_fallback"})
+    return options
+
+
 def choose_crop_heuristic(candidates: list[dict[str, Any]], outdir: Path) -> dict[str, Any]:
     if not candidates:
         raise RuntimeError("No crop candidates generated")
@@ -489,6 +516,8 @@ def main() -> None:
     ap.add_argument("--image-model", default=DEFAULT_IMAGE_MODEL, help="Image edit model; default REEL_COVER_IMAGE_MODEL or google/gemini-3-pro-image-preview")
     ap.add_argument("--ai-backend", choices=["nanobanana-pro", "gemini-api", "openrouter", "openai-api", "external", "none"], default=DEFAULT_AI_BACKEND, help="AI enhancement backend; default REEL_COVER_AI_BACKEND or gemini-api direct Google access")
     ap.add_argument("--image-size", default="1024x1536", help="OpenAI API output size when --ai-backend openai-api is used; final is normalized back to target size")
+    ap.add_argument("--crop-mode", choices=["auto", "none"], default=os.environ.get("REEL_COVER_CROP_MODE", "none"), help="Pre-crop before AI finishing. Default none: send the full selected frame to the image model and let it compose 4:5.")
+    ap.add_argument("--num-options", type=int, default=int(os.environ.get("REEL_COVER_NUM_OPTIONS", "3")), help="Number of final image options to generate; default 3")
     ap.add_argument("--no-ai-enhance", action="store_true", help="Disable default AI image enhancement and return deterministic ffmpeg output")
     args = ap.parse_args()
 
@@ -508,32 +537,50 @@ def main() -> None:
     timestamp = float(frame_choice["timestamp_seconds"])
     timestamp = max(0.0, min(duration, timestamp)) if duration else max(0.0, timestamp)
 
+    raw_frame = extract_full_frame(video, timestamp, outdir)
     candidates = generate_crop_candidates(video, timestamp, outdir, args.target_width, args.target_height)
     crop = choose_crop_heuristic(candidates, outdir)
+    options = build_cover_options(raw_frame, candidates, args.crop_mode, args.num_options)
 
-    deterministic = outdir / "instagram_reel_cover_4x5_deterministic.jpg"
-    shutil.copyfile(crop["path"], deterministic)
-    ai_out = outdir / "instagram_reel_cover_4x5_ai.png"
-    final_candidate, method = maybe_ai_finish(
-        deterministic,
-        ai_out,
-        enabled=not args.no_ai_enhance,
-        model=args.image_model,
-        size=args.image_size,
-        backend=args.ai_backend,
-    )
+    final_outputs: list[dict[str, Any]] = []
+    for idx, option in enumerate(options, 1):
+        deterministic = outdir / f"instagram_reel_cover_4x5_option_{idx}_input.jpg"
+        shutil.copyfile(option["path"], deterministic)
+        ai_out = outdir / f"instagram_reel_cover_4x5_option_{idx}_ai.png"
+        final_candidate, method = maybe_ai_finish(
+            deterministic,
+            ai_out,
+            enabled=not args.no_ai_enhance,
+            model=args.image_model,
+            size=args.image_size,
+            backend=args.ai_backend,
+        )
 
-    # Always normalize the final deliverable back to exact 4:5 JPEG, regardless of image-editor output size.
-    final_path = outdir / "instagram_reel_cover_4x5.jpg"
-    run([
-        "ffmpeg", "-y", "-i", str(final_candidate),
-        "-vf", f"scale={args.target_width}:{args.target_height}:force_original_aspect_ratio=increase,crop={args.target_width}:{args.target_height},setsar=1",
-        "-q:v", "2", str(final_path)
-    ], timeout=120)
+        # Always normalize the final deliverable back to exact 4:5 JPEG, regardless of image-editor output size.
+        final_path = outdir / f"instagram_reel_cover_4x5_option_{idx}.jpg"
+        run([
+            "ffmpeg", "-y", "-i", str(final_candidate),
+            "-vf", f"scale={args.target_width}:{args.target_height}:force_original_aspect_ratio=increase,crop={args.target_width}:{args.target_height},setsar=1",
+            "-q:v", "2", str(final_path)
+        ], timeout=120)
 
-    final_w, final_h, _ = media_dims(final_path)
-    if final_w * args.target_height != final_h * args.target_width:
-        raise RuntimeError(f"Final output is not requested aspect ratio: {final_w}x{final_h}")
+        final_w, final_h, _ = media_dims(final_path)
+        if final_w * args.target_height != final_h * args.target_width:
+            raise RuntimeError(f"Final output is not requested aspect ratio: {final_w}x{final_h}")
+        final_outputs.append({
+            "label": option["label"],
+            "input_mode": option["input_mode"],
+            "input_path": str(deterministic),
+            "crop": option["crop"],
+            "enhancement_method": method,
+            "final_cover": str(final_path),
+            "final_width": final_w,
+            "final_height": final_h,
+        })
+
+    final_path = Path(final_outputs[0]["final_cover"])
+    final_w = int(final_outputs[0]["final_width"])
+    final_h = int(final_outputs[0]["final_height"])
 
     report = {
         "url": args.url,
@@ -546,12 +593,16 @@ def main() -> None:
         "contact_sheet": str(sheet),
         "frame_choice": frame_choice,
         "selected_timestamp_seconds": timestamp,
+        "crop_mode": args.crop_mode,
+        "num_options": args.num_options,
+        "selected_full_frame": str(raw_frame),
         "crop": crop,
-        "enhancement_method": method,
+        "options": final_outputs,
+        "enhancement_method": final_outputs[0]["enhancement_method"],
         "ai_enhance_enabled": not args.no_ai_enhance,
         "ai_backend": args.ai_backend if not args.no_ai_enhance else "none",
         "image_model": args.image_model if not args.no_ai_enhance else None,
-        "deterministic_cover": str(deterministic),
+        "deterministic_cover": final_outputs[0]["input_path"],
         "final_cover": str(final_path),
         "final_width": final_w,
         "final_height": final_h,
@@ -560,6 +611,8 @@ def main() -> None:
     report_path.write_text(json.dumps(report, indent=2, ensure_ascii=False))
 
     print(f"FINAL_COVER={final_path}")
+    for item in final_outputs:
+        print(f"FINAL_OPTION_{item['label'].split('_')[-1]}={item['final_cover']}")
     print(f"REPORT={report_path}")
 
 

@@ -89,6 +89,8 @@ Optional:
 - `REEL_COVER_IMAGE_MODEL`, default `google/gemini-3-pro-image-preview` (Nano Banana Pro).
 - `REEL_COVER_AI_BACKEND`, default `gemini-api` for direct Google access. Other values: `nanobanana-pro` alias for direct Google, `openrouter` only when explicitly requested, `openai-api`, `external`, `none`.
 - `REEL_COVER_AI_EDIT_CMD` for a custom image-to-image finishing/upscale command when using `--ai-backend external`.
+- `REEL_COVER_CROP_MODE`, default `none`. Use `auto` only when you intentionally want deterministic pre-crop candidates.
+- `REEL_COVER_NUM_OPTIONS`, default `3`, because taste is subjective and a small batch gives the user alternatives.
 - `--no-ai-enhance` for debugging only; production/default usage should keep AI enhancement on.
 
 Instagram access notes:
@@ -175,16 +177,11 @@ The report records:
 }
 ```
 
-### 4. Crop candidate selection
+### 4. Optional crop candidate selection
 
-For a 9:16 Reel source (`1080x1920`), a safe full-width 4:5 cover is usually:
+Pre-crop is **not mandatory**. Default production mode is `REEL_COVER_CROP_MODE=none`: extract the selected full frame and let the image model compose the 4:5 cover. This avoids locking the output into a deterministic crop before the taste/aesthetic pass.
 
-```text
-crop_width = source_width
-crop_height = source_width * 5 / 4
-```
-
-For 1080-wide video, this gives `1080x1350`. But full-width crops can leave too much wall/floor or include distracting side props. Generate safe and tighter editorial crops:
+Use `--crop-mode auto` only when explicit pre-crop alternates are useful. For a 9:16 Reel source (`1080x1920`), candidate crops include:
 
 ```text
 100% width: crop=1080:1350:x:y
@@ -193,17 +190,16 @@ For 1080-wide video, this gives `1080x1350`. But full-width crops can leave too 
 76% width:  crop=821:1026:x:y, then upscale to 1080x1350
 ```
 
-Score crop candidates with the same metrics and a small over-zoom penalty. Keep a crop contact sheet for auditability, but do not ask Gemini to choose.
+Keep crop contact sheets for auditability. Do not treat the highest deterministic crop score as taste; it is only a candidate-ordering aid.
 
-### 5. Deterministic base enhancement
+### 5. Base input preparation
 
-The script first creates a conservative deterministic base cover with `ffmpeg`:
+The script prepares either:
 
-```bash
-ffmpeg -y -ss <timestamp> -i source.mp4 -frames:v 1 \
-  -vf "crop=<w>:<h>:<x>:<y>,scale=1080:1350:flags=lanczos,eq=brightness=0.035:contrast=1.05:saturation=1.06:gamma=1.04,unsharp=5:5:0.55:3:3:0.2" \
-  -q:v 2 instagram_reel_cover_4x5_deterministic.jpg
-```
+- a full selected frame (`--crop-mode none`, default), or
+- one or more crop-candidate inputs (`--crop-mode auto`).
+
+For batch mode, generate `--num-options` final covers. Default is `3`.
 
 Guidelines:
 
@@ -212,15 +208,17 @@ Guidelines:
 - Improve clarity/sharpness without crunchy halos.
 - Preserve the actual arrangement/product.
 
-### 6. Default Nano Banana Pro enhancement
+### 6. Default Nano Banana Pro enhancement + 3-option batch
 
-AI image enhancement is the default because it is how the final image is made consistent with the Fig & Bloom social-feed rubric. The default finisher is **Nano Banana Pro** (`google/gemini-3-pro-image-preview`) via direct Google Gemini API, not GPT Image 2 and not OpenRouter.
+AI image enhancement is the default because it is how the final image is made consistent with the Fig & Bloom social-feed rubric. The default finisher is **Nano Banana Pro** (`google/gemini-3-pro-image-preview`) via direct Google Gemini API, not GPT Image 2 and not OpenRouter. Generate **3 final options by default** so one can land; if none land, the user can request another batch.
 
 Default backend/model:
 
 ```bash
 REEL_COVER_AI_BACKEND=gemini-api
 REEL_COVER_IMAGE_MODEL=google/gemini-3-pro-image-preview
+REEL_COVER_CROP_MODE=none
+REEL_COVER_NUM_OPTIONS=3
 ```
 
 The built-in edit prompt is conservative:
@@ -230,7 +228,7 @@ Enhance this Instagram Reel still into a premium Fig & Bloom feed cover.
 Editorial lifestyle photography with a soft documentary edge: natural light, neutral-to-earthy palette, considered negative space, premium and lived-in rather than commercial/glossy. Use warm off-white/bone/soft greige neutrals with botanical sage/eucalyptus grey-green, dusty rose/blush, muted burgundy, terracotta, charcoal, and deep ink-navy accents. Pull saturation back ~15–20%; use medium-low contrast, lifted near-black shadows, soft highlight roll-off, subtle matte grain, and no clarity boost. Whites should be warm-leaning but clean, not clinical blue-white, yellow, beige-heavy, red, or blown. Preserve real bouquet/product geometry, skin, composition, and tactile texture. Avoid HDR, hard strobes, orange-teal grading, oversaturated greens, heavy vignette, glossy retouching, plastic skin, true-black shadows, text/logos, new flowers, or corporate stock-photo polish. Output must remain a 4:5 vertical cover.
 ```
 
-Nano Banana Pro may return a different 4:5-ish size, so the script always normalizes the final deliverable back to exact `1080x1350`.
+Nano Banana Pro may return a different 4:5-ish size, so the script always normalizes each final option back to exact `1080x1350`.
 
 Only use `--no-ai-enhance` when debugging the frame/crop algorithm or when the user explicitly asks for deterministic-only output.
 
@@ -248,9 +246,9 @@ Return:
 
 ## Common Pitfalls
 
-1. **Reintroducing Gemini for frame choice.** Do not. Frame extraction makes deterministic scoring enough for selection; save AI for the final image-edit consistency pass.
+1. **Letting deterministic metrics be taste.** Do not. Use deterministic scoring only to remove unusable frames/crops or order candidates; taste should come from visual review/model critique/user batches.
 2. **Skipping Nano Banana Pro enhancement.** The default output should be AI-enhanced against the social-feed rubric unless debugging or explicitly disabled.
-3. **Blind centre crop cuts off the subject.** Generate crop candidates and score them.
+3. **Making crop mandatory.** Do not force a deterministic pre-crop. Default to full-frame AI composition and generate crop candidates only as optional alternates.
 4. **Over-editing flowers.** Vibrancy is good; neon petals and changed bouquet ingredients are not.
 5. **Treating Instagram as reliably scrapable.** Public downloads may work today and fail tomorrow. Keep the downloader replaceable.
 6. **Using Reels UI/text overlays as a cover.** Avoid captions, stickers, progress bars, or awkward mid-transition frames.
