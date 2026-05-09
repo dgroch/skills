@@ -26,11 +26,12 @@ OPENAI_IMAGES_EDIT_URL = "https://api.openai.com/v1/images/edits"
 DEFAULT_IMAGE_MODEL = os.environ.get("REEL_COVER_IMAGE_MODEL", "gpt-image-2")
 
 FIG_BLOOM_SOCIAL_FEED_RUBRIC = """
-Fig & Bloom social-feed direction: light, bright, editorial, botanical, romantic, and premium — not warm/red.
-Use a premium fashion-florist feel with natural realistic flowers, clean whites, airy exposure, cream/soft grey/sage/blush tones,
-subtle contrast, and elegant negative space. Preserve the real bouquet/product and composition. Remove only video compression,
-minor noise, distracting floor/cabinet clutter, and small artefacts where safe. Do not add text, logos, new flowers, neon colour,
-red/warm colour casts, heavy beige filters, cartoon styling, or corporate stock-photo polish.
+Fig & Bloom social-feed direction: editorial lifestyle photography with a soft documentary edge — premium and lived-in, not glossy or commercial.
+Use soft directional natural daylight, considered negative space, gentle shadows, medium-low contrast, lifted near-black shadows, soft highlight roll-off, and a subtle matte/film-grain finish.
+Palette: warm off-white/bone/soft greige neutrals with botanical sage/eucalyptus grey-green, dusty rose/blush, muted burgundy, terracotta, charcoal, and deep ink-navy accents.
+Keep saturation pulled back about 15–20% from camera default: never punchy, neon, HDR, orange-teal, or fully muted. Whites should be warm-leaning but clean — not clinical blue-white, yellow, beige-heavy, red, or blown out.
+Preserve realistic flowers, skin, bouquet/product geometry, composition, and tactile textures such as linen, raw plaster, aged brick, stoneware, terracotta, and weathered timber.
+Remove only video compression, minor noise, distracting clutter, and small artefacts where safe. Do not add text, logos, new flowers, hard studio strobes, heavy vignette, plastic skin, clarity boost, glossy retouching, or corporate stock-photo polish.
 """.strip()
 
 

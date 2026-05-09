@@ -69,6 +69,13 @@ The default post-edit direction comes from the Fig & Bloom social feed guideline
 - Avoid floor/cabinet clutter, awkward crop cutoffs, motion blur, text overlays, stickers, progress bars, and Reels UI artefacts.
 - Preserve the real bouquet/product; enhancement should improve the image, not redesign the arrangement.
 
+## Fig & Bloom Photography Edit Style
+
+Use this as the reusable editor preamble for feed covers:
+
+> Editorial lifestyle photography with a soft documentary edge. Natural light, neutral-to-earthy palette, considered negative space, premium and lived-in rather than commercial/glossy. Warm off-white, bone, soft greige, charcoal, deep ink-navy neutrals; sage/eucalyptus grey-green, terracotta, dusty rose, blush, and muted burgundy botanical accents. Saturation pulled back ~15–20%, medium-low contrast, lifted near-blacks, soft highlight roll-off, subtle matte grain, minimal sharpening. Whites are warm-leaning but clean; avoid clinical blue-white, yellow/beige casts, HDR, hard strobes, orange-teal grading, oversaturated greens, heavy vignettes, glossy retouching, plastic skin, and true-black shadows.
+
+
 ## Required Tools
 
 The bundled script expects:
@@ -219,7 +226,7 @@ The built-in edit prompt is conservative:
 
 ```text
 Enhance this Instagram Reel still into a premium Fig & Bloom feed cover.
-Light, bright, editorial, botanical, romantic, premium. Premium fashion-florist feel with realistic flowers, clean whites, airy exposure, cream/soft grey/sage/blush tones, subtle contrast, and elegant negative space. Avoid warm/red casts; do not amplify burgundy/red tones unless already naturally present. Preserve the real bouquet/product and composition. Remove only video compression, minor noise, distracting floor/cabinet clutter, and small artefacts where safe. Do not add text, logos, new flowers, neon colour, cartoon styling, or corporate stock-photo polish. Output must remain a 4:5 vertical cover.
+Editorial lifestyle photography with a soft documentary edge: natural light, neutral-to-earthy palette, considered negative space, premium and lived-in rather than commercial/glossy. Use warm off-white/bone/soft greige neutrals with botanical sage/eucalyptus grey-green, dusty rose/blush, muted burgundy, terracotta, charcoal, and deep ink-navy accents. Pull saturation back ~15–20%; use medium-low contrast, lifted near-black shadows, soft highlight roll-off, subtle matte grain, and no clarity boost. Whites should be warm-leaning but clean, not clinical blue-white, yellow, beige-heavy, red, or blown. Preserve real bouquet/product geometry, skin, composition, and tactile texture. Avoid HDR, hard strobes, orange-teal grading, oversaturated greens, heavy vignette, glossy retouching, plastic skin, true-black shadows, text/logos, new flowers, or corporate stock-photo polish. Output must remain a 4:5 vertical cover.
 ```
 
 The image editor may return a different vertical size, so the script always normalizes the final deliverable back to exact `1080x1350`.
