@@ -1,11 +1,11 @@
 ---
 name: creative-instagram-reel-cover
-description: Use when turning an Instagram Reel URL into an aesthetic 4:5 feed cover by downloading the reel, extracting still frames, using Gemini/vision critique to choose the best shot, refining crop/colour/sharpness, and returning a polished cover image for a curated grid.
-version: 1.0.0
+description: Use when turning an Instagram Reel URL into an aesthetic 4:5 feed cover by downloading the reel, extracting still frames with ffmpeg, selecting the best still/crop with deterministic frame scoring, and using GPT Image enhancement by default to produce a polished brand-consistent cover.
+version: 1.1.0
 author: Hermes Agent
 license: MIT
 metadata:
-  tags: [Creative, Instagram, Reels, Covers, Gemini, Video, Florist, Social]
+  tags: [Creative, Instagram, Reels, Covers, GPT-Image, Video, Florist, Social]
   related_skills: [creative-brand-photographer, creative-video-transformation, creative-higgsfield-client, creative-asset-adapter]
 ---
 
@@ -13,16 +13,16 @@ metadata:
 
 ## Overview
 
-This skill converts an Instagram Reel URL into a polished **4:5 Instagram feed cover**. It is designed for brands where the grid has to feel deliberate, premium, and visually cohesive — especially Fig & Bloom's fashion-editorial florist direction.
+This skill converts an Instagram Reel URL into a polished **4:5 Instagram feed cover**. It is designed for brands where the grid has to feel deliberate, premium, and visually cohesive — especially Fig & Bloom's romantic fashion-editorial florist direction.
 
 The workflow is:
 
 1. Download the Reel video.
-2. Extract still frames/contact sheets.
-3. Use Gemini or another multimodal critic to choose the most aesthetic frame.
-4. Generate 4:5 crop candidates and select the strongest crop.
-5. Apply a tasteful enhancement pass: crop, upscale/resize, white balance/colour lift, vibrancy, contrast, and sharpening.
-6. Return the final cover image and a small audit trail.
+2. Extract still frames/contact sheets with `ffmpeg`.
+3. Select the best still frame using deterministic ffmpeg/Python image metrics — **no Gemini or multimodal frame critic**.
+4. Generate 4:5 crop candidates and select the strongest crop using the same deterministic scoring.
+5. Apply a default AI enhancement/edit pass with **GPT Image** to enforce feed consistency against the social-feed rubric.
+6. Normalize the final deliverable back to exact `1080x1350` 4:5 JPEG and return a report.
 
 This is a **cover-selection and finishing** workflow, not a full video editing workflow.
 
@@ -34,8 +34,7 @@ Use this skill when the user asks to:
 - choose the best still frame from a Reel or short video;
 - make the Instagram grid look more aesthetic/cohesive;
 - produce a 4:5 feed image from video footage;
-- use Gemini/video understanding to pick a hero shot;
-- clean up a Reel cover with colour, white balance, vibrancy, crop, or upscale.
+- clean up a Reel cover with colour, white balance, vibrancy, crop, upscale, or AI enhancement.
 
 Do not use this when:
 
@@ -43,19 +42,33 @@ Do not use this when:
 - the user wants static brand photography generation from prompts/seeds — use `creative-brand-photographer`;
 - the user wants quote/review/graphic tiles — use the creative builder/graphic skills.
 
-## Artistic Direction: Fig & Bloom Default
+## Artistic Direction: Fig & Bloom Social Feed Default
 
-When the brand is Fig & Bloom, use the brand-photographer art direction as the judging rubric:
+The default post-edit direction comes from the Fig & Bloom social feed guidelines moodboard.
 
-- The image should feel like **fashion magazine meets premium florist**.
-- Flowers must be vivid and true-to-life; avoid muted/desaturated grades.
-- Lighting should be warm, clean, and premium — not cold/blue, harsh, or flat.
-- Prefer editorial negative space and calm composition over busy snapshots.
-- Bouquet/florals should be the hero, ideally with refined styling or elegant hands.
-- Avoid awkward motion, blurred hands, cropped-off florals, text overlays, messy backgrounds, or strong Reels UI artifacts.
-- Final feed cover should be **4:5 vertical**; for Instagram this is usually `1080x1350`.
+### Look / feel
 
-If a configured brand exists, read its equivalent `art-direction.md`, `colour-system.md`, and `grid-spec.md` before scoring frames.
+- Romantic, intimate, editorial, botanical, warm, and slightly luxe.
+- Premium florist meets fashion/editorial magazine.
+- Elegant but approachable: polished, organic, heartfelt, modern, and a little vintage.
+- Balance soft natural photography with clean graphic discipline.
+- Final cover should feel grid-ready, not like an arbitrary video screenshot.
+
+### Colour and finish
+
+- Core palette: black, white, cream, soft grey, charcoal.
+- Botanical palette: eucalyptus, sage, olive, muted leaf green.
+- Floral accents: blush, dusty pink, burgundy, coral, soft cream, muted red.
+- Warm neutrals: tan, beige, wood tones; avoid cold blue casts.
+- Keep tones premium and photographic. Avoid neon, crunchy HDR, or unrealistic saturation.
+
+### Composition
+
+- Final output is **4:5 vertical**, usually `1080x1350`.
+- Prefer generous negative space and clean edges.
+- Prefer complete bouquets/florals, elegant hands, refined styling, and emotional human moments.
+- Avoid floor/cabinet clutter, awkward crop cutoffs, motion blur, text overlays, stickers, progress bars, and Reels UI artefacts.
+- Preserve the real bouquet/product; enhancement should improve the image, not redesign the arrangement.
 
 ## Required Tools
 
@@ -63,12 +76,14 @@ The bundled script expects:
 
 - `uvx` so it can run `yt-dlp` without a permanent install.
 - `ffmpeg` and `ffprobe`.
-- `OPENROUTER_API_KEY` for Gemini multimodal frame/crop selection.
+- `OPENAI_API_KEY` because GPT Image enhancement is **enabled by default**.
 
 Optional:
 
-- `REEL_COVER_MODEL`, default `google/gemini-2.5-flash`.
-- `REEL_COVER_AI_EDIT_CMD` for an external image-to-image finishing/upscale command if available.
+- `REEL_COVER_IMAGE_MODEL`, default `gpt-image-2`.
+- `REEL_COVER_IMAGE_QUALITY`, default `high`.
+- `REEL_COVER_AI_EDIT_CMD` for a custom image-to-image finishing/upscale command. If set, it overrides the built-in OpenAI Images edit call.
+- `--no-ai-enhance` for debugging only; production/default usage should keep AI enhancement on.
 
 Instagram access notes:
 
@@ -118,29 +133,40 @@ If this fails because of auth/rate limits, stop and ask for an authenticated exp
 Default frame sampling is **1 FPS**. Use a higher FPS for very short or fast-cut videos.
 
 ```bash
-ffmpeg -y -i source.mp4 -vf 'fps=1,scale=360:-1' frames/frame_%03d.jpg
+ffmpeg -y -i source.mp4 -vf 'fps=1,scale=540:-1' frames/frame_%03d.jpg
 ```
 
-Create a labelled contact sheet so the vision model cannot miscount frames:
+Create a labelled contact sheet for human audit/debugging:
 
 ```bash
 ffmpeg -y -i frame.jpg -vf "drawbox=...,drawtext=text='001':..." labelled/frame_001.jpg
-ffmpeg -y -pattern_type glob -i 'labelled/*.jpg' \
-  -vf 'scale=240:-1,tile=5x5:padding=4:margin=4:color=white' contact_sheet_labeled.jpg
+ffmpeg -y -f concat -safe 0 -i inputs.txt \
+  -vf 'scale=240:-1,tile=5xN:padding=4:margin=4:color=white' contact_sheet_labeled.jpg
 ```
 
-### 3. Frame selection prompt
+### 3. Deterministic frame selection — no Gemini
 
-Use Gemini/multimodal vision on the labelled contact sheet. Ask for strict JSON:
+Because the Reel is already decomposed into frames, do **not** call Gemini or another multimodal critic just to choose a frame. The script scores each extracted still using dependency-free metrics derived from `ffmpeg` raw RGB output:
 
-```text
-This contact sheet has visible numeric labels on each frame. Pick the single best numbered frame for a 4:5 Instagram feed cover for a premium florist/fashion editorial grid. Prefer clean completed floral arrangement, sharpness, elegant hands/styling, warm attractive colour, no awkward motion, no blur, no text overlays. Return strict JSON: best_label, timestamp_seconds, why, crop_notes, runners_up.
-```
+- focus/detail proxy from neighbour luminance gradients;
+- contrast;
+- saturation;
+- floral/botanical colour signal;
+- balanced exposure;
+- low black/white clipping;
+- transition-edge penalty for the first/last moments.
 
-For Fig & Bloom, add:
+The report records:
 
-```text
-Apply Fig & Bloom direction: premium florist/fashion editorial, vivid true-to-life florals, warm clean light, calm negative space, no generic stock-photo energy.
+```json
+{
+  "selection_mode": "ffmpeg_heuristic_no_gemini",
+  "frame_choice": {
+    "best_label": "019",
+    "timestamp_seconds": 18.0,
+    "metrics": { "score": 42.3 }
+  }
+}
 ```
 
 ### 4. Crop candidate selection
@@ -152,24 +178,25 @@ crop_width = source_width
 crop_height = source_width * 5 / 4
 ```
 
-For 1080-wide video, this gives `1080x1350`. But full-width crops can leave too much wall/floor or include distracting side props. Generate both safe and tighter editorial crop candidates:
+For 1080-wide video, this gives `1080x1350`. But full-width crops can leave too much wall/floor or include distracting side props. Generate safe and tighter editorial crops:
 
 ```text
-full-width:  crop=1080:1350:x:y
-90% width:   crop=972:1215:x:y, then upscale to 1080x1350
-80% width:   crop=864:1080:x:y, then upscale to 1080x1350
+100% width: crop=1080:1350:x:y
+92% width:  crop=994:1242:x:y, then upscale to 1080x1350
+84% width:  crop=907:1134:x:y, then upscale to 1080x1350
+76% width:  crop=821:1026:x:y, then upscale to 1080x1350
 ```
 
-Vary `x` and `y` enough to test centred and subject-focused crops, then make a crop contact sheet and ask Gemini which position is strongest for the brand. This is usually better than a blind centre crop.
+Score crop candidates with the same metrics and a small over-zoom penalty. Keep a crop contact sheet for auditability, but do not ask Gemini to choose.
 
-### 5. Enhancement Pass
+### 5. Deterministic base enhancement
 
-Default non-generative enhancement uses `ffmpeg`:
+The script first creates a conservative deterministic base cover with `ffmpeg`:
 
 ```bash
 ffmpeg -y -ss <timestamp> -i source.mp4 -frames:v 1 \
-  -vf "crop=<w>:<h>:<x>:<y>,scale=1080:1350:flags=lanczos,eq=brightness=0.015:contrast=1.08:saturation=1.16:gamma=1.02,unsharp=5:5:0.7:3:3:0.3" \
-  -q:v 2 instagram_reel_cover_4x5.jpg
+  -vf "crop=<w>:<h>:<x>:<y>,scale=1080:1350:flags=lanczos,eq=brightness=0.015:contrast=1.07:saturation=1.10:gamma=1.015,unsharp=5:5:0.55:3:3:0.2" \
+  -q:v 2 instagram_reel_cover_4x5_deterministic.jpg
 ```
 
 Guidelines:
@@ -177,23 +204,28 @@ Guidelines:
 - Lift vibrancy, but preserve realistic flowers.
 - Warm the image subtly; do not make whites yellow.
 - Improve clarity/sharpness without crunchy halos.
-- Preserve the actual arrangement/product. Do not hallucinate new flowers unless the user explicitly asks for generative editing.
+- Preserve the actual arrangement/product.
 
-### Optional AI finishing command
+### 6. Default GPT Image enhancement
 
-If an external image-to-image editor/upscaler is available, expose it as:
+AI image enhancement is the default because it is how the final image is made consistent with the Fig & Bloom social-feed rubric.
+
+Default model:
 
 ```bash
-REEL_COVER_AI_EDIT_CMD='your-command --input {input} --output {output} --prompt {prompt}'
+REEL_COVER_IMAGE_MODEL=gpt-image-2
 ```
 
-The prompt should be conservative:
+The built-in edit prompt is conservative:
 
 ```text
-Polish this Instagram Reel still as a premium florist feed cover. Preserve the exact bouquet, vase, room, and composition. Improve white balance, natural warmth, flower vibrancy, local contrast, fine detail, and subtle upscale. Remove video compression artifacts only. Do not add objects, text, logos, new flowers, or change the arrangement.
+Enhance this Instagram Reel still into a premium Fig & Bloom feed cover.
+Romantic, intimate, editorial, botanical, warm, slightly luxe. Premium fashion-florist feel with realistic flowers, warm clean whites, cream/charcoal/sage/blush/burgundy tones, subtle contrast, and elegant negative space. Preserve the real bouquet/product and composition. Remove only video compression, minor noise, distracting floor/cabinet clutter, and small artefacts where safe. Do not add text, logos, new flowers, neon colour, cartoon styling, or corporate stock-photo polish. Output must remain a 4:5 vertical cover.
 ```
 
-Always compare the AI-finished image against the source crop. If it changes the bouquet/product materially, reject it and use the deterministic ffmpeg enhancement.
+The image editor may return a different vertical size, so the script always normalizes the final deliverable back to exact `1080x1350`.
+
+Only use `--no-ai-enhance` when debugging the frame/crop algorithm or when the user explicitly asks for deterministic-only output.
 
 ## Output Contract
 
@@ -209,20 +241,22 @@ Return:
 
 ## Common Pitfalls
 
-1. **Unlabelled contact sheets cause frame-number hallucination.** Always draw visible labels before asking Gemini to choose.
-2. **Blind centre crop cuts off the subject.** Generate crop candidates and have the critic choose.
-3. **Over-editing flowers.** Vibrancy is good; neon petals and changed bouquet ingredients are not.
-4. **Treating Instagram as reliably scrapable.** Public downloads may work today and fail tomorrow. Keep the downloader replaceable.
-5. **Using Reels UI/text overlays as a cover.** Avoid captions, stickers, progress bars, or awkward mid-transition frames.
-6. **Calling a failed frame-processing run successful.** Verify the final file exists and is `1080x1350` before returning it.
-7. **Ignoring rights/access.** Only download content the user is allowed to use.
+1. **Reintroducing Gemini for frame choice.** Do not. Frame extraction makes deterministic scoring enough for selection; save AI for the final image-edit consistency pass.
+2. **Skipping GPT Image enhancement.** The default output should be AI-enhanced against the social-feed rubric unless debugging or explicitly disabled.
+3. **Blind centre crop cuts off the subject.** Generate crop candidates and score them.
+4. **Over-editing flowers.** Vibrancy is good; neon petals and changed bouquet ingredients are not.
+5. **Treating Instagram as reliably scrapable.** Public downloads may work today and fail tomorrow. Keep the downloader replaceable.
+6. **Using Reels UI/text overlays as a cover.** Avoid captions, stickers, progress bars, or awkward mid-transition frames.
+7. **Calling a failed frame-processing run successful.** Verify the final file exists and is exact `1080x1350` before returning it.
+8. **Ignoring rights/access.** Only download content the user is allowed to use.
 
 ## Verification Checklist
 
 - [ ] Reel downloaded or user provided an accessible video file.
-- [ ] Labelled contact sheet generated.
-- [ ] Gemini/vision selected a labelled frame with rationale.
-- [ ] 4:5 crop candidates generated and selected.
-- [ ] Final cover exists and is `1080x1350` or another explicitly requested 4:5 size.
+- [ ] Labelled contact sheet generated for auditability.
+- [ ] Frame selected with `ffmpeg_heuristic_no_gemini` metrics.
+- [ ] 4:5 crop candidates generated and scored without Gemini.
+- [ ] GPT Image enhancement ran by default, or `--no-ai-enhance` was intentionally used for debugging.
+- [ ] Final cover exists and is exact `1080x1350` or another explicitly requested 4:5 size.
 - [ ] Final cover has no obvious text overlays, motion blur, awkward crop, or over-processed colours.
-- [ ] Report JSON saved with URL, model, selected frame, crop, and output paths.
+- [ ] Report JSON saved with URL, selected frame, crop, enhancement method, and output paths.
