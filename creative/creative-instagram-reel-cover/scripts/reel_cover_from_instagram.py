@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Create a polished 4:5 Instagram cover from a Reel URL.
 
-Dependencies: uvx, yt-dlp via uvx, ffmpeg/ffprobe, OPENAI_API_KEY for default GPT Image enhancement.
+Dependencies: uvx, yt-dlp via uvx, ffmpeg/ffprobe, OpenRouter or Gemini API key for default Nano Banana Pro enhancement.
 """
 from __future__ import annotations
 
@@ -23,7 +23,9 @@ from pathlib import Path
 from typing import Any
 
 OPENAI_IMAGES_EDIT_URL = "https://api.openai.com/v1/images/edits"
-DEFAULT_IMAGE_MODEL = os.environ.get("REEL_COVER_IMAGE_MODEL", "gpt-image-2")
+OPENROUTER_CHAT_URL = "https://openrouter.ai/api/v1/chat/completions"
+DEFAULT_IMAGE_MODEL = os.environ.get("REEL_COVER_IMAGE_MODEL", "google/gemini-3-pro-image-preview")
+DEFAULT_AI_BACKEND = os.environ.get("REEL_COVER_AI_BACKEND", "nanobanana-pro")
 
 FIG_BLOOM_SOCIAL_FEED_RUBRIC = """
 Fig & Bloom social-feed direction: editorial lifestyle photography with a soft documentary edge — premium and lived-in, not glossy or commercial.
@@ -337,19 +339,145 @@ def openai_image_enhance(input_path: Path, output_path: Path, *, model: str, siz
     return output_path, f"openai_image_edit:{model}"
 
 
-def maybe_ai_finish(input_path: Path, output_path: Path, *, enabled: bool, model: str, size: str) -> tuple[Path, str]:
-    if not enabled:
+
+def data_url_for_image(path: Path) -> str:
+    ctype = mimetypes.guess_type(path.name)[0] or "image/jpeg"
+    return f"data:{ctype};base64," + base64.b64encode(path.read_bytes()).decode()
+
+
+def write_image_url_or_data(url_or_data: str, output_path: Path) -> None:
+    if url_or_data.startswith("data:image"):
+        output_path.write_bytes(base64.b64decode(url_or_data.split(",", 1)[1]))
+    elif url_or_data.startswith("http"):
+        with urllib.request.urlopen(url_or_data, timeout=300) as r:
+            output_path.write_bytes(r.read())
+    else:
+        raise RuntimeError("Image response was neither data URL nor HTTP URL")
+
+
+def nanobanana_prompt(input_path: Path) -> str:
+    return (
+        "Edit this Instagram Reel still into a premium Fig & Bloom feed cover using Nano Banana Pro. "
+        + FIG_BLOOM_SOCIAL_FEED_RUBRIC
+        + " Output must remain a 4:5 vertical cover. Preserve the real bouquet, product/card/vases, room, and all subject geometry. "
+        + "Improve colour, lighting, texture, and editorial finish only. Do not invent new flowers, text, logos, props, hands, or layout."
+    )
+
+
+def openrouter_nanobanana_enhance(input_path: Path, output_path: Path, *, model: str) -> tuple[Path, str]:
+    key = os.environ.get("OPENROUTER_API_KEY")
+    if not key:
+        raise RuntimeError("OPENROUTER_API_KEY is required for OpenRouter Nano Banana Pro enhancement")
+    body = {
+        "model": model,
+        "messages": [{
+            "role": "user",
+            "content": [
+                {"type": "text", "text": nanobanana_prompt(input_path)},
+                {"type": "image_url", "image_url": {"url": data_url_for_image(input_path)}},
+            ],
+        }],
+        "modalities": ["image", "text"],
+        "image_config": {"aspect_ratio": "4:5"},
+    }
+    req = urllib.request.Request(
+        OPENROUTER_CHAT_URL,
+        data=json.dumps(body).encode(),
+        method="POST",
+        headers={
+            "Authorization": "Bearer " + key,
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://hermes-agent.local",
+            "X-Title": "Hermes Fig Bloom Reel Cover",
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=600) as r:
+            data = json.loads(r.read().decode())
+    except urllib.error.HTTPError as e:
+        body_text = e.read().decode(errors="ignore")[:2000]
+        raise RuntimeError(f"OpenRouter Nano Banana Pro enhancement failed for model={model}: HTTP {e.code} {e.reason}. {body_text}") from e
+    message = data["choices"][0]["message"]
+    urls: list[str] = []
+    for image in message.get("images") or []:
+        url = (image.get("image_url") or {}).get("url")
+        if url:
+            urls.append(url)
+    content = message.get("content")
+    if isinstance(content, list):
+        for part in content:
+            if part.get("type") == "image_url":
+                url = (part.get("image_url") or {}).get("url")
+                if url:
+                    urls.append(url)
+    elif isinstance(content, str) and "data:image" in content:
+        start = content.find("data:image")
+        urls.append(content[start:].split()[0])
+    if not urls:
+        raise RuntimeError(f"OpenRouter Nano Banana Pro response had no image. Keys: {list(message.keys())}")
+    write_image_url_or_data(urls[0], output_path)
+    return output_path, f"openrouter_nanobanana_pro:{model}"
+
+
+def gemini_api_nanobanana_enhance(input_path: Path, output_path: Path, *, model: str) -> tuple[Path, str]:
+    key = (os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY") or
+           os.environ.get("GOOGLE_GENAI_API_KEY") or os.environ.get("GOOGLE_AI_API_KEY"))
+    if not key:
+        raise RuntimeError("GEMINI_API_KEY/GOOGLE_API_KEY is required for direct Gemini Nano Banana Pro enhancement")
+    direct_model = model.split("/", 1)[-1]
+    body = {
+        "contents": [{
+            "role": "user",
+            "parts": [
+                {"text": nanobanana_prompt(input_path)},
+                {"inlineData": {"mimeType": mimetypes.guess_type(input_path.name)[0] or "image/jpeg", "data": base64.b64encode(input_path.read_bytes()).decode()}},
+            ],
+        }],
+        "generationConfig": {
+            "responseModalities": ["TEXT", "IMAGE"],
+            "imageConfig": {"aspectRatio": "4:5", "imageSize": os.environ.get("REEL_COVER_NANOBANANA_IMAGE_SIZE", "1K")},
+        },
+    }
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{direct_model}:generateContent?key={key}"
+    req = urllib.request.Request(url, data=json.dumps(body).encode(), method="POST", headers={"Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=600) as r:
+            data = json.loads(r.read().decode())
+    except urllib.error.HTTPError as e:
+        body_text = e.read().decode(errors="ignore")[:2000]
+        raise RuntimeError(f"Gemini Nano Banana Pro enhancement failed for model={direct_model}: HTTP {e.code} {e.reason}. {body_text}") from e
+    for candidate in data.get("candidates", []):
+        for part in (candidate.get("content") or {}).get("parts", []):
+            inline = part.get("inlineData") or part.get("inline_data")
+            if inline and inline.get("data"):
+                output_path.write_bytes(base64.b64decode(inline["data"]))
+                return output_path, f"gemini_api_nanobanana_pro:{direct_model}"
+    raise RuntimeError("Gemini Nano Banana Pro response had no inline image data")
+
+
+def maybe_ai_finish(input_path: Path, output_path: Path, *, enabled: bool, model: str, size: str, backend: str) -> tuple[Path, str]:
+    if not enabled or backend == "none":
         return input_path, "ffmpeg_deterministic_enhancement_ai_disabled"
-    # Custom command remains available for non-OpenAI backends, but OpenAI is the default.
     cmd_tmpl = os.environ.get("REEL_COVER_AI_EDIT_CMD")
-    if cmd_tmpl:
+    if backend == "external" or cmd_tmpl:
+        if not cmd_tmpl:
+            raise RuntimeError("REEL_COVER_AI_EDIT_CMD is required when --ai-backend external is used")
         prompt = FIG_BLOOM_SOCIAL_FEED_RUBRIC
         cmd = cmd_tmpl.format(input=str(input_path), output=str(output_path), prompt=prompt)
         p = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=600)
         if p.returncode or not output_path.exists():
             raise RuntimeError(f"AI edit command failed. STDERR={p.stderr[-1000:]}")
         return output_path, "external_ai_edit"
-    return openai_image_enhance(input_path, output_path, model=model, size=size)
+    if backend == "openai-api":
+        return openai_image_enhance(input_path, output_path, model=model, size=size)
+    if backend == "gemini-api":
+        return gemini_api_nanobanana_enhance(input_path, output_path, model=model)
+    if backend in ("openrouter", "nanobanana-pro"):
+        # Prefer direct Gemini when configured for nanobanana-pro, otherwise use the existing OpenRouter pool.
+        if backend == "nanobanana-pro" and any(os.environ.get(k) for k in ("GEMINI_API_KEY", "GOOGLE_API_KEY", "GOOGLE_GENAI_API_KEY", "GOOGLE_AI_API_KEY")):
+            return gemini_api_nanobanana_enhance(input_path, output_path, model=model)
+        return openrouter_nanobanana_enhance(input_path, output_path, model=model)
+    raise RuntimeError(f"Unknown AI backend: {backend}")
 
 
 def main() -> None:
@@ -361,8 +489,9 @@ def main() -> None:
     ap.add_argument("--cookies", help="Path to cookies.txt or browser name for yt-dlp --cookies-from-browser")
     ap.add_argument("--target-width", type=int, default=1080)
     ap.add_argument("--target-height", type=int, default=1350)
-    ap.add_argument("--image-model", default=DEFAULT_IMAGE_MODEL, help="OpenAI image edit model; default REEL_COVER_IMAGE_MODEL or gpt-image-2")
-    ap.add_argument("--image-size", default="1024x1536", help="OpenAI image output size closest to 4:5/vertical; final is normalized back to target size")
+    ap.add_argument("--image-model", default=DEFAULT_IMAGE_MODEL, help="Image edit model; default REEL_COVER_IMAGE_MODEL or google/gemini-3-pro-image-preview")
+    ap.add_argument("--ai-backend", choices=["nanobanana-pro", "gemini-api", "openrouter", "openai-api", "external", "none"], default=DEFAULT_AI_BACKEND, help="AI enhancement backend; default REEL_COVER_AI_BACKEND or nanobanana-pro")
+    ap.add_argument("--image-size", default="1024x1536", help="OpenAI API output size closest to 4:5/vertical; final is normalized back to target size")
     ap.add_argument("--no-ai-enhance", action="store_true", help="Disable default AI image enhancement and return deterministic ffmpeg output")
     args = ap.parse_args()
 
@@ -394,6 +523,7 @@ def main() -> None:
         enabled=not args.no_ai_enhance,
         model=args.image_model,
         size=args.image_size,
+        backend=args.ai_backend,
     )
 
     # Always normalize the final deliverable back to exact 4:5 JPEG, regardless of image-editor output size.
@@ -422,6 +552,7 @@ def main() -> None:
         "crop": crop,
         "enhancement_method": method,
         "ai_enhance_enabled": not args.no_ai_enhance,
+        "ai_backend": args.ai_backend if not args.no_ai_enhance else "none",
         "image_model": args.image_model if not args.no_ai_enhance else None,
         "deterministic_cover": str(deterministic),
         "final_cover": str(final_path),

@@ -82,13 +82,13 @@ The bundled script expects:
 
 - `uvx` so it can run `yt-dlp` without a permanent install.
 - `ffmpeg` and `ffprobe`.
-- `OPENAI_API_KEY` because GPT Image enhancement is **enabled by default**.
+- `OPENROUTER_API_KEY` for Nano Banana Pro via OpenRouter, or `GEMINI_API_KEY` / `GOOGLE_API_KEY` for direct Google Gemini API. Nano Banana Pro enhancement is **enabled by default**.
 
 Optional:
 
-- `REEL_COVER_IMAGE_MODEL`, default `gpt-image-2`.
-- `REEL_COVER_IMAGE_QUALITY`, default `high`.
-- `REEL_COVER_AI_EDIT_CMD` for a custom image-to-image finishing/upscale command. If set, it overrides the built-in OpenAI Images edit call.
+- `REEL_COVER_IMAGE_MODEL`, default `google/gemini-3-pro-image-preview` (Nano Banana Pro).
+- `REEL_COVER_AI_BACKEND`, default `nanobanana-pro`. Other values: `gemini-api`, `openrouter`, `openai-api`, `external`, `none`.
+- `REEL_COVER_AI_EDIT_CMD` for a custom image-to-image finishing/upscale command when using `--ai-backend external`.
 - `--no-ai-enhance` for debugging only; production/default usage should keep AI enhancement on.
 
 Instagram access notes:
@@ -212,14 +212,15 @@ Guidelines:
 - Improve clarity/sharpness without crunchy halos.
 - Preserve the actual arrangement/product.
 
-### 6. Default GPT Image enhancement
+### 6. Default Nano Banana Pro enhancement
 
-AI image enhancement is the default because it is how the final image is made consistent with the Fig & Bloom social-feed rubric.
+AI image enhancement is the default because it is how the final image is made consistent with the Fig & Bloom social-feed rubric. The default finisher is **Nano Banana Pro** (`google/gemini-3-pro-image-preview`), not GPT Image 2.
 
-Default model:
+Default backend/model:
 
 ```bash
-REEL_COVER_IMAGE_MODEL=gpt-image-2
+REEL_COVER_AI_BACKEND=nanobanana-pro
+REEL_COVER_IMAGE_MODEL=google/gemini-3-pro-image-preview
 ```
 
 The built-in edit prompt is conservative:
@@ -229,7 +230,7 @@ Enhance this Instagram Reel still into a premium Fig & Bloom feed cover.
 Editorial lifestyle photography with a soft documentary edge: natural light, neutral-to-earthy palette, considered negative space, premium and lived-in rather than commercial/glossy. Use warm off-white/bone/soft greige neutrals with botanical sage/eucalyptus grey-green, dusty rose/blush, muted burgundy, terracotta, charcoal, and deep ink-navy accents. Pull saturation back ~15–20%; use medium-low contrast, lifted near-black shadows, soft highlight roll-off, subtle matte grain, and no clarity boost. Whites should be warm-leaning but clean, not clinical blue-white, yellow, beige-heavy, red, or blown. Preserve real bouquet/product geometry, skin, composition, and tactile texture. Avoid HDR, hard strobes, orange-teal grading, oversaturated greens, heavy vignette, glossy retouching, plastic skin, true-black shadows, text/logos, new flowers, or corporate stock-photo polish. Output must remain a 4:5 vertical cover.
 ```
 
-The image editor may return a different vertical size, so the script always normalizes the final deliverable back to exact `1080x1350`.
+Nano Banana Pro may return a different 4:5-ish size, so the script always normalizes the final deliverable back to exact `1080x1350`.
 
 Only use `--no-ai-enhance` when debugging the frame/crop algorithm or when the user explicitly asks for deterministic-only output.
 
@@ -248,7 +249,7 @@ Return:
 ## Common Pitfalls
 
 1. **Reintroducing Gemini for frame choice.** Do not. Frame extraction makes deterministic scoring enough for selection; save AI for the final image-edit consistency pass.
-2. **Skipping GPT Image enhancement.** The default output should be AI-enhanced against the social-feed rubric unless debugging or explicitly disabled.
+2. **Skipping Nano Banana Pro enhancement.** The default output should be AI-enhanced against the social-feed rubric unless debugging or explicitly disabled.
 3. **Blind centre crop cuts off the subject.** Generate crop candidates and score them.
 4. **Over-editing flowers.** Vibrancy is good; neon petals and changed bouquet ingredients are not.
 5. **Treating Instagram as reliably scrapable.** Public downloads may work today and fail tomorrow. Keep the downloader replaceable.
