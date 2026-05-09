@@ -48,7 +48,7 @@ The default post-edit direction comes from the Fig & Bloom social feed guideline
 
 ### Look / feel
 
-- Romantic, intimate, editorial, botanical, warm, and slightly luxe.
+- Light, bright, editorial, botanical, romantic, and premium — not warm/red.
 - Premium florist meets fashion/editorial magazine.
 - Elegant but approachable: polished, organic, heartfelt, modern, and a little vintage.
 - Balance soft natural photography with clean graphic discipline.
@@ -56,11 +56,10 @@ The default post-edit direction comes from the Fig & Bloom social feed guideline
 
 ### Colour and finish
 
-- Core palette: black, white, cream, soft grey, charcoal.
-- Botanical palette: eucalyptus, sage, olive, muted leaf green.
-- Floral accents: blush, dusty pink, burgundy, coral, soft cream, muted red.
-- Warm neutrals: tan, beige, wood tones; avoid cold blue casts.
-- Keep tones premium and photographic. Avoid neon, crunchy HDR, or unrealistic saturation.
+- Core palette: white, cream, soft grey, pale stone, charcoal used sparingly.
+- Botanical palette: fresh eucalyptus, sage, olive, muted leaf green.
+- Floral accents: blush, dusty pink, soft cream, coral used lightly; burgundy/muted red only if present in the source, never amplified.
+- Overall grade should be airy, clean, light, and bright. Avoid warm/red casts, heavy beige filters, cold blue casts, neon, crunchy HDR, or unrealistic saturation.
 
 ### Composition
 
@@ -195,14 +194,14 @@ The script first creates a conservative deterministic base cover with `ffmpeg`:
 
 ```bash
 ffmpeg -y -ss <timestamp> -i source.mp4 -frames:v 1 \
-  -vf "crop=<w>:<h>:<x>:<y>,scale=1080:1350:flags=lanczos,eq=brightness=0.015:contrast=1.07:saturation=1.10:gamma=1.015,unsharp=5:5:0.55:3:3:0.2" \
+  -vf "crop=<w>:<h>:<x>:<y>,scale=1080:1350:flags=lanczos,eq=brightness=0.035:contrast=1.05:saturation=1.06:gamma=1.04,unsharp=5:5:0.55:3:3:0.2" \
   -q:v 2 instagram_reel_cover_4x5_deterministic.jpg
 ```
 
 Guidelines:
 
-- Lift vibrancy, but preserve realistic flowers.
-- Warm the image subtly; do not make whites yellow.
+- Lift exposure/clean whites first; keep the image light and bright.
+- Preserve realistic flowers without pushing reds/warmth; whites should stay clean, not yellow or beige.
 - Improve clarity/sharpness without crunchy halos.
 - Preserve the actual arrangement/product.
 
@@ -220,7 +219,7 @@ The built-in edit prompt is conservative:
 
 ```text
 Enhance this Instagram Reel still into a premium Fig & Bloom feed cover.
-Romantic, intimate, editorial, botanical, warm, slightly luxe. Premium fashion-florist feel with realistic flowers, warm clean whites, cream/charcoal/sage/blush/burgundy tones, subtle contrast, and elegant negative space. Preserve the real bouquet/product and composition. Remove only video compression, minor noise, distracting floor/cabinet clutter, and small artefacts where safe. Do not add text, logos, new flowers, neon colour, cartoon styling, or corporate stock-photo polish. Output must remain a 4:5 vertical cover.
+Light, bright, editorial, botanical, romantic, premium. Premium fashion-florist feel with realistic flowers, clean whites, airy exposure, cream/soft grey/sage/blush tones, subtle contrast, and elegant negative space. Avoid warm/red casts; do not amplify burgundy/red tones unless already naturally present. Preserve the real bouquet/product and composition. Remove only video compression, minor noise, distracting floor/cabinet clutter, and small artefacts where safe. Do not add text, logos, new flowers, neon colour, cartoon styling, or corporate stock-photo polish. Output must remain a 4:5 vertical cover.
 ```
 
 The image editor may return a different vertical size, so the script always normalizes the final deliverable back to exact `1080x1350`.

@@ -26,11 +26,11 @@ OPENAI_IMAGES_EDIT_URL = "https://api.openai.com/v1/images/edits"
 DEFAULT_IMAGE_MODEL = os.environ.get("REEL_COVER_IMAGE_MODEL", "gpt-image-2")
 
 FIG_BLOOM_SOCIAL_FEED_RUBRIC = """
-Fig & Bloom social-feed direction: romantic, intimate, editorial, botanical, warm, and slightly luxe.
-Use a premium fashion-florist feel with natural realistic flowers, warm clean whites, cream/charcoal/sage/blush/burgundy tones,
+Fig & Bloom social-feed direction: light, bright, editorial, botanical, romantic, and premium — not warm/red.
+Use a premium fashion-florist feel with natural realistic flowers, clean whites, airy exposure, cream/soft grey/sage/blush tones,
 subtle contrast, and elegant negative space. Preserve the real bouquet/product and composition. Remove only video compression,
 minor noise, distracting floor/cabinet clutter, and small artefacts where safe. Do not add text, logos, new flowers, neon colour,
-cartoon styling, or corporate stock-photo polish.
+red/warm colour casts, heavy beige filters, cartoon styling, or corporate stock-photo polish.
 """.strip()
 
 
@@ -133,8 +133,9 @@ def image_metrics(path: Path) -> dict[str, float]:
     n = max(1, len(data) // 3)
     lumas: list[float] = []
     sats: list[float] = []
-    warm_sat = 0
+    floral_sat = 0
     green_sat = 0
+    red_cast_pixels = 0
     too_dark = 0
     too_bright = 0
     for i in range(0, len(data), 3):
@@ -148,8 +149,10 @@ def image_metrics(path: Path) -> dict[str, float]:
             too_dark += 1
         if lum > 238:
             too_bright += 1
-        if sat > 0.22 and r > g * 0.9 and r > b * 1.05:
-            warm_sat += 1
+        if sat > 0.20 and r > b * 1.03 and g > b * 0.82 and not (r > g * 1.22 and r > b * 1.28):
+            floral_sat += 1
+        if sat > 0.22 and r > g * 1.18 and r > b * 1.22:
+            red_cast_pixels += 1
         if sat > 0.18 and g > r * 0.85 and g > b * 1.05:
             green_sat += 1
     mean_l = statistics.fmean(lumas)
@@ -171,7 +174,8 @@ def image_metrics(path: Path) -> dict[str, float]:
     sharpness = grad_sum / max(1, grad_n)
     exposure_penalty = abs(mean_l - 132) / 132
     clipping = (too_dark + too_bright) / n
-    botanical_signal = (warm_sat + green_sat) / n
+    red_cast = red_cast_pixels / n
+    botanical_signal = (floral_sat + green_sat) / n
     score = (
         sharpness * 1.35
         + contrast * 0.36
@@ -179,6 +183,7 @@ def image_metrics(path: Path) -> dict[str, float]:
         + botanical_signal * 70
         - exposure_penalty * 28
         - clipping * 45
+        - red_cast * 35
     )
     return {
         "score": round(score, 4),
@@ -188,6 +193,7 @@ def image_metrics(path: Path) -> dict[str, float]:
         "sharpness": round(sharpness, 4),
         "botanical_signal": round(botanical_signal, 4),
         "clipping": round(clipping, 4),
+        "red_cast": round(red_cast, 4),
     }
 
 
@@ -237,7 +243,7 @@ def generate_crop_candidates(video: Path, timestamp: float, outdir: Path, target
                     continue
                 seen.add(key)
                 dest = cand_dir / f"cover_w{crop_w:04d}_x{x:04d}_y{y:04d}.jpg"
-                vf = f"crop={crop_w}:{crop_h}:{x}:{y},scale={target_w}:{target_h}:flags=lanczos,eq=brightness=0.015:contrast=1.07:saturation=1.10:gamma=1.015,unsharp=5:5:0.55:3:3:0.2"
+                vf = f"crop={crop_w}:{crop_h}:{x}:{y},scale={target_w}:{target_h}:flags=lanczos,eq=brightness=0.035:contrast=1.05:saturation=1.06:gamma=1.04,unsharp=5:5:0.55:3:3:0.2"
                 run(["ffmpeg", "-y", "-ss", f"{timestamp:.3f}", "-i", str(video), "-frames:v", "1", "-vf", vf, "-q:v", "2", str(dest)], timeout=120)
                 metrics = image_metrics(dest)
                 # Prefer tighter editorial crops only when they score strongly; penalise excessive zoom a little.
