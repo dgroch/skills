@@ -42,6 +42,31 @@ class CoverOptionTests(unittest.TestCase):
         self.assertEqual([o["path"] for o in options], ["/tmp/crop1.jpg", "/tmp/crop2.jpg", "/tmp/crop3.jpg"])
         self.assertEqual([o["crop"]["label"] for o in options], ["C1", "C2", "C3"])
 
+    def test_rank_distinct_frame_options_spreads_across_video_and_caps_duplicates(self):
+        frame_choice = {
+            "best_label": "015",
+            "timestamp_seconds": 14.0,
+            "metrics": {"score": 95},
+            "runners_up": [
+                {"label": "016", "timestamp_seconds": 15.0, "metrics": {"score": 94}},
+                {"label": "014", "timestamp_seconds": 13.0, "metrics": {"score": 93}},
+                {"label": "022", "timestamp_seconds": 21.0, "metrics": {"score": 90}},
+                {"label": "012", "timestamp_seconds": 11.0, "metrics": {"score": 88}},
+            ],
+        }
+
+        ranked = reel_cover.rank_distinct_frame_options(frame_choice, num_options=3, min_gap_seconds=3.0)
+
+        self.assertEqual([r["label"] for r in ranked], ["015", "022", "012"])
+        self.assertTrue(all(abs(a["timestamp_seconds"] - b["timestamp_seconds"]) >= 3.0 for i, a in enumerate(ranked) for b in ranked[i + 1:]))
+
+    def test_nanobanana_prompt_explicitly_removes_captions_and_overlays(self):
+        prompt = reel_cover.nanobanana_prompt(Path("/tmp/input.jpg")).lower()
+
+        self.assertIn("remove", prompt)
+        self.assertIn("captions", prompt)
+        self.assertIn("text overlays", prompt)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -33,7 +33,7 @@ Use soft directional natural daylight, considered negative space, gentle shadows
 Palette: warm off-white/bone/soft greige neutrals with botanical sage/eucalyptus grey-green, dusty rose/blush, muted burgundy, terracotta, charcoal, and deep ink-navy accents.
 Keep saturation pulled back about 15–20% from camera default: never punchy, neon, HDR, orange-teal, or fully muted. Whites should be warm-leaning but clean — not clinical blue-white, yellow, beige-heavy, red, or blown out.
 Preserve realistic flowers, skin, bouquet/product geometry, composition, and tactile textures such as linen, raw plaster, aged brick, stoneware, terracotta, and weathered timber.
-Remove only video compression, minor noise, distracting clutter, and small artefacts where safe. Do not add text, logos, new flowers, hard studio strobes, heavy vignette, plastic skin, clarity boost, glossy retouching, or corporate stock-photo polish.
+Remove video compression, minor noise, distracting clutter, captions, stickers, UI, and text overlays where safe. Do not add text, logos, new flowers, hard studio strobes, heavy vignette, plastic skin, clarity boost, glossy retouching, or corporate stock-photo polish.
 """.strip()
 
 
@@ -219,8 +219,31 @@ def choose_frame_heuristic(frames: list[Path], fps: float, duration: float) -> d
         "timestamp_seconds": best["timestamp_seconds"],
         "why": "Chosen by dependency-free frame scoring: focus/detail, healthy contrast, floral/botanical colour signal, balanced exposure, low clipping, and transition-edge penalty.",
         "metrics": best["metrics"],
-        "runners_up": scored[1:6],
+        "runners_up": scored[1:12],
     }
+
+
+def rank_distinct_frame_options(frame_choice: dict[str, Any], num_options: int, min_gap_seconds: float = 3.0) -> list[dict[str, Any]]:
+    """Return distinct frame options rather than near-duplicate variants of one shot."""
+    pool: list[dict[str, Any]] = [{
+        "label": frame_choice["best_label"],
+        "timestamp_seconds": frame_choice["timestamp_seconds"],
+        "metrics": frame_choice.get("metrics", {}),
+    }] + list(frame_choice.get("runners_up", []))
+    ranked = sorted(pool, key=lambda x: float(x.get("metrics", {}).get("score", 0)), reverse=True)
+    chosen: list[dict[str, Any]] = []
+    for item in ranked:
+        ts = float(item.get("timestamp_seconds", 0.0))
+        if all(abs(ts - float(prev.get("timestamp_seconds", 0.0))) >= min_gap_seconds for prev in chosen):
+            chosen.append(item)
+        if len(chosen) >= max(1, int(num_options)):
+            return chosen
+    for item in ranked:
+        if item not in chosen:
+            chosen.append(item)
+        if len(chosen) >= max(1, int(num_options)):
+            break
+    return chosen
 
 
 def generate_crop_candidates(video: Path, timestamp: float, outdir: Path, target_w: int, target_h: int) -> list[dict[str, Any]]:
@@ -387,6 +410,7 @@ def nanobanana_prompt(input_path: Path) -> str:
         "Edit this Instagram Reel still into a premium Fig & Bloom feed cover using Nano Banana Pro. "
         + FIG_BLOOM_SOCIAL_FEED_RUBRIC
         + " Output must remain a 4:5 vertical cover. Preserve the real bouquet, product/card/vases, room, and all subject geometry. "
+        + "Remove Instagram captions, text overlays, stickers, UI, progress bars, and subtitles from the processed image where safe; reconstruct the underlying scene naturally. "
         + "Improve colour, lighting, texture, and editorial finish only. Do not invent new flowers, text, logos, props, hands, or layout."
     )
 
@@ -537,10 +561,27 @@ def main() -> None:
     timestamp = float(frame_choice["timestamp_seconds"])
     timestamp = max(0.0, min(duration, timestamp)) if duration else max(0.0, timestamp)
 
+    frame_options = rank_distinct_frame_options(frame_choice, args.num_options)
     raw_frame = extract_full_frame(video, timestamp, outdir)
     candidates = generate_crop_candidates(video, timestamp, outdir, args.target_width, args.target_height)
     crop = choose_crop_heuristic(candidates, outdir)
-    options = build_cover_options(raw_frame, candidates, args.crop_mode, args.num_options)
+    if args.crop_mode == "none":
+        options = []
+        frame_dir = outdir / "selected_frame_options"
+        frame_dir.mkdir(parents=True, exist_ok=True)
+        for idx, frame_option in enumerate(frame_options, 1):
+            frame_path = extract_full_frame(video, float(frame_option["timestamp_seconds"]), frame_dir)
+            dest = frame_dir / f"option_{idx}_frame_{frame_option['label']}.jpg"
+            shutil.move(str(frame_path), dest)
+            options.append({
+                "label": f"option_{idx}",
+                "path": str(dest),
+                "crop": None,
+                "input_mode": "distinct_full_frame_no_precrop",
+                "frame": frame_option,
+            })
+    else:
+        options = build_cover_options(raw_frame, candidates, args.crop_mode, args.num_options)
 
     final_outputs: list[dict[str, Any]] = []
     for idx, option in enumerate(options, 1):
@@ -571,6 +612,7 @@ def main() -> None:
             "label": option["label"],
             "input_mode": option["input_mode"],
             "input_path": str(deterministic),
+            "frame": option.get("frame"),
             "crop": option["crop"],
             "enhancement_method": method,
             "final_cover": str(final_path),
@@ -596,6 +638,7 @@ def main() -> None:
         "crop_mode": args.crop_mode,
         "num_options": args.num_options,
         "selected_full_frame": str(raw_frame),
+        "frame_options": frame_options,
         "crop": crop,
         "options": final_outputs,
         "enhancement_method": final_outputs[0]["enhancement_method"],

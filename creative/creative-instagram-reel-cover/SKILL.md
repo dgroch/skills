@@ -210,7 +210,7 @@ Guidelines:
 
 ### 6. Default Nano Banana Pro enhancement + 3-option batch
 
-AI image enhancement is the default because it is how the final image is made consistent with the Fig & Bloom social-feed rubric. The default finisher is **Nano Banana Pro** (`google/gemini-3-pro-image-preview`) via direct Google Gemini API, not GPT Image 2 and not OpenRouter. Generate **3 final options by default** so one can land; if none land, the user can request another batch.
+AI image enhancement is the default because it is how the final image is made consistent with the Fig & Bloom social-feed rubric. The default finisher is **Nano Banana Pro** (`google/gemini-3-pro-image-preview`) via direct Google Gemini API, not GPT Image 2 and not OpenRouter. Generate **3 final options by default** so one can land; if none land, the user can request another batch. The 3 options should come from **three unique source shots** by default, not three generations from the same frame.
 
 Default backend/model:
 
@@ -225,7 +225,7 @@ The built-in edit prompt is conservative:
 
 ```text
 Enhance this Instagram Reel still into a premium Fig & Bloom feed cover.
-Editorial lifestyle photography with a soft documentary edge: natural light, neutral-to-earthy palette, considered negative space, premium and lived-in rather than commercial/glossy. Use warm off-white/bone/soft greige neutrals with botanical sage/eucalyptus grey-green, dusty rose/blush, muted burgundy, terracotta, charcoal, and deep ink-navy accents. Pull saturation back ~15–20%; use medium-low contrast, lifted near-black shadows, soft highlight roll-off, subtle matte grain, and no clarity boost. Whites should be warm-leaning but clean, not clinical blue-white, yellow, beige-heavy, red, or blown. Preserve real bouquet/product geometry, skin, composition, and tactile texture. Avoid HDR, hard strobes, orange-teal grading, oversaturated greens, heavy vignette, glossy retouching, plastic skin, true-black shadows, text/logos, new flowers, or corporate stock-photo polish. Output must remain a 4:5 vertical cover.
+Editorial lifestyle photography with a soft documentary edge: natural light, neutral-to-earthy palette, considered negative space, premium and lived-in rather than commercial/glossy. Use warm off-white/bone/soft greige neutrals with botanical sage/eucalyptus grey-green, dusty rose/blush, muted burgundy, terracotta, charcoal, and deep ink-navy accents. Pull saturation back ~15–20%; use medium-low contrast, lifted near-black shadows, soft highlight roll-off, subtle matte grain, and no clarity boost. Whites should be warm-leaning but clean, not clinical blue-white, yellow, beige-heavy, red, or blown. Preserve real bouquet/product geometry, skin, composition, and tactile texture. Remove captions, stickers, UI, and text overlays where safe. Avoid HDR, hard strobes, orange-teal grading, oversaturated greens, heavy vignette, glossy retouching, plastic skin, true-black shadows, text/logos, new flowers, or corporate stock-photo polish. Output must remain a 4:5 vertical cover.
 ```
 
 Nano Banana Pro may return a different 4:5-ish size, so the script always normalizes each final option back to exact `1080x1350`.
@@ -247,13 +247,14 @@ Return:
 ## Common Pitfalls
 
 1. **Letting deterministic metrics be taste.** Do not. Use deterministic scoring only to remove unusable frames/crops or order candidates; taste should come from visual review/model critique/user batches.
-2. **Skipping Nano Banana Pro enhancement.** The default output should be AI-enhanced against the social-feed rubric unless debugging or explicitly disabled.
-3. **Making crop mandatory.** Do not force a deterministic pre-crop. Default to full-frame AI composition and generate crop candidates only as optional alternates.
-4. **Over-editing flowers.** Vibrancy is good; neon petals and changed bouquet ingredients are not.
-5. **Treating Instagram as reliably scrapable.** Public downloads may work today and fail tomorrow. Keep the downloader replaceable.
-6. **Using Reels UI/text overlays as a cover.** Avoid captions, stickers, progress bars, or awkward mid-transition frames.
-7. **Calling a failed frame-processing run successful.** Verify the final file exists and is exact `1080x1350` before returning it.
-8. **Ignoring rights/access.** Only download content the user is allowed to use.
+2. **Returning three near-duplicates.** Do not. A batch should cover three distinct source shots/moments: e.g. human/lifestyle, bouquet close-up, gifting/product story.
+3. **Skipping Nano Banana Pro enhancement.** The default output should be AI-enhanced against the social-feed rubric unless debugging or explicitly disabled.
+4. **Making crop mandatory.** Do not force a deterministic pre-crop. Default to full-frame AI composition and generate crop candidates only as optional alternates.
+5. **Over-editing flowers.** Vibrancy is good; neon petals and changed bouquet ingredients are not.
+6. **Treating Instagram as reliably scrapable.** Public downloads may work today and fail tomorrow. Keep the downloader replaceable.
+7. **Leaving Reels UI/text overlays in the processed cover.** Remove captions, stickers, subtitles, progress bars, and UI where safe; otherwise reject that frame.
+8. **Calling a failed frame-processing run successful.** Verify the final file exists and is exact `1080x1350` before returning it.
+9. **Ignoring rights/access.** Only download content the user is allowed to use.
 
 ## Verification Checklist
 
