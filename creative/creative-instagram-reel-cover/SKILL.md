@@ -225,7 +225,7 @@ The built-in edit prompt is conservative:
 
 ```text
 Enhance this Instagram Reel still into a premium Fig & Bloom feed cover.
-Editorial lifestyle photography with a soft documentary edge: natural light, neutral-to-earthy palette, considered negative space, premium and lived-in rather than commercial/glossy. Use warm off-white/bone/soft greige neutrals with botanical sage/eucalyptus grey-green, dusty rose/blush, muted burgundy, terracotta, charcoal, and deep ink-navy accents. Pull saturation back ~15–20%; use medium-low contrast, lifted near-black shadows, soft highlight roll-off, subtle matte grain, and no clarity boost. Whites should be warm-leaning but clean, not clinical blue-white, yellow, beige-heavy, red, or blown. Preserve real bouquet/product geometry, skin, composition, and tactile texture. Remove captions, stickers, UI, and text overlays where safe. Avoid HDR, hard strobes, orange-teal grading, oversaturated greens, heavy vignette, glossy retouching, plastic skin, true-black shadows, text/logos, new flowers, or corporate stock-photo polish. Output must remain a 4:5 vertical cover.
+Editorial lifestyle photography with a soft documentary edge: natural light, neutral-to-earthy palette, considered negative space, premium and lived-in rather than commercial/glossy. Use warm off-white/bone/soft greige neutrals with botanical sage/eucalyptus grey-green, dusty rose/blush, muted burgundy, terracotta, charcoal, and deep ink-navy accents. Pull saturation back ~15–20%; use medium-low contrast, lifted near-black shadows, soft highlight roll-off, subtle matte grain, and no clarity boost. Whites should be warm-leaning but clean, not clinical blue-white, yellow, beige-heavy, red, or blown. Preserve real bouquet/product geometry, skin, composition, and tactile texture. Strict source fidelity: the cover must look like a refined frame from the supplied video, not a newly staged florist image. Preserve exact visible bouquet/wrap/person/hand/card/vase/background geometry and camera perspective. If absent in the input frame, do not add it: no new vase, card, pedestal, plinth, table, wall texture, flowers, stems, hands, props, text, logos, or layout. Remove captions, stickers, UI, and text overlays where safe. Avoid HDR, hard strobes, orange-teal grading, oversaturated greens, heavy vignette, glossy retouching, plastic skin, true-black shadows, text/logos, new flowers, or corporate stock-photo polish. Output must remain a 4:5 vertical cover.
 ```
 
 Nano Banana Pro may return a different 4:5-ish size, so the script always normalizes each final option back to exact `1080x1350`.
@@ -252,9 +252,10 @@ Return:
 4. **Making crop mandatory.** Do not force a deterministic pre-crop. Default to full-frame AI composition and generate crop candidates only as optional alternates.
 5. **Over-editing flowers.** Vibrancy is good; neon petals and changed bouquet ingredients are not.
 6. **Treating Instagram as reliably scrapable.** Public downloads may work today and fail tomorrow. Keep the downloader replaceable.
-7. **Leaving Reels UI/text overlays in the processed cover.** Remove captions, stickers, subtitles, progress bars, and UI where safe; otherwise reject that frame.
-8. **Calling a failed frame-processing run successful.** Verify the final file exists and is exact `1080x1350` before returning it.
-9. **Ignoring rights/access.** Only download content the user is allowed to use.
+7. **Letting Nano Banana hallucinate a staged florist scene.** Reject outputs that introduce new vases, cards, pedestals, tables, wall textures, flowers, hands, or arrangements. The final must read as a real source frame, just refined.
+8. **Leaving Reels UI/text overlays in the processed cover.** Remove captions, stickers, subtitles, progress bars, and UI where safe; otherwise reject that frame.
+9. **Calling a failed frame-processing run successful.** Verify the final file exists and is exact `1080x1350` before returning it.
+10. **Ignoring rights/access.** Only download content the user is allowed to use.
 
 ## Verification Checklist
 

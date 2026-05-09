@@ -409,9 +409,12 @@ def nanobanana_prompt(input_path: Path) -> str:
     return (
         "Edit this Instagram Reel still into a premium Fig & Bloom feed cover using Nano Banana Pro. "
         + FIG_BLOOM_SOCIAL_FEED_RUBRIC
-        + " Output must remain a 4:5 vertical cover. Preserve the real bouquet, product/card/vases, room, and all subject geometry. "
-        + "Remove Instagram captions, text overlays, stickers, UI, progress bars, and subtitles from the processed image where safe; reconstruct the underlying scene naturally. "
-        + "Improve colour, lighting, texture, and editorial finish only. Do not invent new flowers, text, logos, props, hands, or layout."
+        + " STRICT SOURCE FIDELITY: this must look like a refined frame from the supplied video, not a newly staged florist image. "
+        + "Preserve the exact visible bouquet/wrap/person/hand/card/vase/background geometry and camera perspective. "
+        + "If it is not visible in the input frame, do not add it: no new vase, card, pedestal, plinth, table, wall texture, flowers, stems, hands, props, text, logos, or layout. "
+        + "Do not convert a handheld/wrapped bouquet into a vase arrangement or styled product scene. "
+        + "Output must remain a 4:5 vertical cover. Remove Instagram captions, text overlays, stickers, UI, progress bars, and subtitles from the processed image where safe; reconstruct the underlying scene naturally. "
+        + "Improve colour, lighting, texture, compression, and editorial finish only."
     )
 
 

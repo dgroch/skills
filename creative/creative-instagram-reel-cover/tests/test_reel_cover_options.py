@@ -67,6 +67,15 @@ class CoverOptionTests(unittest.TestCase):
         self.assertIn("captions", prompt)
         self.assertIn("text overlays", prompt)
 
+    def test_nanobanana_prompt_forbids_material_invention(self):
+        prompt = reel_cover.nanobanana_prompt(Path("/tmp/input.jpg")).lower()
+
+        self.assertIn("do not add", prompt)
+        self.assertIn("vase", prompt)
+        self.assertIn("card", prompt)
+        self.assertIn("pedestal", prompt)
+        self.assertIn("if it is not visible", prompt)
+
 
 if __name__ == "__main__":
     unittest.main()
