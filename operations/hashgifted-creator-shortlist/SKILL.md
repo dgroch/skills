@@ -24,19 +24,21 @@ This skill only handles `Applied -> Shortlisted` qualification and pre-selection
 
 - Read `reference-browser-operator` before browser actions.
 - Read `hashgifted-browser-adapter-map` for Hashgifted UI intents.
+- Read `hashgifted-browser-adapter-map/references/gift-view-observations.md` before operating on a live campaign page.
+- Read `hashgifted-ops-manager/references/brand-aesthetic-rubric.md` for shared Fig & Bloom creator fit rules.
 - Read `hashgifted-ops-manager/references/audit-log.md` before live runs.
 - Read `references/qualification-framework.md` before making creator decisions.
 
 ## Required Inputs
 
-Collect these before a live or dry run. Do not guess.
+Load these from the Campaign record created by `hashgifted-campaign-init`. Ask only for missing fields or an explicit override.
 
 - Campaign name and Hashgifted campaign URL.
 - Run mode: `plan`, `dry_run`, `assist`, or `auto`. Default to `assist`.
 - Campaign objective: audience awareness, content library, or both.
 - Campaign aesthetic and concept calibration.
 - Hard gates: location, platform, minimum follower count if any, category exclusions.
-- Target shortlist count or review limit.
+- Review limit or stop condition for the current run, if any.
 - One-off calibration, such as mums with kids 0-5, avoid fitness aesthetic, prioritise Melbourne creators, or favour strong video creators.
 
 No message templates are required because shortlisting happens before communications.
@@ -55,7 +57,7 @@ Decline is high-risk because it removes the creator from the campaign path. Shor
 - Confirm the current page or target URL is the expected Hashgifted campaign: `confirm_context("brands.hashgifted.com/gift-view")`.
 - Open the Applicants tab: `click_action("Open applicants tab")`.
 - Read campaign status: `read_card("campaign status")`.
-- Stop if there are no applicants or the target shortlist count has already been reached.
+- Stop if there are no applicants or the requested run limit has already been reached.
 - Start an audit record with campaign, mode, runtime, and initial screenshot.
 
 ## Per-Applicant Loop
@@ -64,16 +66,17 @@ Repeat until an exit condition is met.
 
 1. Read the top applicant: `read_card("active applicant profile")`.
 2. Confirm the applicant is still in `Applied` status and has not already been actioned in this run.
-3. Open social profiles by intent: `open_in_new_tab("Open first Instagram profile")`, then TikTok if Instagram is unavailable.
-4. Read visible social signals: `read_card("active applicant social signals")`.
-5. Close social tabs and return to the campaign context with `switch_tab` or `close_tab`.
-6. Apply `references/qualification-framework.md` and produce `{recommendation, reason, confidence}`.
-7. In `plan` or `dry_run`, record the proposed action and continue without clicking.
-8. In `assist`, ask for approval before clicking Shortlist or Decline.
-9. For strong fits, click `click_action("Shortlist creator")` and then `wait_for_change("next applicant loaded")`.
-10. For hard gate failures or clear brand-safety mismatches, click `click_action("Decline creator")` only after approval, then `wait_for_change("next applicant loaded")`.
-11. For incomplete evidence, ambiguous fit, or UI uncertainty, leave the creator in Applied and add a manual review warning.
-12. Append action status, evidence, and warnings to the audit record.
+3. Open applicant details if needed: `click_action("Open applicant details")`. Note that this may mark the applicant as read.
+4. Open social profiles by intent: `open_in_new_tab("Open first Instagram profile")`, then TikTok if Instagram is unavailable.
+5. Read visible social signals: `read_card("active applicant social signals")`.
+6. Close social tabs and return to the campaign context with `switch_tab` or `close_tab`.
+7. Apply `references/qualification-framework.md` and produce `{recommendation, reason, confidence}`.
+8. In `plan` or `dry_run`, record the proposed action and continue without clicking Shortlist or Decline.
+9. In `assist`, ask for approval before clicking Shortlist or Decline.
+10. For strong fits, click `click_action("Shortlist creator")` and then `wait_for_change("next applicant loaded")`.
+11. For hard gate failures or clear brand-safety mismatches, click `click_action("Decline creator")` only after approval, then `wait_for_change("next applicant loaded")`.
+12. For incomplete evidence, ambiguous fit, or UI uncertainty, leave the creator in Applied and add a manual review warning.
+13. Append action status, evidence, and warnings to the audit record.
 
 ## Decision Output
 
@@ -96,7 +99,7 @@ Use `manual_review` when evidence is incomplete or the creator may be a fit but 
 
 Stop when any condition is true:
 
-- Target shortlist count is reached.
+- Requested run limit or stop condition is reached.
 - Review limit is reached.
 - Applicants queue is empty.
 - Remaining applicants visibly fail a hard gate.
@@ -120,6 +123,6 @@ Return a concise summary:
 - Shortlisted: count and names.
 - Declined: count grouped by reason.
 - Manual review: count and why.
-- Target shortlist progress.
+- Run progress.
 - Warnings and manual review items.
 - Audit log location or inline audit record.

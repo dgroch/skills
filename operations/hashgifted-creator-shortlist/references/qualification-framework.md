@@ -47,17 +47,9 @@ For `both`, require at least medium strength on audience and content quality.
 
 ## Fig & Bloom Aesthetic Fit
 
-Recommend `shortlist` for premium, considered, floral-adjacent lifestyle fit.
+Apply `hashgifted-ops-manager/references/brand-aesthetic-rubric.md`.
 
-Positive signals:
-
-- Warm lifestyle, home, family, beauty, food, fashion, interiors, events, or gifting context.
-- Strong visual consistency.
-- Creator voice feels personal and grounded.
-- Audience likely includes people buying flowers for the campaign occasion.
-- Real comments and healthy engagement relative to follower count.
-
-Do not reject for glamour, beauty-focus, body-confidence, or sensual-but-tasteful content. Those can be on-brand for creator partnerships.
+Recommend `shortlist` when the creator is a strong fit for the shared rubric and the current campaign objective.
 
 ## Campaign Calibration
 
@@ -70,7 +62,7 @@ Apply the one-off campaign note after hard gates and safety:
 
 ## Engagement Quality
 
-Prefer micro-creators with real engagement over larger creators with weak comments.
+Use the shared brand rubric for engagement judgement.
 
 Use `manual_review` when:
 

@@ -21,6 +21,7 @@ If a consuming skill contains `page.click`, selectors, pixel coordinates, MCP br
 
 - Read `references/hashgifted-intents.md` when implementing or reviewing a Hashgifted flow.
 - Read `references/runtime-adapters.md` when choosing Playwright, Browserbase, Hermes, Camofox, or visual browser fallbacks.
+- Read `references/gift-view-observations.md` when implementing Hashgifted campaign page navigation or applicant shortlisting.
 
 ## Page Contexts
 

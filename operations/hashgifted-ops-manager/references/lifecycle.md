@@ -13,7 +13,6 @@ Required campaign inputs:
 - Hard gates: location, follower minimums, platform, exclusions.
 - Deliverables as free text.
 - Target selected count.
-- Target shortlist count if different from selected target.
 - Posting deadline, defaulting to 7 days from receipt of gift unless overridden.
 - One or two concepts with emotional arc and visual moment.
 - One-off calibration notes.

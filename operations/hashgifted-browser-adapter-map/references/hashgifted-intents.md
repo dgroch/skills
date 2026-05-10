@@ -8,6 +8,7 @@ Use these intent names consistently across Hashgifted skills and runtime adapter
 | --- | --- | --- |
 | `Open campaign applicants` | `navigate(url)` | `campaign applicants` |
 | `Open applicants tab` | `click_action(intent)` | `campaign applicants` |
+| `Open applicant details` | `click_action(intent)` | applicant detail panel |
 | `Open creator thread` | `click_action(intent)` or `navigate(url)` | `creator thread` |
 | `Open creator profile` | `click_action(intent)` | `creator profile` |
 | `Open first Instagram profile` | `open_in_new_tab(intent)` | external social profile |
@@ -20,6 +21,7 @@ Use these intent names consistently across Hashgifted skills and runtime adapter
 | Intent | Operator action | Minimum fields |
 | --- | --- | --- |
 | `active applicant profile` | `read_card(intent)` | `name`, `handle`, `location`, `follower_count`, `platforms`, `bio`, `application_text`, `status` |
+| `active applicant detail panel` | `read_card(intent)` | `name`, `review_count`, `response_time`, `platform_stats`, `application_text`, `notes` |
 | `active applicant social signals` | `read_card(intent)` | `location`, `bio`, `recent_content_pattern`, `engagement_quality`, `brand_safety_flags`, `aesthetic_fit` |
 | `creator summary` | `read_card(intent)` | `name`, `handle`, `status`, `profile_url`, `social_links` |
 | `campaign status` | `read_card(intent)` | `campaign_name`, `status`, `target_selected`, `selected_count`, `applicant_count` |

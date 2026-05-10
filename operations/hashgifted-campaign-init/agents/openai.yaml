@@ -1,0 +1,4 @@
+interface:
+  display_name: "Hashgifted Campaign Init"
+  short_description: "Create Hashgifted campaign and brief records"
+  default_prompt: "Use $hashgifted-campaign-init to interview me and initialise a Hashgifted creator campaign in Notion."

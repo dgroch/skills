@@ -17,6 +17,7 @@ Each skill is self-contained and includes a `SKILL.md` file (plus optional `scri
 ### Operations
 
 - `operations/hashgifted-browser-adapter-map` (`hashgifted-browser-adapter-map`): Concrete Hashgifted browser intent mapping for portable browser operator runtimes.
+- `operations/hashgifted-campaign-init` (`hashgifted-campaign-init`): Create Notion campaign and brief records before opening applicants.
 - `operations/hashgifted-creator-shortlist` (`hashgifted-creator-shortlist`): Qualify Hashgifted applicants for a campaign shortlist before creator communication.
 - `operations/hashgifted-ops-manager` (`hashgifted-ops-manager`): Manage portable Hashgifted creator operations with run modes, lifecycle dispatch, and audit logging.
 - `operations/operations-output-to-drive` (`operations-output-to-drive`): Persist generated outputs to Drive and maintain related manifests.

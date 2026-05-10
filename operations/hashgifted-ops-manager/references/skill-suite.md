@@ -15,7 +15,7 @@ Use this when authoring or refactoring the individual lifecycle skills.
 | Skill | Position | Scope |
 | --- | --- | --- |
 | `hashgifted-campaign-init` | Step 0 | Interview marketer, create Notion campaign and brief records, flag manual share-to-web step. |
-| `hashgifted-creator-shortlist` | Step 1 | Qualify applied creators against campaign objectives, hard gates, and aesthetics before communication. |
+| `hashgifted-creator-shortlist` | Step 1 | Qualify applied creators against the Campaign record, hard gates, and shared brand rubric before communication. |
 | `hashgifted-creator-select` | Step 2 | Contact shortlisted creators about campaign messaging, deliverables, deadlines, and select only after agreement. |
 | `hashgifted-creator-monitor` | Orchestrator | Sweep active campaigns, identify per-creator state, dispatch one highest-priority action per creator. |
 | `hashgifted-content-capture` | Capture | Pull completed post/reel assets, organise Drive, sync CDN, embed/log in Notion. |
