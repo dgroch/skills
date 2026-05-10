@@ -65,6 +65,7 @@ The monitor itself is low-risk because it is read-only. Risk is deferred to the 
 
 1. Resolve campaign list.
    - `all_active`: query Notion Campaigns DB for `Status in ("Open for Applicants", "Active", "Wrapping")` and read each campaign's `Hashgifted URL`. `Active` is the priority bucket; `Open for Applicants` is shortlist work only; `Wrapping` is closeout, late captures, and gallery sweep only.
+   - For any matching campaign with an empty `Hashgifted URL`, emit a `missing_hashgifted_url` warning, add the campaign to `manual_review`, and skip it. Do not stop the sweep.
    - Single campaign: use the supplied URL or look up by name.
 2. Order campaigns by `Posting Deadline` ascending. Tie-break by `Target Selected` minus current selected-count (largest gap first), then by `Created` ascending.
 3. For each campaign, run the per-campaign loop until the per-run creator cap is reached.
