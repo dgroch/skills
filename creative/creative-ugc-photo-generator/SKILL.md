@@ -1,6 +1,6 @@
 ---
 name: creative-ugc-photo-generation
-description: Generate AI-powered UGC-style photography using Higgsfield AI (Nano Banana Pro model).
+description: Generate AI-powered UGC-style photography using Higgsfield AI (Nano Banana 2 model).
 author: Dan Groch
 ---
 
@@ -37,7 +37,7 @@ If either is missing, escalate before proceeding.
 
 ## Model & Parameters
 
-**Model:** Nano Banana Pro (text-to-image via `higgsfield-api` skill)
+**Model:** Nano Banana 2 (text-to-image via `higgsfield-api` skill)
 
 **Default parameters to pass to `higgsfield-api`:**
 
@@ -138,7 +138,7 @@ a fashion editorial. Shot at eye level, three-quarter body framing.
 Pass the constructed prompt and parameters to the `higgsfield-api` skill
 for generation. Specify:
 
-- Model: Nano Banana Pro
+- Model: Nano Banana 2
 - Prompt: the constructed prompt from Phase 2
 - Resolution: `2K` (or `4K` if brief requires hero/print quality)
 - Aspect ratio: as determined in Phase 1
@@ -181,7 +181,7 @@ Deliver generated images with metadata:
 [Full prompt text]
 
 **Parameters:**
-- Model: Nano Banana Pro
+- Model: Nano Banana 2
 - Resolution: [resolution]
 - Aspect ratio: [aspect_ratio]
 
@@ -254,7 +254,7 @@ text, no overlays.
 
 - **Rubric not available:** Do not generate. The rubric IS the prompt
   engine. Without it, you are guessing.
-- **NSFW rejections on innocent prompts:** Nano Banana Pro's filter
+- **NSFW rejections on innocent prompts:** Nano Banana 2's filter
   can be sensitive to body descriptions. Remove references to clothing
   fit, skin exposure, or body shape. Focus prompt on the product and
   setting. Describe the person minimally: "a young woman" not detailed
@@ -264,7 +264,7 @@ text, no overlays.
   product-only template.
 - **Colour drift:** Add explicit hex values or more specific colour
   names. "Blush pink (#F4C2C2)" is more precise than "soft pink."
-- **Credit budget:** Nano Banana Pro costs ~2-5 credits per generation.
+- **Credit budget:** Nano Banana 2 costs ~2-5 credits per generation.
   Flag if a batch is projected to exceed 50 credits.
 
 ## Quality Criteria
