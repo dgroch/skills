@@ -61,7 +61,7 @@ If a creator matches more than one lifecycle row, emit only the highest-priority
   ],
   "manual_review": [],
   "warnings": [],
-  "stopped_reason": "creators_cap_reached|list_exhausted|auth_required|notion_unreachable|adapter_gap"
+  "stopped_reason": "creators_cap_reached|list_exhausted|no_campaigns_in_scope|auth_required|notion_unreachable|adapter_gap|schema_gap"
 }
 ```
 

@@ -36,7 +36,8 @@ Collect these before creating records. Use AskUserQuestion when available. Do no
 - Hard gates: location, follower minimums, platform, and category exclusions.
 - Deliverables as free text.
 - Target selected count.
-- Posting deadline. Default to `7 days from receipt of gift` unless the marketer overrides.
+- Posting deadline window (relative). Default to `7 days from receipt of gift` unless the marketer overrides. Stored in `Deadline Window`.
+- Absolute posting deadline date, if the campaign has a fixed cutoff (e.g. tied to Mother's Day or a campaign-end date). Optional. Stored in `Posting Deadline`.
 - Concept descriptions. Accept one or two concepts by default.
 - One-off calibration, such as "prioritise mums with kids 0-5".
 
@@ -68,6 +69,8 @@ Before creating Notion pages, fetch the Notion enhanced Markdown spec resource i
    - `Deliverables`
    - `Target Selected`
    - `Deadline Window`
+   - `Posting Deadline` if the marketer supplied an absolute date; otherwise leave blank for the marketer to fill in once the brand-portal campaign is live.
+   - `Hashgifted URL` left blank. Captured by the marketer once the campaign is created in the Hashgifted brand portal.
    - `Notes` containing objective, shortlist calibration, and any one-off guidance.
 4. Create one Briefs row per concept with:
    - `Brief Name`
@@ -104,10 +107,14 @@ Close with:
   - paste each public URL into `Brief.Public Link`
   - open the campaign for applicants only after public links exist
 
-Use this exact reminder:
+Use these exact reminders:
 
 ```text
 Flip Share-to-web on each new brief in Notion before shortlist/selection starts; paste the public URL into Brief.Public Link.
+```
+
+```text
+After creating the campaign in the Hashgifted brand portal: paste the gift-view URL into Campaign.Hashgifted URL, set Posting Deadline if not already, and flip Status to Open for Applicants. The monitor skill will skip campaigns missing a Hashgifted URL.
 ```
 
 ## Failure Modes

@@ -5,13 +5,13 @@ description: Sweep active Hashgifted campaigns, read each creator's current life
 
 # Hashgifted Creator Monitor
 
-Sweep all `Active` Hashgifted campaigns, identify per-creator state across Hashgifted and Notion, and return a prioritised dispatch plan. This is the orchestrator for the Hashgifted lifecycle. It never performs write actions; it routes work to the per-step skills.
+Sweep all live Hashgifted campaigns (`Open for Applicants`, `Active`, `Wrapping`), identify per-creator state across Hashgifted and Notion, and return a prioritised dispatch plan. This is the orchestrator for the Hashgifted lifecycle. It never performs write actions; it routes work to the per-step skills.
 
 ## Lifecycle Boundary
 
 Reads only. The monitor:
 
-- Lists active campaigns from the Notion Campaigns DB.
+- Lists live campaigns from the Notion Campaigns DB (`Open for Applicants`, `Active`, `Wrapping`).
 - Reads campaign and creator state from Hashgifted (applicants, shortlist, selected, threads, completed gallery).
 - Reads creator timing fields from the Notion Creators DB (`Last Contacted`, scores, manual flags).
 - Applies the state machine in `hashgifted-ops-manager/references/lifecycle.md`.
@@ -56,7 +56,7 @@ The monitor itself is low-risk because it is read-only. Risk is deferred to the 
 
 ## Pre-Flight Checks
 
-- Confirm Notion connector access to the Campaigns DB and Creators DB. If unavailable, fall back to a single-campaign sweep using the user-supplied URL or stop in `plan`.
+- Confirm Notion connector access to the Campaigns DB and Creators DB. The Campaigns DB must expose `Status`, `Posting Deadline`, `Hashgifted URL`, and `Target Selected`. If a required column is missing, record `schema_gap` and stop. If the connector is unreachable, fall back to a single-campaign sweep using the user-supplied URL or stop in `plan`.
 - Confirm browser runtime is healthy and the user is logged in to Hashgifted. Do not attempt to repair authentication.
 - Confirm the runtime adapter exposes the intents in `hashgifted-browser-adapter-map/references/hashgifted-intents.md`. If a needed intent is missing for shortlisted, selected, or completed views, record `ui_changed` and continue with the readable subset.
 - Start an audit record with run id, mode, runtime, scope, caps, and start screenshot.
@@ -64,9 +64,10 @@ The monitor itself is low-risk because it is read-only. Risk is deferred to the 
 ## Sweep Sequence
 
 1. Resolve campaign list.
-   - `all_active`: query Notion Campaigns DB for status `Active` and read each campaign's Hashgifted URL.
+   - `all_active`: query Notion Campaigns DB for `Status in ("Open for Applicants", "Active", "Wrapping")` and read each campaign's `Hashgifted URL`. `Active` is the priority bucket; `Open for Applicants` is shortlist work only; `Wrapping` is closeout, late captures, and gallery sweep only.
+   - For any matching campaign with an empty `Hashgifted URL`, emit a `missing_hashgifted_url` warning, add the campaign to `manual_review`, and skip it. Do not stop the sweep.
    - Single campaign: use the supplied URL or look up by name.
-2. Order campaigns by deadline proximity, then by selected count remaining.
+2. Order campaigns by `Posting Deadline` ascending. Tie-break by `Target Selected` minus current selected-count (largest gap first), then by `Created` ascending.
 3. For each campaign, run the per-campaign loop until the per-run creator cap is reached.
 
 ## Per-Campaign Loop
@@ -79,12 +80,10 @@ Repeat for each campaign in the sweep list. Stop early if the creator cap is hit
    - Open the message centre or active threads for this campaign.
    - For each thread with a recent inbound message, `read_thread()` and look for `story link in thread`.
    - Cross-check against Notion `Last Captured Story` to skip already captured stories.
-4. Read each lifecycle bucket the runtime exposes. Apply the state machine to each creator found:
-   - Applied tab.
-   - Shortlisted tab or filter.
-   - Selected tab or filter.
-   - Completed gallery for new posts and reels.
-   - Threads for selection-message replies and ghost timing.
+4. Read each lifecycle bucket relevant to the campaign's Status and apply the state machine to each creator found:
+   - `Open for Applicants`: Applied tab only.
+   - `Active`: Applied, Shortlisted, Selected, Threads, Completed gallery.
+   - `Wrapping`: Selected, Threads, Completed gallery (Applied is closed for new entries).
 5. For every candidate creator, build one dispatch item. Use the first matching state in `lifecycle.md`. Stop at the first match per creator.
 6. Record evidence: campaign-context screenshot, optional creator-card screenshot, redacted thread excerpt for ghost timing claims.
 7. Append the dispatch item to the run plan. Increment the creator counter.
@@ -130,7 +129,9 @@ Stop when any condition is true:
 
 - Per-run creator cap reached.
 - Campaign list exhausted.
+- No campaigns matched the live-status filter (`no_campaigns_in_scope`).
 - Notion connector unreachable in `all_active` scope and no fallback URL was provided.
+- Required Campaigns DB column missing (`schema_gap`).
 - Authentication, rate limit, or page integrity issue appears.
 - The adapter cannot unambiguously identify the active creator, campaign tab, or thread.
 - A new intent is required that is not in the adapter map.

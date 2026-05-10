@@ -1,0 +1,4 @@
+interface:
+  display_name: "Hashgifted Creator Select"
+  short_description: "Message and select shortlisted creators"
+  default_prompt: "Use $hashgifted-creator-select to message shortlisted Hashgifted creators and add agreed creators to the selected roster."
