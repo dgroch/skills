@@ -51,12 +51,12 @@ Load from the dispatch plan or the Notion Campaign record. Ask only for missing 
 
 ## Run Mode Behaviour
 
-The mode is the gate. There are no per-action HIL pauses. Review happens in `dry_run`; once the marketer is satisfied, switch to `assist` or `auto` and the skill executes without further prompts.
+Sends are reversible (a misfired message can be corrected in-thread); state transitions are not (`Select` + `Accept` commits a roster slot, `Decline` ends the conversation). Modes differ on whether the irreversible writes pause for approval.
 
 - `plan`: outline the per-creator action plan from Notion + dispatch input. No browser reads.
-- `dry_run`: open threads, read state, compose drafts (initial messages, nudges, brief-options copy), classify any inbound replies, and return everything as a plan. No `compose_message`, `send_message`, `Select creator`, or `Accept this creator` calls.
-- `assist`: full reads + writes. Marketer is co-present; live audit log and screenshots are the review surface.
-- `auto`: identical writes to `assist`. Intended for unattended scheduled runs.
+- `dry_run`: open threads, read state, compose drafts (initial messages, nudges, brief-options copy), classify any inbound replies, and return everything as a plan. No `compose_message`, `send_message`, `Select creator`, `Accept this creator`, or Notion `Status` writes.
+- `assist`: full reads + writes. Sends (`selection_initial`, `nudge_3d`, `nudge_7d`, `brief_options`) execute without prompts. The skill pauses for a single approval before each irreversible write — the `Select creator` + `Accept this creator` sequence, and any post-shortlist `Status = Declined` write. Approval is per creator, not per click.
+- `auto`: full reads + writes with no approval prompts. Intended for unattended scheduled runs.
 
 Structural safeguards apply in every mode that writes (see Pre-Flight, Per-Creator Loop, and Stop Rules). The skill never "guesses" past ambiguity to keep up momentum.
 
@@ -84,9 +84,9 @@ Repeat for each creator in scope until the per-run send cap is reached, the crea
    - **`selection_initial`**: compose using `references/selection-message-template.md` skeleton + 2-3 personalised hooks pulled from the shortlist signals or thread context. `compose_message(text)`, screenshot draft, `send_message()`, `wait_for_change("message sent")`. Update Notion `Last Contacted`.
    - **`nudge_3d` / `nudge_7d`**: use the matching nudge variant in the template reference. Same send sequence and Notion update.
    - **Inbound = positive (no brief picked yet)**: send the brief-options message using the campaign's linked Briefs. Same send sequence and Notion update.
-   - **Inbound = brief picked**: re-confirm the picked brief is one linked to this campaign. Click `Select creator`, screenshot, `wait_for_change` to detect the Accept modal, click `Accept this creator`, screenshot, wait for state change. Write Notion `Status = Selected`, record the chosen brief.
+   - **Inbound = brief picked**: re-confirm the picked brief is one linked to this campaign. In `assist`, surface the creator + chosen brief and pause for a single approval before proceeding; in `auto`, proceed without prompting. Click `Select creator`, screenshot, `wait_for_change` to detect the Accept modal, click `Accept this creator`, screenshot, wait for state change. Write Notion `Status = Selected`, record the chosen brief.
    - **Inbound = question or soft yes**: log `manual_review` with the question. Do not auto-respond.
-   - **Inbound = negative**: write Notion `Status = Declined` with reason `creator declined post-shortlist`. Do not send further messages.
+   - **Inbound = negative**: in `assist`, surface the inbound and pause for approval before writing; in `auto`, proceed. Write Notion `Status = Declined` with reason `creator declined post-shortlist`. Do not send further messages.
    - **Inbound = ambiguous**: log `manual_review`.
 7. Audit: append send/Select event with creator id, intent, screenshot before/after, and any warnings.
 8. Decrement the send cap (sends only; `Select` clicks do not count against the cap). Continue or exit.
