@@ -1,4 +1,16 @@
-# Video Remix — SKILL.md
+---
+name: creative-video-transformation
+description: Use when transforming an existing video into a new video with changed character, scene, script, or style while preserving pacing through shot decomposition, keyframe regeneration, Higgsfield image/video generation, and FFmpeg assembly.
+version: 1.0.0
+author: Hermes Agent
+license: MIT
+metadata:
+  hermes:
+    tags: [creative, video, higgsfield, remix, image-to-video, ffmpeg]
+    related_skills: [creative-higgsfield-client]
+---
+
+# Video Remix
 
 ## Purpose
 
@@ -109,7 +121,7 @@ CRITICAL RULES:
 1. Load `remix_plan.json`.
 2. For each shot, run the CLI to generate the edited keyframe:
    ```bash
-   higgsfield generate create seedream_4_5 \
+   higgsfield generate create seedream_v4_5 \
      --prompt "<nano_banana_prompt>" \
      --image ./work/keyframes/shot_NNN.png \
      --aspect_ratio 16:9 \
@@ -273,4 +285,4 @@ pip install scenedetect[opencv] requests
 
 ## Model Discovery
 
-Use `higgsfield model list --json` to browse available models and `higgsfield model get <model_id> --json` to inspect parameters. The pipeline defaults to `seedream_4_5` for image edit and `seedance_2_0` for image-to-video.
+Use `higgsfield model list --json` to browse available models and `higgsfield model get <model_id> --json` to inspect parameters. The pipeline defaults to `seedream_v4_5` for image edit and `seedance_2_0` for image-to-video.

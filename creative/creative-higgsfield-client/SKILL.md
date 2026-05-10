@@ -49,7 +49,7 @@ higgsfield generate create <model_id> --prompt "..." [--image <path-or-id>] [--a
 | `text2image_soul_v2` | Portraits, fashion, UGC, editorial |
 | `soul_cast` | Text-only character/avatar |
 | `soul_location` | Locations, environments, no-people scenes |
-| `seedream_4_5` | Vector illustrations, face edit + scene swap |
+| `seedream_v4_5` | Vector illustrations, face edit + scene swap |
 | `marketing_studio_image` | Commercial/product/ads |
 
 ### Using reference images

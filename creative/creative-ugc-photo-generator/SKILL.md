@@ -1,6 +1,6 @@
 ---
 name: creative-ugc-photo-generation
-description: Generate AI-powered UGC-style photography using Higgsfield AI (Nano Banana Pro model).
+description: Generate AI-powered UGC-style photography using Higgsfield AI (Nano Banana 2 model).
 author: Dan Groch
 ---
 
@@ -37,7 +37,7 @@ If either is missing, escalate before proceeding.
 
 ## Model & Parameters
 
-**Model:** Nano Banana Pro (text-to-image via `creative-higgsfield-client` skill)
+**Model:** Nano Banana 2 (text-to-image via `creative-higgsfield-client` skill)
 
 **Default parameters to pass to `creative-higgsfield-client`:**
 
@@ -138,7 +138,7 @@ a fashion editorial. Shot at eye level, three-quarter body framing.
 Run the generation using the `higgsfield` CLI:
 
 ```bash
-higgsfield generate create nano_banana_pro \
+higgsfield generate create nano_banana_2 \
   --prompt "<constructed prompt from Phase 2>" \
   --aspect_ratio 4:5 \
   --resolution 2k \
@@ -185,7 +185,7 @@ Deliver generated images with metadata:
 [Full prompt text]
 
 **Parameters:**
-- Model: Nano Banana Pro
+- Model: Nano Banana 2
 - Resolution: [resolution]
 - Aspect ratio: [aspect_ratio]
 
