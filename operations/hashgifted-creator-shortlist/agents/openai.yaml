@@ -1,0 +1,4 @@
+interface:
+  display_name: "Hashgifted Creator Shortlist"
+  short_description: "Qualify creators before selection"
+  default_prompt: "Use $hashgifted-creator-shortlist to qualify Hashgifted applicants for a campaign shortlist."

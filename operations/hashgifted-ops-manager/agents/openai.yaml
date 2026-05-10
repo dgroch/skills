@@ -1,0 +1,4 @@
+interface:
+  display_name: "Hashgifted Ops Manager"
+  short_description: "Manage portable Hashgifted creator operations"
+  default_prompt: "Use $hashgifted-ops-manager to plan or run a Hashgifted influencer campaign workflow with audit logging."

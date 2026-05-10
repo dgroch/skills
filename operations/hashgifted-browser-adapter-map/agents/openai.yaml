@@ -1,0 +1,4 @@
+interface:
+  display_name: "Hashgifted Browser Adapter Map"
+  short_description: "Concrete Hashgifted browser intent mapping"
+  default_prompt: "Use $hashgifted-browser-adapter-map to map a Hashgifted workflow to portable browser_operator intents."
