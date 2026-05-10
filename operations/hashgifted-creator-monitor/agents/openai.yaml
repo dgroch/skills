@@ -1,0 +1,4 @@
+interface:
+  display_name: "Hashgifted Creator Monitor"
+  short_description: "Sweep active campaigns and plan next actions"
+  default_prompt: "Use $hashgifted-creator-monitor to sweep active Hashgifted campaigns and produce a dispatch plan."
