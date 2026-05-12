@@ -29,6 +29,20 @@ Treat Shortlisted candidates as a conversation and qualification queue.
 - Route escalations, ambiguous replies, unhappy/damaged-flower messages, payment requests, deadline-extension requests, or product-change requests to manual review.
 - When a selected/accepted creator has booked/placed their order, and no equivalent acknowledgement is visible in the thread, send the approved post-selection order acknowledgement from `selection-message-template.md`. This is a proactive quality-control message: thank them, invite questions, and ask them to tell us if flowers arrive below standard so Fig & Bloom can organise re-delivery rather than the creator fulfilling with substandard florals.
 
+### Human-in-loop blocker taxonomy
+
+When a replied Shortlisted creator cannot be selected or declined automatically, report them in one of these explicit buckets so Daniel can unblock lifecycle logic rather than reading raw chats:
+
+- `selectable_now`: all gates are confirmed; only cadence/ranking may delay selection.
+- `missing_gate`: positive reply but one gate is absent. Ask only the missing gate; no human decision needed.
+- `delivery_outside_confirmed`: creator explicitly says they are outside Melbourne/Sydney/Brisbane metro or says “no” after delivery-area check. Safe default is mark not eligible / decline post-shortlist with a warm note unless Daniel changes delivery rules.
+- `delivery_edge_question`: creator asks if a nearby region works, e.g. Geelong, Gold Coast, Sunshine Coast, Bannockburn. Use policy, not ad-hoc judgement. Current default: not eligible unless Daniel has approved the region or it falls within the 30km metro-radius rule.
+- `product_exception`: creator asks for a vase, different bouquet, payment, or other exception. Requires Daniel approval unless a matching one-off override exists.
+- `creative_format_question`: creator asks about VO, text-on-screen, caption style, or similar execution detail. Needs a standing approved answer; until then report for Daniel.
+- `negative_but_warm`: creator is interested but cannot participate due to delivery or fit. Close politely and do not keep nudging.
+
+Reports should include recommended next action and the smallest policy question needed to make the same case automatic next time.
+
 ## Recurring Jobs
 
 Register separate recurring cron jobs rather than one monolith:
