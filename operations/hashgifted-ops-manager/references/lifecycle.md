@@ -10,7 +10,7 @@ Required campaign inputs:
 
 - Campaign name.
 - Objective: audience awareness, content library, or both.
-- Hard gates: location, follower minimums, platform, exclusions. For Fig & Bloom, delivery location is limited to Melbourne, Sydney, and Brisbane metro areas.
+- Hard gates: location, follower minimums, platform, exclusions. For the current Fig & Bloom bouquet round, delivery is approved for Melbourne/Sydney/Brisbane metro plus Geelong, Bannockburn, Sunshine Coast, and Gold Coast; edge regions ship by overnight courier in a large box. Continue escalating new/other out-of-range delivery questions because delivery business logic is evolving.
 - Deliverables as free text.
 - Target selected count.
 - Posting deadline, defaulting to 7 days from receipt of gift unless overridden.
@@ -30,7 +30,7 @@ Apply in order; first match wins.
 | Selection message sent, no creator reply, +3 days | Dispatch gentle nudge |
 | Selection message sent, no creator reply, +7 days | Dispatch final reply nudge |
 | Selection message sent, no creator reply, +10 days | Dispatch `hashgifted-creator-close` with ghost path |
-| Creator confirms Melbourne/Sydney/Brisbane metro eligibility and agrees to messaging, deliverables, and deadline | `hashgifted-creator-select` may mark Selected |
+| Creator confirms current-round delivery eligibility and agrees to messaging, deliverables, and deadline | `hashgifted-creator-select` may mark Selected |
 | Selected/Accepted creator has booked/placed their flower order, and no order acknowledgement has been sent | Send booked-order acknowledgement and care/escalation note |
 | Selected, no post detected, deadline -2 days | Dispatch deadline reminder |
 | Selected, past deadline, no post, +7 days | Dispatch final deadline nudge |
@@ -45,10 +45,10 @@ Apply in order; first match wins.
 - `Last Contacted` in Notion is the source of truth for nudge timing.
 - `Applied` means the creator has applied in Hashgifted and has not been qualified.
 - `Shortlisted` means the creator passed campaign/aesthetic qualification, but has not been contacted or selected.
-- `Selected` means the creator has confirmed delivery eligibility and agreed to campaign messaging, required deliverables, and deadlines, then was accepted in Hashgifted.
+- `Selected` means the creator has confirmed current-round delivery eligibility and agreed to campaign messaging, required deliverables, and deadlines, then was accepted in Hashgifted.
 - `Booked` / `Order placed` means the selected creator has completed the Hashgifted post-selection booking/order flow. This deserves a warm acknowledgement, but do not ask for address/details in chat.
-- Do not ask for detailed delivery address information in Hashgifted chat. It appears to trigger a Hashgifted system/safety message. Ask only for Melbourne/Sydney/Brisbane metro eligibility during selection; leave detailed delivery/order data to Hashgifted's post-selection booking flow.
-- `Metro eligible` means the creator confirms they live in Melbourne, Sydney, or Brisbane metro. Inferred profile location is useful for prioritisation but not enough for final selection unless already explicit. A creator “30km out of Brisbane” qualifies as Brisbane metro for profile-inference purposes; apply the same 30km-radius rule to Melbourne/Sydney/Brisbane unless the campaign says otherwise.
+- Do not ask for detailed delivery address information in Hashgifted chat. It appears to trigger a Hashgifted system/safety message. Ask only for broad delivery-region eligibility during selection; leave detailed delivery/order data to Hashgifted's post-selection booking flow.
+- `Delivery eligible` for the current bouquet round means the creator confirms Melbourne/Sydney/Brisbane metro, Geelong, Bannockburn, Sunshine Coast, or Gold Coast. Edge-region flowers ship by overnight courier in a large box. A creator “30km out of Brisbane” qualifies as Brisbane metro for profile-inference purposes; apply the same 30km-radius rule to Melbourne/Sydney/Brisbane unless the campaign says otherwise. Continue escalating new/other out-of-range delivery questions rather than auto-declining because delivery business logic is still evolving.
 - `Captured` means asset is downloaded, organised, synced to public CDN if required, and embedded or logged in Notion.
 - `Declined` is available any time before completion, but should be used with clear reason and audit evidence.
 

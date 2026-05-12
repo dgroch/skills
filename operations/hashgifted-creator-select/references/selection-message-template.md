@@ -21,7 +21,7 @@ Skeleton:
 > [brief_1_url]
 > [brief_2_url]
 >
-> If you're keen, could you please confirm you're based in Melbourne, Sydney or Brisbane metro, happy to create an IG Reel, and which direction feels most natural for you? If both spark ideas, just let us know which one you'd be excited to bring to life.
+> If you're keen, could you please confirm you're in one of our current delivery areas, happy to create an IG Reel, and which direction feels most natural for you? If both spark ideas, just let us know which one you'd be excited to bring to life.
 
 Single-brief variant:
 
@@ -29,7 +29,7 @@ Single-brief variant:
 >
 > We'd love to send you a Fig & Bloom gift for our [campaign_name] campaign. We think there’s a lovely story here for your audience, and this is the creative direction we’re inviting creators to make their own: [brief_1_url].
 >
-> If you're keen, could you please confirm you're based in Melbourne, Sydney or Brisbane metro, happy to create an IG Reel, and that this direction feels natural for you?
+> If you're keen, could you please confirm you're in one of our current delivery areas, happy to create an IG Reel, and that this direction feels natural for you?
 
 ## Hook Guidance
 
@@ -98,8 +98,8 @@ Single-option skeleton:
 
 - Australian English throughout.
 - Lowercase "you" not "You" mid-sentence.
-- One qualification ask can contain the required gates: metro city, Reel acceptance, and brief comfort/preference. Do not also stack delivery address, timing flexibility, or extra production requirements into the same message.
-- Do not ask creators to send detailed delivery address information in the Hashgifted chat. This appears to trigger a Hashgifted system/safety message. Only ask for broad metro eligibility (Melbourne/Sydney/Brisbane); detailed delivery details should be handled by Hashgifted's post-selection/order flow.
+- One qualification ask can contain the required gates: current delivery-region eligibility, Reel acceptance, and brief comfort/preference. Do not also stack delivery address, timing flexibility, or extra production requirements into the same message.
+- Do not ask creators to send detailed delivery address information in the Hashgifted chat. This appears to trigger a Hashgifted system/safety message. Only ask for broad delivery-region eligibility; detailed delivery details should be handled by Hashgifted's post-selection/order flow.
 - Do not promise payment, exclusivity, or repeat campaign opportunities.
 - After order booking, acknowledge the booking and proactively invite condition issues/questions. Make clear that if flowers arrive below standard, Fig & Bloom would rather organise re-delivery than have the creator fulfil with substandard florals.
 - Do not include legal terms or disclosure language inside the selection thread; that lives in the brief page.
@@ -113,6 +113,7 @@ For the current Marseille/Savoie/Umbria bouquet round, Daniel approved:
 - Selection cadence: maximum 2 selected creators per campaign per week.
 - With three campaigns in scope, the practical global weekly cap is 6 gifts per week.
 - Use ranking to sequence selection within each cadence window; qualified creators beyond the cadence cap remain reserve for the next week.
+- Current approved delivery areas for this bouquet round: Melbourne/Sydney/Brisbane metro plus Geelong, Bannockburn, Sunshine Coast, and Gold Coast. Edge regions ship by overnight courier in a large box. Escalate new/other out-of-range delivery questions to Daniel rather than auto-declining.
 
 ## Q&A Answer Bank
 
@@ -132,10 +133,26 @@ Use these only when the inbound question is clearly covered. In `assist`, draft 
 
 ### Delivery area eligibility
 
-> At the moment this campaign is only deliverable to Melbourne, Sydney and Brisbane metro areas. Are you based in one of those?
+> For this campaign, we can deliver to Melbourne, Sydney and Brisbane metro, plus Geelong, Bannockburn, Sunshine Coast and Gold Coast. If you're in one of those areas, we can make this work.
+
+### Approved edge delivery region
+
+Use when a creator asks about Geelong, Bannockburn, Sunshine Coast or Gold Coast.
+
+> Yes, we can make that work for this campaign — we'll ship by overnight courier in a large box. If you're still happy with the brief and the IG Reel deliverable, we'd love to go ahead.
+
+### Creative format: voiceover / text on screen
+
+> Voiceover is optional — text on screen and/or caption is fine, as long as the story is clear and aligned with the brief.
+
+### One-off product exception approved
+
+Use only when Daniel has explicitly approved the specific exception for this creator/campaign, e.g. in `/opt/data/tmp/hashgifted-manual-overrides.json`.
+
+> Yes, we can make that work for this campaign. If you're still happy with the brief and the IG Reel deliverable, we'd love to go ahead.
 
 ### Creator asks where/how to provide address
 
-> Once you're selected, Hashgifted will take you through the booking/order flow for delivery details. For now we just need to confirm you're in Melbourne, Sydney or Brisbane metro.
+> Once you're selected, Hashgifted will take you through the booking/order flow for delivery details. For now we just need to confirm you're in one of our current delivery areas.
 
 Escalate rather than answer if the creator is unhappy, reports flowers missing/damaged/not matching the website image, asks for payment, requests a deadline extension, wants a different product, or appears at risk of leaving a negative review.

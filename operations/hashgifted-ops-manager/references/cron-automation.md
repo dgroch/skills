@@ -22,7 +22,7 @@ Treat Shortlisted candidates as a conversation and qualification queue.
 
 - Re-read every live Shortlisted thread before deciding.
 - Reply to high-confidence, answerable questions using the approved answer bank.
-- Ask only for missing qualification gates: Melbourne/Sydney/Brisbane metro, IG Reel acceptance, and brief preference/understanding.
+- Ask only for missing qualification gates: current-round delivery eligibility, IG Reel acceptance, and brief preference/understanding.
 - Select only fully qualified creators and only inside the configured cadence.
 - For the current Marseille/Savoie/Umbria bouquet round: max 2 selections per campaign per week, global cap 6/week, creators may choose either public brief.
 - Leave cadence-overflow qualified creators as reserve; do not decline them.
@@ -35,10 +35,10 @@ When a replied Shortlisted creator cannot be selected or declined automatically,
 
 - `selectable_now`: all gates are confirmed; only cadence/ranking may delay selection.
 - `missing_gate`: positive reply but one gate is absent. Ask only the missing gate; no human decision needed.
-- `delivery_outside_confirmed`: creator explicitly says they are outside Melbourne/Sydney/Brisbane metro or says “no” after delivery-area check. Safe default is mark not eligible / decline post-shortlist with a warm note unless Daniel changes delivery rules.
-- `delivery_edge_question`: creator asks if a nearby region works, e.g. Geelong, Gold Coast, Sunshine Coast, Bannockburn. Use policy, not ad-hoc judgement. Current default: not eligible unless Daniel has approved the region or it falls within the 30km metro-radius rule.
-- `product_exception`: creator asks for a vase, different bouquet, payment, or other exception. Requires Daniel approval unless a matching one-off override exists.
-- `creative_format_question`: creator asks about VO, text-on-screen, caption style, or similar execution detail. Needs a standing approved answer; until then report for Daniel.
+- `delivery_outside_confirmed`: creator explicitly says they are outside current approved delivery areas. Escalate to Daniel rather than auto-closing, because delivery policy is evolving.
+- `delivery_edge_question`: creator asks if a nearby region works. Current bouquet round approved edge regions: Geelong, Bannockburn, Sunshine Coast, and Gold Coast. Reply with the approved edge-delivery answer and continue qualification for those regions; escalate other regions.
+- `product_exception`: creator asks for a vase, different bouquet, payment, or other exception. Requires Daniel approval unless a matching one-off override exists. If an override exists, reply with approval and continue selection.
+- `creative_format_question`: creator asks about VO, text-on-screen, caption style, or similar execution detail. Current approved answer: voiceover is optional; text on screen and/or caption is fine, as long as the story is clear and aligned with the brief.
 - `negative_but_warm`: creator is interested but cannot participate due to delivery or fit. Close politely and do not keep nudging.
 
 Reports should include recommended next action and the smallest policy question needed to make the same case automatic next time.
@@ -115,10 +115,10 @@ Task:
 5. If our last message has no inbound reply and timing qualifies, send +3 day or +7 day nudge.
 6. If latest inbound is high-confidence answerable, reply from the approved answer bank.
 7. If latest inbound is positive but missing gates, ask only for missing gates.
-8. If latest inbound fully confirms metro eligibility, IG Reel acceptance, and brief preference/understanding, select the creator only if the campaign/week cadence allows it. Current bouquet cadence: max 2 selected per campaign per week; global max 6/week.
+8. If latest inbound fully confirms current-round delivery eligibility, IG Reel acceptance, and brief preference/understanding, select the creator only if the campaign/week cadence allows it. Current bouquet cadence: max 2 selected per campaign per week; global max 6/week. Current approved delivery regions: Melbourne/Sydney/Brisbane metro plus Geelong, Bannockburn, Sunshine Coast, and Gold Coast. Edge regions ship by overnight courier in a large box.
 9. If cadence is full, leave qualified creators as reserve and report them.
 10. If latest inbound is explicit negative, mark declined post-shortlist; do not send further messages.
-11. If ambiguous/escalated/payment/extension/product issue/unhappy/damaged flowers, report manual review and do not respond.
+11. If ambiguous/escalated/payment/extension/product issue/unhappy/damaged flowers, report manual review and do not respond, except when a matching Daniel-approved override exists in `/opt/data/tmp/hashgifted-manual-overrides.json`; in that case reply with the approved answer and continue selection.
 12. Verify sends with exact readback and selections by live row status re-fetch.
 13. Return concise counts by campaign: messages sent by type, order acknowledgements sent, selected, declined, reserves, manual review, failures, warnings, audit artifact paths.
 ```
