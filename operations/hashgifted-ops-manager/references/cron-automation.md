@@ -58,6 +58,14 @@ Load and follow Fig & Bloom/Hashgifted rules from:
 - /opt/data/workspace/dgroch-skills/operations/hashgifted-ops-manager/references/cron-automation.md
 - /opt/data/workspace/dgroch-skills/operations/hashgifted-creator-shortlist/SKILL.md
 - /opt/data/skills/business-development/fig-bloom-operations/references/hashgifted-influencer-shortlisting.md
+- /opt/data/skills/productivity/notion/references/hashgifted-notion-access.md
+
+Notion campaign discovery:
+- Load `/opt/data/.env` before Notion API calls; never print secrets.
+- Use Notion API version `2025-09-03`.
+- Query Campaigns with the data source endpoint: `POST /v1/data_sources/a8602813-2cca-4f84-8c99-fad58b5c014b/query`.
+- Verified IDs: UGC Hub page `35bfdc24-425f-80b1-99df-ea0d2b615ab9`; Campaigns data source `a8602813-2cca-4f84-8c99-fad58b5c014b`; Briefs data source `cc0a447f-7d17-4f26-9d2f-dcf007549a7a`; Creators data source `221846a5-866d-43ef-bb19-6883fe1c2bdb`.
+- If Notion returns 404, treat it as target integration access or wrong endpoint/version, then fall back to the known current campaign set plus live Gifted rows. Do not create duplicate Campaigns databases.
 
 Task:
 1. Discover active/open Fig & Bloom Hashgifted campaigns from the known current campaign set and/or Notion Campaigns DB if available.
