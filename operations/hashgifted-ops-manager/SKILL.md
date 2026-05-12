@@ -17,6 +17,8 @@ Use this as the operating brain for Hashgifted influencer campaigns. It coordina
 - Read `references/audit-log.md` before any live browser action or external write.
 - Read `references/story-capture.md` for Instagram story handling.
 - Read `references/skill-suite.md` when authoring or refactoring the individual lifecycle skills.
+- Read `references/build-state.md` before resuming the Fig & Bloom Hashgifted workflow build.
+- Read `references/cron-automation.md` before registering or modifying recurring Hashgifted cron jobs.
 
 ## Architecture
 
@@ -40,7 +42,7 @@ Support four run modes in every Hashgifted operation:
 
 Ask for confirmation before high-risk actions unless the user explicitly chose `auto` and the workflow has been proven.
 
-High-risk actions include creator select, decline, exclusion, message send, mark complete, campaign status changes, and public-facing updates.
+High-risk actions include creator select, decline, exclusion, message send, mark complete, campaign status changes, and public-facing updates. Creator messages are draft-only unless the run mode is explicitly `auto` or Daniel approves the individual draft in `assist`.
 
 ## Lifecycle Dispatch
 
@@ -69,7 +71,11 @@ Stories decay fastest, so capture or escalate them immediately.
 
 ## Message Tone
 
-Use warm, plain-spoken Australian English. Keep creator messages short and specific. Avoid salesy language, overpromising future work, internal jargon, or framing deliverables as homework.
+Use warm, professional, plain-spoken Australian English. Keep creator messages short and specific. Avoid corporate phrasing, salesy language, overpromising future work, internal jargon, or framing deliverables as homework.
+
+## Fig & Bloom Delivery Eligibility
+
+Hashgifted campaigns are deliverable only to Melbourne, Sydney, and Brisbane metro areas. Before a creator can be selected, confirm they live in one of those metro areas. If location is unknown or only loosely inferred, ask the creator during the selection/qualification message rather than declining on weak evidence.
 
 ## Build Order
 

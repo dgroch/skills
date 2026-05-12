@@ -62,6 +62,7 @@ In `auto`, process every currently live applicant in the requested open campaign
 - Read campaign status: `read_card("campaign status")`.
 - Stop if there are no applicants or the requested run limit has already been reached.
 - Start an audit record with campaign, mode, runtime, and initial screenshot.
+- For unattended cron runs, also read `hashgifted-ops-manager/references/cron-automation.md` and honour its Applied-candidate policy: auto-shortlist high-confidence fits; leave maybe/low-confidence rows Applied/manual-review; do not message Applied candidates; do not auto-decline unless explicitly enabled for hard blockers.
 
 ## Per-Applicant Loop
 
