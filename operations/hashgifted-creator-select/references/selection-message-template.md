@@ -8,16 +8,25 @@ Structure:
 
 1. Greeting with first name.
 2. One personalised hook (1 sentence).
-3. The ask: confirm interest, deliverables summary, deadline.
-4. Light close inviting a yes.
+3. Share the approved Notion brief link(s), using public links only.
+4. The ask: confirm metro delivery eligibility, IG Reel acceptance, brief preference/understanding, and interest.
+5. Light close inviting a yes.
 
 Skeleton:
 
 > Hey [first_name], [hook].
 >
-> We'd love to send you a Fig & Bloom gift for our [campaign_name] campaign — the brief is [deliverables_summary], to be posted within [deadline_window] of receiving the gift.
+> We'd love to send you a Fig & Bloom gift for our [campaign_name] campaign. Here are the brief options: [brief_1_url] / [brief_2_url].
 >
-> If you're keen, we'll send through the brief options to choose from. Let us know!
+> If you're keen, could you please confirm you're based in Melbourne, Sydney or Brisbane metro, happy to create an IG Reel, and comfortable with one of those brief directions? If both work, just let us know which one feels more you.
+
+Single-brief variant:
+
+> Hey [first_name], [hook].
+>
+> We'd love to send you a Fig & Bloom gift for our [campaign_name] campaign. Here is the brief: [brief_1_url].
+>
+> If you're keen, could you please confirm you're based in Melbourne, Sydney or Brisbane metro, happy to create an IG Reel, and comfortable with that brief direction?
 
 ## Hook Guidance
 
@@ -49,9 +58,9 @@ Both nudges reference the prior message obliquely; do not restate the full ask.
 
 > Hi [first_name], last check-in on this one — we'll need to move on if we don't hear back by the end of the week. No worries either way, and thanks for considering.
 
-## Brief Options Message (after positive reply)
+## Brief Options / Missing Gate Message
 
-Send only after a reply classified `positive` per `reply-classification.md`. Use the briefs linked to the Campaign record. If only one brief is linked, send a single-option variant.
+The initial qualification message should normally include brief links. Use this only when the first message could not include briefs, or when a reply is positive but missing one or more required gates. Ask only for the missing gate(s); do not restate everything. Use the briefs linked to the Campaign record or the approved shared-brief config. If only one brief is linked, use the single-option variant.
 
 Two-option skeleton:
 
@@ -61,6 +70,10 @@ Two-option skeleton:
 > Option 2: [brief_2_url] — [brief_2_one_line]
 >
 > Pick whichever feels more you. Once you let us know, we'll get the gift on its way.
+
+Missing-gates skeleton:
+
+> Amazing, thank you. Just before we lock anything in, could you please confirm [missing_gate_question]? Once we have that, we can move to final selection.
 
 Single-option skeleton:
 
@@ -72,6 +85,38 @@ Single-option skeleton:
 
 - Australian English throughout.
 - Lowercase "you" not "You" mid-sentence.
-- One ask per message. Do not stack delivery address, timing flexibility, and brief picking into one message.
+- One qualification ask can contain the required gates: metro city, Reel acceptance, and brief comfort/preference. Do not also stack delivery address, timing flexibility, or extra production requirements into the same message.
 - Do not promise payment, exclusivity, or repeat campaign opportunities.
 - Do not include legal terms or disclosure language inside the selection thread; that lives in the brief page.
+- Do not send private Notion workspace URLs. Use the public/share-to-web brief link stored on the Brief record.
+
+## Current Fig & Bloom Bouquet Round Config
+
+For the current Marseille/Savoie/Umbria bouquet round, Daniel approved:
+
+- Creators across all three campaigns may choose either Brief 1 or Brief 2 rather than requiring a one-to-one campaign-to-brief mapping.
+- Selection cadence: maximum 2 selected creators per campaign per week.
+- With three campaigns in scope, the practical global weekly cap is 6 gifts per week.
+- Use ranking to sequence selection within each cadence window; qualified creators beyond the cadence cap remain reserve for the next week.
+
+## Q&A Answer Bank
+
+Use these only when the inbound question is clearly covered. In `assist`, draft and ask Daniel before sending. In `auto`, send only when high-confidence and no escalation rule applies.
+
+### Delivery timing
+
+> Once selected, you can book your gift after we've shortlisted the gift recipients for that week. We only select a fixed number each week so we can manage flower availability and florist time. If you place your order before 1pm, you can choose same-day delivery.
+
+### Deliverables
+
+> The deliverables are in the brief for this campaign — usually static images or an Instagram reel, depending on the campaign. Happy to clarify anything in the brief if a part is unclear.
+
+### Posting timing and collaborator tag
+
+> We ask creators to post within 7 days of placing their order, and to tag Fig & Bloom as a collaborator in the post.
+
+### Delivery area eligibility
+
+> At the moment this campaign is only deliverable to Melbourne, Sydney and Brisbane metro areas. Are you based in one of those?
+
+Escalate rather than answer if the creator is unhappy, reports flowers missing/damaged/not matching the website image, asks for payment, requests a deadline extension, wants a different product, or appears at risk of leaving a negative review.
