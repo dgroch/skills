@@ -39,6 +39,8 @@ Examples:
 - "when do I need to post?"
 - "do I need to tag you as collaborator?"
 - "I'm in Brisbane, is that ok?"
+- "where do I send my address?"
+- "how do I provide delivery details?"
 
 Action: draft the approved answer. In `assist`, ask Daniel before sending. In `auto`, send only at high confidence.
 

@@ -113,6 +113,7 @@ Under-sending is better than sending on weak evidence. A skipped creator is reco
 
 ## Failure Handling
 
+- **Detailed delivery addresses in chat:** Do not ask creators to type street address/unit/recipient details in Hashgifted messages. This appears to trigger a Hashgifted system/safety message. Selection messages should ask only for broad Melbourne/Sydney/Brisbane metro eligibility; address/order details are handled later by Hashgifted's post-selection booking flow.
 - Composer renders but `Send message` does not confirm: do not click again. Re-read the thread; if the message is visible, log success and continue. If not, mark `send_failed` and skip.
 - Select click does not surface the Accept modal: stop and flag `select_modal_missing`. Do not retry.
 - Notion write fails after a successful send or Select: continue, log `notion_write_failed` with the missing field. The Hashgifted state is the source of truth; the next monitor sweep will reconcile.

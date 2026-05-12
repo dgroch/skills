@@ -89,6 +89,7 @@ Single-option skeleton:
 - Australian English throughout.
 - Lowercase "you" not "You" mid-sentence.
 - One qualification ask can contain the required gates: metro city, Reel acceptance, and brief comfort/preference. Do not also stack delivery address, timing flexibility, or extra production requirements into the same message.
+- Do not ask creators to send detailed delivery address information in the Hashgifted chat. This appears to trigger a Hashgifted system/safety message. Only ask for broad metro eligibility (Melbourne/Sydney/Brisbane); detailed delivery details should be handled by Hashgifted's post-selection/order flow.
 - Do not promise payment, exclusivity, or repeat campaign opportunities.
 - Do not include legal terms or disclosure language inside the selection thread; that lives in the brief page.
 - Do not send private Notion workspace URLs. Use the public/share-to-web brief link stored on the Brief record.
@@ -121,5 +122,9 @@ Use these only when the inbound question is clearly covered. In `assist`, draft 
 ### Delivery area eligibility
 
 > At the moment this campaign is only deliverable to Melbourne, Sydney and Brisbane metro areas. Are you based in one of those?
+
+### Creator asks where/how to provide address
+
+> Once you're selected, Hashgifted will take you through the booking/order flow for delivery details. For now we just need to confirm you're in Melbourne, Sydney or Brisbane metro.
 
 Escalate rather than answer if the creator is unhappy, reports flowers missing/damaged/not matching the website image, asks for payment, requests a deadline extension, wants a different product, or appears at risk of leaving a negative review.
