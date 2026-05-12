@@ -8,12 +8,12 @@ Apply rules in order. First hard failure wins.
 
 Recommend `decline` when the creator fails a non-negotiable campaign gate:
 
-- Location outside the allowed region.
+- Location outside the allowed region. For Fig & Bloom, allowed delivery regions are Melbourne, Sydney, and Brisbane metro areas only.
 - Required platform missing.
 - Follower minimum not met when the campaign has a true minimum.
 - Excluded category present.
 
-If the hard gate evidence is not reliable, use `manual_review` rather than decline.
+If the hard gate evidence is not reliable, use `manual_review` rather than decline. If the creator appears otherwise strong but delivery location is merely unconfirmed, mark the recommendation with warning `metro_eligibility_unconfirmed` so `hashgifted-creator-select` asks before final selection.
 
 ## Brand Safety
 
@@ -51,12 +51,27 @@ Apply `hashgifted-ops-manager/references/brand-aesthetic-rubric.md`.
 
 Recommend `shortlist` when the creator is a strong fit for the shared rubric and the current campaign objective.
 
+Strong shortlist signals observed in successful Fig & Bloom bouquet runs:
+
+- Home/interiors/styling contexts where flowers can naturally appear on a bench, table, shelf, entry, bedroom, or living space.
+- Motherhood/family creators with warm home routines, young children, gifting occasions, nursery/family table scenes, or authentic domestic storytelling.
+- Hosting, food, cafe, recipe, table setting, celebration, wedding/bridal, self-care, and lifestyle grids that can plausibly frame a bouquet as a gift or occasion moment.
+- Soft/premium visuals: natural light, clean neutrals, gentle colour, editorial lifestyle, uncluttered compositions, or existing floral/bouquet imagery.
+- Prior successful/relevant brand behaviour, especially visible Fig & Bloom, floral, gifting, hamper, home, food, beauty, or self-care sponsored content.
+
+Weak or pass signals for bouquet shortlisting, unless another strong compensating signal is present:
+
+- Fashion-only, bikini/glamour-only, travel-only, nightlife/event-only, performance/theatre-only, pet-only, fitness-only, text/meme-heavy, product-spam, or generic beauty/skincare grids with no plausible bouquet/home/occasion context.
+- Controversial political content, inflammatory commentary, or brand-adjacent safety risk.
+- Very low visible quality or chaotic UGC where flowers would feel cheap/transactional rather than premium.
+- Follower count alone without visual fit; high reach is not enough if the grid cannot carry a Fig & Bloom bouquet naturally.
+
 ## Campaign Calibration
 
 Apply the one-off campaign note after hard gates and safety:
 
 - Mother's Day: mums, family creators, lifestyle, beauty, food, and emotionally warm content are strong signals.
-- Local campaigns: location confidence matters more than follower count.
+- Local campaigns: location confidence matters more than follower count; for Fig & Bloom, final selection requires explicit Melbourne/Sydney/Brisbane metro confirmation in the creator thread.
 - Content-library campaigns: visual quality and consistency matter more than audience size.
 - Audience-awareness campaigns: audience relevance and engagement matter more than polish alone.
 
@@ -78,3 +93,5 @@ Build a sensible mix of nano, micro, and mid-tier creators. Do not fill the shor
 ## Default Posture
 
 When in doubt, use `manual_review` rather than decline. Decline is final; manual review preserves optionality without prematurely advancing the creator.
+
+In user-approved auto-shortlist mode, `manual_review` means “leave unmutated and note if useful,” not “ask mid-run.” Complete the full queue, shortlist only confident fits, then report the remaining uncertain/pass population without taking decline actions unless explicitly authorised.
