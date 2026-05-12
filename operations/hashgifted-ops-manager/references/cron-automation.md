@@ -23,9 +23,10 @@ Treat Shortlisted candidates as a conversation and qualification queue.
 - Re-read every live Shortlisted thread before deciding.
 - Reply to high-confidence, answerable questions using the approved answer bank.
 - Ask only for missing qualification gates: current-round delivery eligibility, IG Reel acceptance, and brief preference/understanding.
+- Selection cadence gates only the final `Select`/accept action, not creator communication or qualification. Continue replying to Shortlisted creators, answering approved questions, and confirming gates even when the current week's selection slots are full.
 - Select only fully qualified creators and only inside the configured cadence.
 - For the current Marseille/Savoie/Umbria bouquet round: max 2 selections per campaign per week, global cap 6/week, creators may choose either public brief.
-- Leave cadence-overflow qualified creators as reserve; do not decline them.
+- Leave cadence-overflow qualified creators as approved/reserve; do not decline them. Send a warm expectation-setting reply when appropriate: confirm they are approved/qualified, explain there is a weekly maximum number of creator gifts, and say we will select them when the next slot is available.
 - Route escalations, ambiguous replies, unhappy/damaged-flower messages, payment requests, deadline-extension requests, or product-change requests to manual review.
 - When a selected/accepted creator has booked/placed their order, and no equivalent acknowledgement is visible in the thread, send the approved post-selection order acknowledgement from `selection-message-template.md`. This is a proactive quality-control message: thank them, invite questions, and ask them to tell us if flowers arrive below standard so Fig & Bloom can organise re-delivery rather than the creator fulfilling with substandard florals.
 
@@ -54,8 +55,8 @@ Register separate recurring cron jobs rather than one monolith:
 
 2. `hashgifted-shortlisted-reply-selection-sweep`
    - Frequency: every 2 hours during active outreach windows.
-   - Purpose: inspect Shortlisted threads, reply to creators, send missing-gate follow-ups, nudge eligible no-replies, select fully qualified creators within cadence, and acknowledge selected/accepted creators who have booked/placed their flower order.
-   - Side effects allowed: creator replies, order-booking acknowledgements, and selections when high-confidence and within cadence. Decline only for explicit creator negatives post-shortlist; otherwise report manual review.
+   - Purpose: inspect Shortlisted threads, reply to creators, send missing-gate follow-ups, nudge eligible no-replies, qualify creators regardless of cadence fullness, set expectations for approved/reserve creators when slots are full, select fully qualified creators within cadence, and acknowledge selected/accepted creators who have booked/placed their flower order.
+   - Side effects allowed: creator replies, qualification/approval/reserve expectation-setting messages, order-booking acknowledgements, and selections when high-confidence and within cadence. Decline only for explicit creator negatives post-shortlist; otherwise report manual review.
 
 3. `hashgifted-content-capture-sweep`
    - Frequency: every 4 hours during active campaigns.
@@ -115,12 +116,13 @@ Task:
 5. If our last message has no inbound reply and timing qualifies, send +3 day or +7 day nudge.
 6. If latest inbound is high-confidence answerable, reply from the approved answer bank.
 7. If latest inbound is positive but missing gates, ask only for missing gates.
-8. If latest inbound fully confirms current-round delivery eligibility, IG Reel acceptance, and brief preference/understanding, select the creator only if the campaign/week cadence allows it. Current bouquet cadence: max 2 selected per campaign per week; global max 6/week. Current approved delivery regions: Melbourne/Sydney/Brisbane metro plus Geelong, Bannockburn, Sunshine Coast, and Gold Coast. Edge regions ship by overnight courier in a large box.
-9. If cadence is full, leave qualified creators as reserve and report them.
-10. If latest inbound is explicit negative, mark declined post-shortlist; do not send further messages.
-11. If ambiguous/escalated/payment/extension/product issue/unhappy/damaged flowers, report manual review and do not respond, except when a matching Daniel-approved override exists in `/opt/data/tmp/hashgifted-manual-overrides.json`; in that case reply with the approved answer and continue selection.
-12. Verify sends with exact readback and selections by live row status re-fetch.
-13. Return concise counts by campaign: messages sent by type, order acknowledgements sent, selected, declined, reserves, manual review, failures, warnings, audit artifact paths.
+8. If latest inbound fully confirms current-round delivery eligibility, IG Reel acceptance, and brief preference/understanding, mark them qualified/approved in the audit state regardless of cadence fullness. Current approved delivery regions: Melbourne/Sydney/Brisbane metro plus Geelong, Bannockburn, Sunshine Coast, and Gold Coast. Edge regions ship by overnight courier in a large box.
+9. Select the creator only if the campaign/week cadence allows it. Current bouquet cadence: max 2 selected per campaign per week; global max 6/week.
+10. If cadence is full, leave qualified creators as approved/reserve, report them, and send an expectation-setting message if no equivalent message is already visible: they are approved, Fig & Bloom has a maximum number of creator gifts per week, and we will select them when the next slot is available.
+11. If latest inbound is explicit negative, mark declined post-shortlist; do not send further messages.
+12. If ambiguous/escalated/payment/extension/product issue/unhappy/damaged flowers, report manual review and do not respond, except when a matching Daniel-approved override exists in `/opt/data/tmp/hashgifted-manual-overrides.json`; in that case reply with the approved answer and continue selection/approved-reserve handling.
+13. Verify sends with exact readback and selections by live row status re-fetch.
+14. Return concise counts by campaign: messages sent by type, order acknowledgements sent, qualified/approved reserves, selected, declined, manual review, failures, warnings, audit artifact paths.
 ```
 
 ## Cron Prompt: Content Capture Sweep

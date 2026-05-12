@@ -94,11 +94,22 @@ Single-option skeleton:
 >
 > If you're happy with this direction, let us know and we'll get the gift on its way.
 
+## Approved / Reserve Expectation-Setting Message
+
+Use when a Shortlisted creator has confirmed the required gates — current delivery-region eligibility, IG Reel deliverable, and brief preference/understanding — but the current campaign/week cadence is already full. Cadence should delay only the final selection/booking action, not normal qualification conversation. Do not ask for address or delivery details.
+
+Skeleton:
+
+> Amazing, thanks [first_name] — you're approved from our side for this campaign.
+>
+> We have a maximum number of creator gifts we can send each week so we can manage flower availability and florist time. We'll keep you in the queue and select you as soon as the next slot is available.
+
 ## Composition Rules
 
 - Australian English throughout.
 - Lowercase "you" not "You" mid-sentence.
 - One qualification ask can contain the required gates: current delivery-region eligibility, Reel acceptance, and brief comfort/preference. Do not also stack delivery address, timing flexibility, or extra production requirements into the same message.
+- Selection cadence affects only the final select/booking action. It should not stop us from replying to Shortlisted creators, answering approved questions, confirming gates, or telling fully qualified creators they are approved/reserve for the next available slot.
 - Do not ask creators to send detailed delivery address information in the Hashgifted chat. This appears to trigger a Hashgifted system/safety message. Only ask for broad delivery-region eligibility; detailed delivery details should be handled by Hashgifted's post-selection/order flow.
 - Do not promise payment, exclusivity, or repeat campaign opportunities.
 - After order booking, acknowledge the booking and proactively invite condition issues/questions. Make clear that if flowers arrive below standard, Fig & Bloom would rather organise re-delivery than have the creator fulfil with substandard florals.
@@ -113,6 +124,7 @@ For the current Marseille/Savoie/Umbria bouquet round, Daniel approved:
 - Selection cadence: maximum 2 selected creators per campaign per week.
 - With three campaigns in scope, the practical global weekly cap is 6 gifts per week.
 - Use ranking to sequence selection within each cadence window; qualified creators beyond the cadence cap remain reserve for the next week.
+- If a creator is fully qualified but cadence is full, send the approved/reserve expectation-setting message if no equivalent expectation has already been set.
 - Current approved delivery areas for this bouquet round: Melbourne/Sydney/Brisbane metro plus Geelong, Bannockburn, Sunshine Coast, and Gold Coast. Edge regions ship by overnight courier in a large box. Escalate new/other out-of-range delivery questions to Daniel rather than auto-declining.
 
 ## Q&A Answer Bank
