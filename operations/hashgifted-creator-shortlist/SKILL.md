@@ -37,7 +37,7 @@ Load these from the Campaign record created by `hashgifted-campaign-init`. Ask o
 - Run mode: `plan`, `dry_run`, `assist`, or `auto`. Default to `assist`.
 - Campaign objective: audience awareness, content library, or both.
 - Campaign aesthetic and concept calibration.
-- Hard gates: location, platform, minimum follower count if any, category exclusions.
+- Hard gates: location, platform, minimum follower count if any, category exclusions. For Fig & Bloom delivery, valid delivery areas are Melbourne, Sydney, and Brisbane metro only; if not explicit, preserve as a selection-stage eligibility question rather than declining on weak inference.
 - Review limit or stop condition for the current run, if any.
 - One-off calibration, such as mums with kids 0-5, avoid fitness aesthetic, prioritise Melbourne creators, or favour strong video creators.
 
@@ -52,9 +52,12 @@ No message templates are required because shortlisting happens before communicat
 
 Decline is high-risk because it removes the creator from the campaign path. Shortlist is medium-risk because it advances the creator but does not communicate or commit.
 
+In `auto`, process every currently live applicant in the requested open campaigns before applying final actions. Keep `maybe`/reserve applicants untouched rather than inventing a Hashgifted action for uncertainty; only mutate rows that are confident `shortlist` decisions, and never auto-decline unless the user explicitly requested auto-decline.
+
 ## Pre-Flight Checks
 
 - Confirm the current page or target URL is the expected Hashgifted campaign: `confirm_context("brands.hashgifted.com/gift-view")`.
+- Prefer the authenticated Gifted/Hashgifted producer API for complete applicant extraction and pagination when credentials are available. The visual/UI layer is useful for profile/media evidence, but the API is the source of truth for live wave rows, statuses, UIDs, ranks, and campaign membership.
 - Open the Applicants tab: `click_action("Open applicants tab")`.
 - Read campaign status: `read_card("campaign status")`.
 - Stop if there are no applicants or the requested run limit has already been reached.
@@ -77,6 +80,8 @@ Repeat until an exit condition is met.
 11. For hard gate failures or clear brand-safety mismatches, click `click_action("Decline creator")` only after approval, then `wait_for_change("next applicant loaded")`.
 12. For incomplete evidence, ambiguous fit, or UI uncertainty, leave the creator in Applied and add a manual review warning.
 13. Append action status, evidence, and warnings to the audit record.
+
+For large multi-campaign runs, batch Instagram/profile capture separately from mutation. Save per-batch artifacts and a progress/decision file before applying any shortlist actions. If background capture is used, make runners self-load the active Hermes env file (for example `/opt/data/.env`) so `BROWSERBASE_API_KEY`, `HASHGIFTED_EMAIL`, and `HASHGIFTED_PASSWORD` are present in foreground, background, and cron contexts.
 
 ## Decision Output
 
@@ -115,6 +120,8 @@ Under-shortlisting is better than lowering the bar.
 - Ambiguous identity or UI shift: stop and flag `manual_review_required`.
 - Decline control missing or ambiguous: do not improvise; leave Applied and flag.
 - Shortlist action appears to fail: verify the creator's status before clicking again.
+- Background or Browserbase capture appears hung: inspect the batch directory for per-handle `capture.json`/thumbnails, the runner summary file, child Node/Python process state, and Browserbase running sessions before killing it. A slow final handle may still complete successfully; if retrying, skip batches whose `results.json` is complete and rerun only missing handles.
+- Instagram contact sheet order can differ from the original batch prompt if sheets are built from sorted directories or stale partial directories. Use printed sheet labels plus `results.json` as canonical when recording decisions or applying mutations.
 
 ## Reporting
 
