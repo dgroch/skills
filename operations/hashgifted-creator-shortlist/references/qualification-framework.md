@@ -8,7 +8,7 @@ Apply rules in order. First hard failure wins.
 
 Recommend `decline` when the creator fails a non-negotiable campaign gate:
 
-- Location outside the allowed region. For Fig & Bloom, allowed delivery regions are Melbourne, Sydney, and Brisbane metro areas only.
+- Location outside the allowed region. For Fig & Bloom, allowed delivery regions are Melbourne, Sydney, and Brisbane metro areas only. Treat “30km out of Brisbane” as Brisbane metro for inference; use the same <=30km radius rule for Melbourne/Sydney/Brisbane unless a campaign-specific gate overrides it.
 - Required platform missing.
 - Follower minimum not met when the campaign has a true minimum.
 - Excluded category present.

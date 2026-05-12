@@ -75,12 +75,13 @@ Repeat until an exit condition is met.
 5. Read visible social signals: `read_card("active applicant social signals")`.
 6. Close social tabs and return to the campaign context with `switch_tab` or `close_tab`.
 7. Apply `references/qualification-framework.md` and produce `{recommendation, reason, confidence}`.
-8. In `plan` or `dry_run`, record the proposed action and continue without clicking Shortlist or Decline.
-9. In `assist`, ask for approval before clicking Shortlist or Decline.
-10. For strong fits, click `click_action("Shortlist creator")` and then `wait_for_change("next applicant loaded")`.
-11. For hard gate failures or clear brand-safety mismatches, click `click_action("Decline creator")` only after approval, then `wait_for_change("next applicant loaded")`.
-12. For incomplete evidence, ambiguous fit, or UI uncertainty, leave the creator in Applied and add a manual review warning.
-13. Append action status, evidence, and warnings to the audit record.
+8. Upsert the creator into the Notion Creators DB using `hashgifted-ops-manager/references/notion-creator-crm.md`. Store lifecycle state, location inference/eligibility evidence, metrics, visual feed properties, fit/risk signals, and campaign relation before or immediately after any Hashgifted mutation.
+9. In `plan` or `dry_run`, record the proposed action and continue without clicking.
+10. In `assist`, ask for approval before clicking Shortlist or Decline.
+11. For strong fits, click `click_action("Shortlist creator")` and then `wait_for_change("next applicant loaded")`.
+12. For hard gate failures or clear brand-safety mismatches, click `click_action("Decline creator")` only after approval, then `wait_for_change("next applicant loaded")`.
+13. For incomplete evidence, ambiguous fit, or UI uncertainty, leave the creator in Applied and add a manual review warning.
+14. Append action status, evidence, warnings, and Notion page ID to the audit record.
 
 For large multi-campaign runs, batch Instagram/profile capture separately from mutation. Save per-batch artifacts and a progress/decision file before applying any shortlist actions. If background capture is used, make runners self-load the active Hermes env file (for example `/opt/data/.env`) so `BROWSERBASE_API_KEY`, `HASHGIFTED_EMAIL`, and `HASHGIFTED_PASSWORD` are present in foreground, background, and cron contexts.
 

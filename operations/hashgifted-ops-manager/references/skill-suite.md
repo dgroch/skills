@@ -16,7 +16,7 @@ Use this when authoring or refactoring the individual lifecycle skills.
 | --- | --- | --- |
 | `hashgifted-campaign-init` | Step 0 | Interview marketer, create Notion campaign and brief records, flag manual share-to-web step. |
 | `hashgifted-creator-shortlist` | Step 1 | Qualify applied creators against the Campaign record, hard gates, and shared brand rubric before communication. |
-| `hashgifted-creator-select` | Step 2 | Contact shortlisted creators about campaign messaging, deliverables, deadlines, and select only after agreement. |
+| `hashgifted-creator-select` | Step 2 | Contact shortlisted creators about campaign messaging, metro delivery eligibility, deliverables, deadlines, and select only after agreement. This is where most creator communications live; do not create a separate generic communications skill unless the message surface grows beyond selection/nudges/Q&A/closeout. |
 | `hashgifted-creator-monitor` | Orchestrator | Sweep active campaigns, identify per-creator state, dispatch one highest-priority action per creator. |
 | `hashgifted-content-capture` | Capture | Pull completed post/reel assets, organise Drive, sync CDN, embed/log in Notion. |
 | `hashgifted-creator-close` | Final | Delivered path: appreciation, mark complete, score. Ghost path: silent close, exclude, log. |
@@ -28,9 +28,11 @@ Use this when authoring or refactoring the individual lifecycle skills.
 - Include run mode behaviour in every lifecycle skill.
 - Include pre-flight checks, decision tree, action sequence, quality gates, failure modes, and tacit knowledge.
 - Use Australian English.
-- Keep creator-facing messages warm, plain-spoken, and short.
+- Keep creator-facing messages warm, professional, plain-spoken, and short; not corporate.
 - Use `assist` as default for live actions.
+- In `assist`, draft messages and pause for approval before sending. Send autonomously only in explicit `auto` mode.
 - Include audit log output expectations.
+- Persist creator lifecycle/status/location/visual-review findings to the Notion Creators CRM; do not let browser audit logs become the only store of creator knowledge.
 
 ## Story Capture Constraint
 

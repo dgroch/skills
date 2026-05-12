@@ -19,6 +19,7 @@ Use this as the operating brain for Hashgifted influencer campaigns. It coordina
 - Read `references/skill-suite.md` when authoring or refactoring the individual lifecycle skills.
 - Read `references/build-state.md` before resuming the Fig & Bloom Hashgifted workflow build.
 - Read `references/cron-automation.md` before registering or modifying recurring Hashgifted cron jobs.
+- Read `references/notion-creator-crm.md` before designing or running creator lifecycle persistence, applicant review sync, or cross-campaign creator queries.
 
 ## Architecture
 
@@ -75,7 +76,11 @@ Use warm, professional, plain-spoken Australian English. Keep creator messages s
 
 ## Fig & Bloom Delivery Eligibility
 
-Hashgifted campaigns are deliverable only to Melbourne, Sydney, and Brisbane metro areas. Before a creator can be selected, confirm they live in one of those metro areas. If location is unknown or only loosely inferred, ask the creator during the selection/qualification message rather than declining on weak evidence.
+Hashgifted campaigns are deliverable only to Melbourne, Sydney, and Brisbane metro areas. Before a creator can be selected, confirm they live in one of those metro areas. If location is unknown or only loosely inferred, ask the creator during the selection/qualification message rather than declining on weak evidence. A creator “30km out of Brisbane” qualifies as Brisbane metro for profile-inference purposes; use the same <=30km rule for Melbourne/Sydney/Brisbane unless overridden.
+
+## Notion Creator CRM
+
+Use the Notion Creators DB as the persistent lifecycle memory for creators. Store status, campaign relation, location inference/confirmation, metrics, and visual-feed properties there so future campaign applications can reuse prior work and the business can query creator history. See `references/notion-creator-crm.md`.
 
 ## Build Order
 

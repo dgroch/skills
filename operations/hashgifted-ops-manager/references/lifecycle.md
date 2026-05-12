@@ -10,7 +10,7 @@ Required campaign inputs:
 
 - Campaign name.
 - Objective: audience awareness, content library, or both.
-- Hard gates: location, follower minimums, platform, exclusions.
+- Hard gates: location, follower minimums, platform, exclusions. For Fig & Bloom, delivery location is limited to Melbourne, Sydney, and Brisbane metro areas.
 - Deliverables as free text.
 - Target selected count.
 - Posting deadline, defaulting to 7 days from receipt of gift unless overridden.
@@ -30,7 +30,7 @@ Apply in order; first match wins.
 | Selection message sent, no creator reply, +3 days | Dispatch gentle nudge |
 | Selection message sent, no creator reply, +7 days | Dispatch final reply nudge |
 | Selection message sent, no creator reply, +10 days | Dispatch `hashgifted-creator-close` with ghost path |
-| Creator agrees to messaging, deliverables, and deadline | `hashgifted-creator-select` may mark Selected |
+| Creator confirms Melbourne/Sydney/Brisbane metro eligibility and agrees to messaging, deliverables, and deadline | `hashgifted-creator-select` may mark Selected |
 | Selected, no post detected, deadline -2 days | Dispatch deadline reminder |
 | Selected, past deadline, no post, +7 days | Dispatch final deadline nudge |
 | Selected, past deadline, no post, +10 days | Dispatch `hashgifted-creator-close` with ghost path |
@@ -44,9 +44,16 @@ Apply in order; first match wins.
 - `Last Contacted` in Notion is the source of truth for nudge timing.
 - `Applied` means the creator has applied in Hashgifted and has not been qualified.
 - `Shortlisted` means the creator passed campaign/aesthetic qualification, but has not been contacted or selected.
-- `Selected` means the creator has agreed to campaign messaging, required deliverables, and deadlines, then was accepted in Hashgifted.
+- `Selected` means the creator has confirmed delivery eligibility and agreed to campaign messaging, required deliverables, and deadlines, then was accepted in Hashgifted.
+- `Metro eligible` means the creator confirms they live in Melbourne, Sydney, or Brisbane metro. Inferred profile location is useful for prioritisation but not enough for final selection unless already explicit. A creator “30km out of Brisbane” qualifies as Brisbane metro for profile-inference purposes; apply the same 30km-radius rule to Melbourne/Sydney/Brisbane unless the campaign says otherwise.
 - `Captured` means asset is downloaded, organised, synced to public CDN if required, and embedded or logged in Notion.
 - `Declined` is available any time before completion, but should be used with clear reason and audit evidence.
+
+## Creator CRM Requirement
+
+Back the whole lifecycle with the Notion Creators DB. Every applicant review should upsert/reuse the creator row and store lifecycle status, location inference/confirmation, campaign relationship, follower/engagement metrics, and visual feed-inspection properties. Do not leave visual judgements only in transient audit logs; they must be queryable later so future campaign applications do not repeat the same work.
+
+Use `references/notion-creator-crm.md` for the canonical creator schema and scripts.
 
 ## Notion Operating State
 

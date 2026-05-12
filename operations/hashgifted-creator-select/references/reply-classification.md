@@ -27,18 +27,42 @@ Examples:
 - "first one please"
 - "https://www.notion.so/<brief-url>"
 
-Action: re-confirm the picked brief is linked to this campaign, then click `Select creator` and `Accept this creator`. Update Notion `Status = Selected` with the chosen brief.
+Action: re-confirm the picked brief is linked to this campaign and metro eligibility is explicit in the thread, then click `Select creator` and `Accept this creator`. Update Notion `Status = Selected` with the chosen brief.
+
+### `answerable_question`
+
+The creator asks a question that is directly covered by the approved Q&A answer bank in `selection-message-template.md`, and no escalation trigger is present.
+
+Examples:
+- "when can I book delivery?"
+- "what are the deliverables?"
+- "when do I need to post?"
+- "do I need to tag you as collaborator?"
+- "I'm in Brisbane, is that ok?"
+
+Action: draft the approved answer. In `assist`, ask Daniel before sending. In `auto`, send only at high confidence.
+
+### `escalated_question`
+
+The creator asks something that needs human judgement or exception handling.
+
+Examples:
+- "the flowers arrived damaged"
+- "can I be paid for this?"
+- "can I have an extension?"
+- "can I choose a different bouquet?"
+- "I'm not happy with how this looks"
+
+Action: log `manual_review` with the question quoted. Do not auto-respond.
 
 ### `question`
 
-The creator wants more information before committing. Includes deadline negotiation, address questions, format clarifications, or any "depends on…" reply.
+The creator wants more information before committing and the question is neither covered by the approved answer bank nor an escalation trigger. Includes uncategorised format clarifications or any "depends on…" reply.
 
 Examples:
-- "when does it need to be posted by?"
-- "can it be next month?"
-- "do you ship to NT?"
 - "what's the gift?"
-- "yes if the deadline is flexible"
+- "yes, but can you explain the vibe?"
+- "can you send more details?"
 
 Action: log `manual_review` with the question quoted. Do not auto-respond. The marketer answers personally.
 
@@ -68,7 +92,7 @@ Action: log `manual_review`.
 
 ## Rules
 
-- A "yes" followed by a question in the same message is `question`, not `positive`.
+- A "yes" followed by a question in the same message is `answerable_question`, `escalated_question`, or `question`, not `positive`.
 - A reply that mentions a brief option but also asks a question is `question`, not `brief_picked`.
 - An emoji thumbs-up or single positive emoji on its own is `ambiguous`, not `positive`. The creator may be reacting to a different message.
 - If the latest inbound predates our latest outbound (we sent something after they replied), do not act on the inbound — the thread is already past it.

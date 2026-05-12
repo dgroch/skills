@@ -33,7 +33,7 @@ Collect these before creating records. Use AskUserQuestion when available. Do no
 
 - Campaign name.
 - Objective: exactly one of `audience awareness`, `content library`, or `both`.
-- Hard gates: location, follower minimums, platform, and category exclusions.
+- Hard gates: location, follower minimums, platform, and category exclusions. Default Fig & Bloom delivery gate: Melbourne, Sydney, and Brisbane metro areas only.
 - Deliverables as free text.
 - Target selected count.
 - Posting deadline window (relative). Default to `7 days from receipt of gift` unless the marketer overrides. Stored in `Deadline Window`.
@@ -78,7 +78,7 @@ Before creating Notion pages, fetch the Notion enhanced Markdown spec resource i
    - `Concept Hook`
    - page content following `references/brief-template.md`
 5. Link Briefs to the Campaign through the Campaign `Briefs` relation or the Brief `Campaigns Using This Brief` relation.
-6. Leave `Brief.Public Link` empty unless the marketer provides a public Notion URL.
+6. Leave `Brief.Public Link` empty until each brief has been manually published/shared to web. After the marketer flips Share-to-web, retrieve the page via the Notion API; if `public_url` is present, patch `Brief.Public Link` with that URL.
 
 ## Brief Writing Standards
 
@@ -122,4 +122,4 @@ After creating the campaign in the Hashgifted brand portal: paste the gift-view 
 - Notion schema mismatch: fetch the database schema again and adapt property names.
 - Missing Notion access: stop and ask the marketer to grant access or provide record details.
 - Relation write fails: create the records, report the link failure, and include the URLs for manual linking.
-- Share-to-web requested: explain that the Notion API does not expose that toggle and it must be done manually.
+- Share-to-web requested: explain that the Notion API does not expose the toggle and it must be enabled manually. Once enabled, the API may expose `page.public_url`; fetch the page and copy that value into `Brief.Public Link`.
