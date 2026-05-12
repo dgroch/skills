@@ -30,17 +30,22 @@ Treat Shortlisted candidates as a conversation and qualification queue.
 
 ## Recurring Jobs
 
-Register two recurring cron jobs rather than one monolith:
+Register separate recurring cron jobs rather than one monolith:
 
 1. `hashgifted-new-applicant-shortlist-sweep`
-   - Frequency: every 6 hours during campaign intake, or every 12 hours if volume is low.
+   - Frequency: daily during campaign intake, normally around Melbourne morning.
    - Purpose: find new Applied/SUBMITTED applicants across active/open Hashgifted campaigns, visually/API-assess enough evidence, auto-shortlist high-confidence fits, and report manual review/decline candidates.
    - Side effects allowed: Shortlist high-confidence fits only. No messages. No auto-declines unless explicitly configured.
 
 2. `hashgifted-shortlisted-reply-selection-sweep`
    - Frequency: every 2 hours during active outreach windows.
-   - Purpose: inspect Shortlisted threads, reply to creators, send missing-gate follow-ups, nudge eligible no-replies, and select fully qualified candidates within cadence.
+   - Purpose: inspect Shortlisted threads, reply to creators, send missing-gate follow-ups, nudge eligible no-replies, and select fully qualified creators within cadence.
    - Side effects allowed: creator replies and selections when high-confidence and within cadence. Decline only for explicit creator negatives post-shortlist; otherwise report manual review.
+
+3. `hashgifted-content-capture-sweep`
+   - Frequency: every 4 hours during active campaigns.
+   - Purpose: detect creator-produced content, save media/evidence to Google Drive, index assets into the Notion asset manifest, thank the creator, mark complete where deliverables are satisfied, leave creator review, and prepare a media-buyer handoff for Meta ads.
+   - Side effects allowed: capture/index assets and send a thank-you only after the content is verified and saved. Mark complete only after deliverable evidence is present. Creator review and media-buyer handoff should be conservative and evidence-backed.
 
 ## Cron Prompt: New Applicant Shortlist Sweep
 
@@ -92,6 +97,33 @@ Task:
 10. If ambiguous/escalated/payment/extension/product issue/unhappy/damaged flowers, report manual review and do not respond.
 11. Verify sends with exact readback and selections by live row status re-fetch.
 12. Return concise counts by campaign: messages sent by type, selected, declined, reserves, manual review, failures, warnings, audit artifact paths.
+```
+
+## Cron Prompt: Content Capture Sweep
+
+```text
+You are running unattended as a Hermes cron job for Daniel's Fig & Bloom Hashgifted workflow. Do not ask questions; make conservative autonomous decisions and report results back to Daniel.
+
+Load and follow Fig & Bloom/Hashgifted rules from:
+- /opt/data/workspace/dgroch-skills/operations/hashgifted-ops-manager/SKILL.md
+- /opt/data/workspace/dgroch-skills/operations/hashgifted-ops-manager/references/lifecycle.md
+- /opt/data/workspace/dgroch-skills/operations/hashgifted-ops-manager/references/cron-automation.md
+- /opt/data/skills/business-development/fig-bloom-operations/SKILL.md
+- /opt/data/skills/business-development/fig-bloom-operations/references/hashgifted-influencer-shortlisting.md
+- /opt/data/skills/business-development/fig-bloom-operations/references/brand-asset-manifesting.md
+
+Task:
+1. Fetch live Gifted/Hashgifted rows for active Fig & Bloom campaigns and identify Selected/Accepted creators with new post/reel/content evidence in Hashgifted's completed gallery or verified thread links.
+2. For each new content item, verify creator identity, campaign, deliverable type, source URL, posted date if available, and whether it satisfies the agreed brief/deliverable.
+3. Save the media file or best available evidence to Google Drive in the Fig & Bloom UGC/Hashgifted asset structure. Preserve source URLs, thumbnails/screenshots, captions, creator handle, campaign, brief, and capture timestamp.
+4. Index the saved asset into the Notion asset manifest / UGC hub with provenance, rights/source context, campaign relation, creator relation when available, and Meta-ad readiness notes.
+5. If all agreed deliverables are captured and indexed, send a warm thank-you to the creator and mark the creator/campaign row complete in Hashgifted/Notion. If evidence is partial, do not mark complete; report what is missing.
+6. Leave a creator review based only on evidence: deliverables met, content quality/emotional fit, responsiveness, and timeliness. Use conservative scoring; flag Daniel for review before excluding or promoting Preferred unless policy explicitly allows it.
+7. Prepare a media-buyer handoff for Meta ads: asset links, creator handle, campaign/brief, hook/angle summary, usage caveats, and recommended next action. If a direct destination/channel is unavailable, write the handoff to an audit artifact and report it.
+8. Verify Drive upload/readback, Notion record readback, thank-you exact message readback, and completion status re-fetch.
+9. Return concise counts by campaign: new content detected, assets saved, Notion rows created/updated, creators thanked, marked complete, review scores, media-buyer handoffs, manual review, failures, warnings, audit paths.
+
+Important: never print secrets. If credentials or auth are missing, report the missing capability and stop safely. Do not invent content or mark complete from a creator's claim alone; require Hashgifted gallery evidence, direct source media, or verified link evidence.
 ```
 
 ## Reporting Format
