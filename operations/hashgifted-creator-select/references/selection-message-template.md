@@ -61,6 +61,16 @@ Both nudges reference the prior message obliquely; do not restate the full ask.
 
 > Hi [first_name], last check-in on this one — we'll need to move on if we don't hear back by the end of the week. No worries either way, and thanks for considering.
 
+## Post-Selection Order Acknowledgement
+
+Use after a selected/accepted creator has booked or placed their flower order through Hashgifted, and only if the thread does not already contain an equivalent acknowledgement from us. Keep it warm and practical. Do not ask for address or delivery details in chat.
+
+Skeleton:
+
+> Thanks so much for placing your order, [first_name] — we're excited to see what you create.
+>
+> If you have any questions from here, just let us know. And if the flowers don't arrive in perfect condition, please tell us before filming/posting; we'd much rather organise a re-delivery than have you create with anything substandard. We do our very best to make sure only exceptional flowers leave the door, but a lot can happen between dispatch and delivery.
+
 ## Brief Options / Missing Gate Message
 
 The initial qualification message should normally include brief links. Use this only when the first message could not include briefs, or when a reply is positive but missing one or more required gates. Ask only for the missing gate(s); do not restate everything. Use the briefs linked to the Campaign record or the approved shared-brief config. If only one brief is linked, use the single-option variant.
@@ -91,6 +101,7 @@ Single-option skeleton:
 - One qualification ask can contain the required gates: metro city, Reel acceptance, and brief comfort/preference. Do not also stack delivery address, timing flexibility, or extra production requirements into the same message.
 - Do not ask creators to send detailed delivery address information in the Hashgifted chat. This appears to trigger a Hashgifted system/safety message. Only ask for broad metro eligibility (Melbourne/Sydney/Brisbane); detailed delivery details should be handled by Hashgifted's post-selection/order flow.
 - Do not promise payment, exclusivity, or repeat campaign opportunities.
+- After order booking, acknowledge the booking and proactively invite condition issues/questions. Make clear that if flowers arrive below standard, Fig & Bloom would rather organise re-delivery than have the creator fulfil with substandard florals.
 - Do not include legal terms or disclosure language inside the selection thread; that lives in the brief page.
 - Do not send private Notion workspace URLs. Use the public/share-to-web brief link stored on the Brief record.
 

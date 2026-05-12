@@ -27,6 +27,7 @@ Treat Shortlisted candidates as a conversation and qualification queue.
 - For the current Marseille/Savoie/Umbria bouquet round: max 2 selections per campaign per week, global cap 6/week, creators may choose either public brief.
 - Leave cadence-overflow qualified creators as reserve; do not decline them.
 - Route escalations, ambiguous replies, unhappy/damaged-flower messages, payment requests, deadline-extension requests, or product-change requests to manual review.
+- When a selected/accepted creator has booked/placed their order, and no equivalent acknowledgement is visible in the thread, send the approved post-selection order acknowledgement from `selection-message-template.md`. This is a proactive quality-control message: thank them, invite questions, and ask them to tell us if flowers arrive below standard so Fig & Bloom can organise re-delivery rather than the creator fulfilling with substandard florals.
 
 ## Recurring Jobs
 
@@ -39,8 +40,8 @@ Register separate recurring cron jobs rather than one monolith:
 
 2. `hashgifted-shortlisted-reply-selection-sweep`
    - Frequency: every 2 hours during active outreach windows.
-   - Purpose: inspect Shortlisted threads, reply to creators, send missing-gate follow-ups, nudge eligible no-replies, and select fully qualified creators within cadence.
-   - Side effects allowed: creator replies and selections when high-confidence and within cadence. Decline only for explicit creator negatives post-shortlist; otherwise report manual review.
+   - Purpose: inspect Shortlisted threads, reply to creators, send missing-gate follow-ups, nudge eligible no-replies, select fully qualified creators within cadence, and acknowledge selected/accepted creators who have booked/placed their flower order.
+   - Side effects allowed: creator replies, order-booking acknowledgements, and selections when high-confidence and within cadence. Decline only for explicit creator negatives post-shortlist; otherwise report manual review.
 
 3. `hashgifted-content-capture-sweep`
    - Frequency: every 4 hours during active campaigns.
@@ -95,16 +96,17 @@ Load and follow Fig & Bloom/Hashgifted rules from:
 Task:
 1. Fetch live Gifted/Hashgifted rows for active Fig & Bloom campaigns, including SHORTLISTED, ACCEPTED, COMPLETED, REJECTED, SUBMITTED/NEGOTIATION as needed for context.
 2. For every Shortlisted creator, read the full thread before deciding.
-3. If no initial outreach has been sent, send the approved soft creative-direction qualification message with public Notion brief links.
-4. If our last message has no inbound reply and timing qualifies, send +3 day or +7 day nudge.
-5. If latest inbound is high-confidence answerable, reply from the approved answer bank.
-6. If latest inbound is positive but missing gates, ask only for missing gates.
-7. If latest inbound fully confirms metro eligibility, IG Reel acceptance, and brief preference/understanding, select the creator only if the campaign/week cadence allows it. Current bouquet cadence: max 2 selected per campaign per week; global max 6/week.
-8. If cadence is full, leave qualified creators as reserve and report them.
-9. If latest inbound is explicit negative, mark declined post-shortlist; do not send further messages.
-10. If ambiguous/escalated/payment/extension/product issue/unhappy/damaged flowers, report manual review and do not respond.
-11. Verify sends with exact readback and selections by live row status re-fetch.
-12. Return concise counts by campaign: messages sent by type, selected, declined, reserves, manual review, failures, warnings, audit artifact paths.
+3. For every Selected/Accepted creator with a booked/placed flower order, read the full thread; if no equivalent order acknowledgement has already been sent, send the approved post-selection order acknowledgement from `selection-message-template.md`. Do not ask for address or delivery details.
+4. If no initial outreach has been sent, send the approved soft creative-direction qualification message with public Notion brief links.
+5. If our last message has no inbound reply and timing qualifies, send +3 day or +7 day nudge.
+6. If latest inbound is high-confidence answerable, reply from the approved answer bank.
+7. If latest inbound is positive but missing gates, ask only for missing gates.
+8. If latest inbound fully confirms metro eligibility, IG Reel acceptance, and brief preference/understanding, select the creator only if the campaign/week cadence allows it. Current bouquet cadence: max 2 selected per campaign per week; global max 6/week.
+9. If cadence is full, leave qualified creators as reserve and report them.
+10. If latest inbound is explicit negative, mark declined post-shortlist; do not send further messages.
+11. If ambiguous/escalated/payment/extension/product issue/unhappy/damaged flowers, report manual review and do not respond.
+12. Verify sends with exact readback and selections by live row status re-fetch.
+13. Return concise counts by campaign: messages sent by type, order acknowledgements sent, selected, declined, reserves, manual review, failures, warnings, audit artifact paths.
 ```
 
 ## Cron Prompt: Content Capture Sweep

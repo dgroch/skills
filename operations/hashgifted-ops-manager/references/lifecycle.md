@@ -31,6 +31,7 @@ Apply in order; first match wins.
 | Selection message sent, no creator reply, +7 days | Dispatch final reply nudge |
 | Selection message sent, no creator reply, +10 days | Dispatch `hashgifted-creator-close` with ghost path |
 | Creator confirms Melbourne/Sydney/Brisbane metro eligibility and agrees to messaging, deliverables, and deadline | `hashgifted-creator-select` may mark Selected |
+| Selected/Accepted creator has booked/placed their flower order, and no order acknowledgement has been sent | Send booked-order acknowledgement and care/escalation note |
 | Selected, no post detected, deadline -2 days | Dispatch deadline reminder |
 | Selected, past deadline, no post, +7 days | Dispatch final deadline nudge |
 | Selected, past deadline, no post, +10 days | Dispatch `hashgifted-creator-close` with ghost path |
@@ -45,6 +46,7 @@ Apply in order; first match wins.
 - `Applied` means the creator has applied in Hashgifted and has not been qualified.
 - `Shortlisted` means the creator passed campaign/aesthetic qualification, but has not been contacted or selected.
 - `Selected` means the creator has confirmed delivery eligibility and agreed to campaign messaging, required deliverables, and deadlines, then was accepted in Hashgifted.
+- `Booked` / `Order placed` means the selected creator has completed the Hashgifted post-selection booking/order flow. This deserves a warm acknowledgement, but do not ask for address/details in chat.
 - Do not ask for detailed delivery address information in Hashgifted chat. It appears to trigger a Hashgifted system/safety message. Ask only for Melbourne/Sydney/Brisbane metro eligibility during selection; leave detailed delivery/order data to Hashgifted's post-selection booking flow.
 - `Metro eligible` means the creator confirms they live in Melbourne, Sydney, or Brisbane metro. Inferred profile location is useful for prioritisation but not enough for final selection unless already explicit. A creator “30km out of Brisbane” qualifies as Brisbane metro for profile-inference purposes; apply the same 30km-radius rule to Melbourne/Sydney/Brisbane unless the campaign says otherwise.
 - `Captured` means asset is downloaded, organised, synced to public CDN if required, and embedded or logged in Notion.
