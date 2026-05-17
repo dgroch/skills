@@ -6,8 +6,10 @@ brand isolation.
 The **Brand Photographer** agent loads a single brand configuration
 per session and generates on-brand AI photography through a
 generate → critique → revise loop. Each brand has its own art
-direction, colour system, grid spec, prompt library, and critic
-rubric under `brands/<brand_id>/`.
+direction, colour system, grid spec, prompt library, and seed metadata.
+The default backend remains local files under `brands/<brand_id>/`; the
+same API can also use a Notion data source as the canonical backend by
+setting `BRAND_PHOTOGRAPHER_STORAGE=notion`.
 
 ---
 
@@ -20,8 +22,9 @@ Onboarding → Brand Loader → Prompt Engine → Image Model → Critic → Pas
 ```
 
 1. **Onboarding** locks the session to a single brand.
-2. The **Brand Loader** validates and reads
-   `brands/<brand_id>/brand.json` + referenced docs.
+2. The **Brand Loader** validates and reads the active backend:
+   local `brands/<brand_id>/brand.json` + referenced docs by default,
+   or the configured Notion data source in Notion mode.
 3. The **Prompt Engine** builds prompts using the brand's art
    direction rules and colour vocabulary.
 4. The **Image Model** generates (OpenRouter / Nano Banana by
@@ -89,7 +92,12 @@ Brand Photographer configured for 'Bower' (brand_id=bower)
 ### 1. Set credentials
 
 ```bash
-# OPENROUTER_API_KEY is always required (image generation backend)
+# Optional: switch from file-backed storage to the Notion backend
+export BRAND_PHOTOGRAPHER_STORAGE=notion
+export BRAND_PHOTOGRAPHER_NOTION_DATA_SOURCE_ID="<notion-data-source-id>"
+export NOTION_API_KEY="<secret>"
+
+# OPENROUTER_API_KEY is always required for the default image generation backend
 export OPENROUTER_API_KEY="sk-or-v1-..."
 # Or for Higgsfield (legacy):
 # export HF_KEY="..."
@@ -144,6 +152,18 @@ Seed images are passed to OpenRouter as multimodal `image_url` content parts (im
 python3 references/brand_photographer_cli.py          # interactive
 python3 references/brand_photographer_cli.py bower 1  # direct
 ```
+
+---
+
+## Storage backends
+
+- `BRAND_PHOTOGRAPHER_STORAGE=file` (default): reads/writes the persistent
+  local brand folder.
+- `BRAND_PHOTOGRAPHER_STORAGE=notion`: reads/writes brand config,
+  reference docs, prompt rows, and seed metadata from the Notion data
+  source specified by `BRAND_PHOTOGRAPHER_NOTION_DATA_SOURCE_ID`.
+
+See `references/notion-backend.md` for the schema and migration command.
 
 ---
 

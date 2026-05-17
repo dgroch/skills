@@ -42,6 +42,10 @@ Usage:
     # Inspect the brand's prompt library
     library = photographer.get_library()
 
+    # Storage backend:
+    #   file (default) or Notion when BRAND_PHOTOGRAPHER_STORAGE=notion and
+    #   BRAND_PHOTOGRAPHER_NOTION_DATA_SOURCE_ID is set.
+
     # List all configured brands
     brands = BrandPhotographer.list_brands()
 """
@@ -54,9 +58,12 @@ import fnmatch
 import shutil
 import subprocess
 import tempfile
+import urllib.error
+import urllib.parse
+import urllib.request
 import requests
 from pathlib import Path
-from typing import Optional
+from typing import Any, Callable, Optional
 
 # ── Defaults ─────────────────────────────────────────────────────────────
 
@@ -68,6 +75,8 @@ HF_BASE = "https://platform.higgsfield.ai"
 HF_MODEL = "higgsfield-ai/soul/standard"
 
 ANTHROPIC_URL = "https://api.anthropic.com/v1/messages"
+NOTION_API_BASE = "https://api.notion.com/v1"
+NOTION_VERSION = "2025-09-03"
 DEFAULT_CLAUDE_MODEL = "claude-sonnet-4-20250514"
 
 MAX_ITERATIONS = 5
@@ -83,6 +92,368 @@ CRITIC_MODE_CLI = "cli"
 CRITIC_MODE_API = "api"
 FIDELITY_MODE_GUIDED = "guided"
 FIDELITY_MODE_STRICT = "strict"
+
+
+def _load_env(path: str = "/opt/data/.env") -> None:
+    """Load simple KEY=VALUE lines without overriding process env."""
+    p = Path(path)
+    if not p.exists():
+        return
+    for line in p.read_text().splitlines():
+        raw = line.strip()
+        if not raw or raw.startswith("#") or "=" not in raw:
+            continue
+        key, value = raw.split("=", 1)
+        os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+
+
+def _storage_mode() -> str:
+    return os.environ.get("BRAND_PHOTOGRAPHER_STORAGE", "file").strip().lower()
+
+
+def _notion_data_source_id() -> str:
+    return (
+        os.environ.get("BRAND_PHOTOGRAPHER_NOTION_DATA_SOURCE_ID")
+        or os.environ.get("BRAND_PHOTOGRAPHER_NOTION_DS")
+        or os.environ.get("BP_NOTION_DATA_SOURCE_ID")
+        or ""
+    ).strip()
+
+
+class BrandStore:
+    """Storage boundary for brand artifacts."""
+
+    def list_brands(self) -> list[str]:
+        raise NotImplementedError
+
+    def load_brand_config(self, brand_id: str) -> dict:
+        raise NotImplementedError
+
+    def artifact_exists(self, brand_id: str, artifact: str) -> bool:
+        raise NotImplementedError
+
+    def load_text_artifact(self, brand_id: str, artifact: str) -> str:
+        raise NotImplementedError
+
+    def load_library(self, brand_id: str) -> list[dict]:
+        raise NotImplementedError
+
+    def append_library_entry(self, brand_id: str, entry: dict) -> None:
+        raise NotImplementedError
+
+    def load_seeds(self, brand_id: str) -> list[dict]:
+        raise NotImplementedError
+
+
+class FileBrandStore(BrandStore):
+    def __init__(self, root: Path):
+        self.root = root
+
+    def brand_dir(self, brand_id: str) -> Path:
+        return self.root / brand_id
+
+    def list_brands(self) -> list[str]:
+        if not self.root.exists():
+            return []
+        return sorted(
+            d.name for d in self.root.iterdir()
+            if d.is_dir() and (d / "brand.json").exists()
+        )
+
+    def load_brand_config(self, brand_id: str) -> dict:
+        path = self.brand_dir(brand_id) / "brand.json"
+        if not path.exists():
+            raise BrandNotConfiguredError(f"No brand configured at {path}")
+        return json.loads(path.read_text())
+
+    def artifact_path(self, brand_id: str, artifact: str, config: Optional[dict] = None) -> Path:
+        if artifact == "brand_config":
+            return self.brand_dir(brand_id) / "brand.json"
+        cfg = config or self.load_brand_config(brand_id)
+        references = cfg.get("references", {})
+        ref_map = {
+            "art_direction": "art_direction",
+            "colour_system": "colour_system",
+            "grid_spec": "grid_spec",
+            "prompt_library": "prompt_library",
+            "seeds_manifest": "seeds_manifest",
+        }
+        filename = references.get(ref_map.get(artifact, artifact), artifact)
+        return self.brand_dir(brand_id) / filename
+
+    def artifact_exists(self, brand_id: str, artifact: str) -> bool:
+        return self.artifact_path(brand_id, artifact).exists()
+
+    def load_text_artifact(self, brand_id: str, artifact: str) -> str:
+        path = self.artifact_path(brand_id, artifact)
+        return path.read_text() if path.exists() else ""
+
+    def load_library(self, brand_id: str) -> list[dict]:
+        path = self.artifact_path(brand_id, "prompt_library")
+        if path.exists():
+            return json.loads(path.read_text())
+        return []
+
+    def append_library_entry(self, brand_id: str, entry: dict) -> None:
+        path = self.artifact_path(brand_id, "prompt_library")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        library = self.load_library(brand_id)
+        library.append(entry)
+        path.write_text(json.dumps(library, indent=2))
+
+    def load_seeds(self, brand_id: str) -> list[dict]:
+        path = self.artifact_path(brand_id, "seeds_manifest")
+        if not path.exists():
+            return []
+        manifest = json.loads(path.read_text())
+        raw = manifest.get("seeds", [])
+        return raw if isinstance(raw, list) else []
+
+
+class NotionBrandStore(BrandStore):
+    """Notion-backed brand artifact store.
+
+    Uses a single Notion data source with these properties:
+    - Name (title)
+    - Brand ID (rich_text)
+    - Artifact (select): brand_config, art_direction, colour_system, grid_spec, prompt, seed
+    - Record ID (rich_text): stable row key, e.g. config, product_hero, bouquet-001
+    - JSON (rich_text): compact JSON for structured records
+    - Content (rich_text): markdown/plain text for long-form brand reference docs
+    - Category (select), File (rich_text), Score (number) are optional convenience fields
+    """
+
+    def __init__(
+        self,
+        data_source_id: str,
+        api_key: Optional[str] = None,
+        request_fn: Optional[Callable[[str, str, Optional[dict]], dict]] = None,
+    ):
+        self.data_source_id = data_source_id
+        self.api_key = api_key or os.environ.get("NOTION_API_KEY", "")
+        if not self.data_source_id:
+            raise ValueError("BRAND_PHOTOGRAPHER_NOTION_DATA_SOURCE_ID is required for Notion storage")
+        if not self.api_key and request_fn is None:
+            raise ValueError("NOTION_API_KEY is required for Notion storage")
+        self._request_fn = request_fn
+
+    def _headers(self) -> dict[str, str]:
+        return {
+            "Authorization": f"Bearer {self.api_key}",
+            "Notion-Version": NOTION_VERSION,
+            "Content-Type": "application/json",
+        }
+
+    def _request(self, method: str, path: str, payload: Optional[dict] = None) -> dict:
+        if self._request_fn:
+            return self._request_fn(method, path, payload)
+        data = json.dumps(payload).encode() if payload is not None else None
+        req = urllib.request.Request(
+            f"{NOTION_API_BASE}{path}",
+            data=data,
+            headers=self._headers(),
+            method=method,
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=45) as resp:
+                body = resp.read().decode()
+                return json.loads(body) if body else {}
+        except urllib.error.HTTPError as exc:
+            body = exc.read().decode(errors="replace")
+            raise RuntimeError(f"Notion {method} {path} failed HTTP {exc.code}: {body[:1200]}") from exc
+
+    def _query(self, payload: dict) -> list[dict]:
+        results: list[dict] = []
+        cursor = None
+        while True:
+            body = dict(payload)
+            if cursor:
+                body["start_cursor"] = cursor
+            data = self._request("POST", f"/data_sources/{self.data_source_id}/query", body)
+            results.extend(data.get("results", []))
+            if not data.get("has_more"):
+                return results
+            cursor = data.get("next_cursor")
+
+    @staticmethod
+    def _text_prop(page: dict, name: str) -> str:
+        prop = page.get("properties", {}).get(name, {})
+        typ = prop.get("type")
+        if typ == "title":
+            return "".join(x.get("plain_text", "") for x in prop.get("title", []))
+        if typ == "rich_text":
+            return "".join(x.get("plain_text", "") for x in prop.get("rich_text", []))
+        if typ == "select":
+            return (prop.get("select") or {}).get("name", "")
+        if typ == "number":
+            val = prop.get("number")
+            return "" if val is None else str(val)
+        return ""
+
+    @staticmethod
+    def _rt(value: str) -> dict:
+        # Notion rich_text property chunks max at 2000 chars. Keep this as an
+        # index/preview only; complete JSON/content is stored in page children.
+        return {"rich_text": [{"type": "text", "text": {"content": value[:1900]}}]} if value else {"rich_text": []}
+
+    @staticmethod
+    def _title(value: str) -> dict:
+        return {"title": [{"type": "text", "text": {"content": value[:2000]}}]}
+
+    @staticmethod
+    def _select(value: str) -> dict:
+        return {"select": {"name": value}} if value else {"select": None}
+
+    @staticmethod
+    def _number(value: Any) -> dict:
+        return {"number": value if isinstance(value, (int, float)) else None}
+
+    def _filter(self, brand_id: str, artifact: Optional[str] = None, record_id: Optional[str] = None) -> dict:
+        clauses = [{"property": "Brand ID", "rich_text": {"equals": brand_id}}]
+        if artifact:
+            clauses.append({"property": "Artifact", "select": {"equals": artifact}})
+        if record_id:
+            clauses.append({"property": "Record ID", "rich_text": {"equals": record_id}})
+        return {"filter": {"and": clauses}}
+
+    def _pages(self, brand_id: str, artifact: Optional[str] = None, record_id: Optional[str] = None) -> list[dict]:
+        return self._query(self._filter(brand_id, artifact, record_id))
+
+    def _read_blocks_text(self, page_id: str) -> str:
+        chunks: list[str] = []
+        cursor = None
+        while True:
+            suffix = f"?start_cursor={urllib.parse.quote(cursor)}" if cursor else ""
+            data = self._request("GET", f"/blocks/{page_id}/children{suffix}", None)
+            for block in data.get("results", []):
+                typ = block.get("type")
+                rich = block.get(typ, {}).get("rich_text", []) if typ else []
+                chunks.append("".join(x.get("plain_text", "") for x in rich))
+            if not data.get("has_more"):
+                return "".join(chunks)
+            cursor = data.get("next_cursor")
+
+    def _json_from_page(self, page: dict) -> dict:
+        raw = ""
+        page_id = page.get("id")
+        if page_id:
+            try:
+                raw = self._read_blocks_text(page_id)
+            except Exception:
+                raw = ""
+        if not raw:
+            raw = self._text_prop(page, "JSON")
+        if not raw:
+            return {}
+        return json.loads(raw)
+
+    @staticmethod
+    def _children_for(payload: str, language: str = "plain text") -> list[dict]:
+        if not payload:
+            return []
+        children = []
+        for i in range(0, len(payload), 1900):
+            chunk = payload[i:i + 1900]
+            if language == "json":
+                children.append({
+                    "object": "block",
+                    "type": "code",
+                    "code": {"language": "json", "rich_text": [{"type": "text", "text": {"content": chunk}}]},
+                })
+            else:
+                children.append({
+                    "object": "block",
+                    "type": "paragraph",
+                    "paragraph": {"rich_text": [{"type": "text", "text": {"content": chunk}}]},
+                })
+        return children
+
+    def _create_page(self, brand_id: str, artifact: str, record_id: str, name: str, json_obj: Optional[dict] = None, content: str = "", extra: Optional[dict] = None) -> dict:
+        json_payload = json.dumps(json_obj or {}, separators=(",", ":")) if json_obj is not None else ""
+        props = {
+            "Name": self._title(name),
+            "Brand ID": self._rt(brand_id),
+            "Artifact": self._select(artifact),
+            "Record ID": self._rt(record_id),
+            "JSON": self._rt(json_payload),
+            "Content": self._rt(content),
+        }
+        if extra:
+            props.update(extra)
+        children = self._children_for(json_payload, "json") if json_payload else self._children_for(content)
+        payload = {"parent": {"data_source_id": self.data_source_id}, "properties": props}
+        if children:
+            payload["children"] = children
+        return self._request("POST", "/pages", payload)
+
+    def list_brands(self) -> list[str]:
+        pages = self._query({"filter": {"property": "Artifact", "select": {"equals": "brand_config"}}})
+        return sorted({self._text_prop(p, "Brand ID") for p in pages if self._text_prop(p, "Brand ID")})
+
+    def load_brand_config(self, brand_id: str) -> dict:
+        pages = self._pages(brand_id, "brand_config", "config")
+        if not pages:
+            raise BrandNotConfiguredError(f"No Notion brand_config row for brand_id={brand_id}")
+        return self._json_from_page(pages[0])
+
+    def artifact_exists(self, brand_id: str, artifact: str) -> bool:
+        if artifact in ("prompt_library", "seeds_manifest"):
+            # Empty prompt libraries and seed manifests are valid; their rows are
+            # optional because prompt/seed entries are represented individually.
+            return bool(self._pages(brand_id, "brand_config", "config"))
+        return bool(self._pages(brand_id, artifact, artifact))
+
+    def load_text_artifact(self, brand_id: str, artifact: str) -> str:
+        pages = self._pages(brand_id, artifact, artifact)
+        if not pages:
+            return ""
+        page_id = pages[0].get("id")
+        if page_id:
+            try:
+                text = self._read_blocks_text(page_id)
+                if text:
+                    return text
+            except Exception:
+                pass
+        return self._text_prop(pages[0], "Content")
+
+    def load_library(self, brand_id: str) -> list[dict]:
+        entries = []
+        for page in self._pages(brand_id, "prompt"):
+            record = self._json_from_page(page)
+            if record:
+                entries.append(record)
+        return entries
+
+    def append_library_entry(self, brand_id: str, entry: dict) -> None:
+        shot_id = str(entry.get("shot_id") or "prompt")
+        score = entry.get("score")
+        self._create_page(
+            brand_id,
+            "prompt",
+            f"{shot_id}:{int(time.time())}",
+            f"{brand_id} / {shot_id}",
+            json_obj=entry,
+            extra={
+                "Score": self._number(score),
+            },
+        )
+
+    def load_seeds(self, brand_id: str) -> list[dict]:
+        seeds = []
+        for page in self._pages(brand_id, "seed"):
+            record = self._json_from_page(page)
+            if record:
+                seeds.append(record)
+        return seeds
+
+
+def _active_store() -> BrandStore:
+    _load_env()
+    root = _brands_root()
+    if _storage_mode() == "notion":
+        return NotionBrandStore(_notion_data_source_id())
+    return FileBrandStore(root)
 
 
 def _brands_root() -> Path:
@@ -166,26 +537,23 @@ class BrandPhotographer:
         self.verbose = verbose
 
         # ── Load brand configuration ─────────────────────────────────
-        self.brand_dir = _brands_root() / brand_id
-        if not self.brand_dir.exists():
+        self.store = _active_store()
+        self.brand_dir = _brands_root() / brand_id  # still used for seed image files + outputs
+        try:
+            self.config = self.store.load_brand_config(brand_id)
+        except BrandNotConfiguredError as exc:
             raise BrandNotConfiguredError(
-                f"No brand configured at {self.brand_dir}. "
-                f"Available brands: {self.list_brands()}. "
+                f"{exc}. Available brands: {self.list_brands()}. "
                 "Complete the onboarding flow to add a new brand."
-            )
-        config_path = self.brand_dir / "brand.json"
-        if not config_path.exists():
-            raise BrandNotConfiguredError(
-                f"Missing brand.json in {self.brand_dir}. "
-                "Run the onboarding flow to generate one."
-            )
-        self.config = json.loads(config_path.read_text())
+            ) from exc
         self._validate_config()
 
-        # Brand-scoped paths — NEVER reach across brands
+        # Brand-scoped paths — NEVER reach across brands. In Notion mode,
+        # structured artifacts are read/written through self.store; seed image
+        # files and generated outputs remain local for model compatibility.
         self.output_dir = self.brand_dir / "outputs"
-        self.library_path = self.brand_dir / self.config["references"]["prompt_library"]
-        self.seeds_manifest_path = self.brand_dir / self.config["references"]["seeds_manifest"]
+        self.library_path = self.brand_dir / self.config["references"].get("prompt_library", "prompt-library.json")
+        self.seeds_manifest_path = self.brand_dir / self.config["references"].get("seeds_manifest", "seeds.json")
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.seeds = self._load_seeds_manifest()
 
@@ -255,34 +623,21 @@ class BrandPhotographer:
 
     @classmethod
     def list_brands(cls) -> list[str]:
-        """Return all configured brand_ids (directories with a brand.json)."""
-        root = _brands_root()
-        if not root.exists():
-            return []
-        return sorted(
-            d.name for d in root.iterdir()
-            if d.is_dir() and (d / "brand.json").exists()
-        )
+        """Return all configured brand_ids from the active storage backend."""
+        return _active_store().list_brands()
 
     @classmethod
     def load_brand_config(cls, brand_id: str) -> dict:
-        """Return the raw brand.json dict for a brand_id."""
-        path = _brands_root() / brand_id / "brand.json"
-        if not path.exists():
-            raise BrandNotConfiguredError(f"No brand configured at {path}")
-        return json.loads(path.read_text())
+        """Return the raw brand configuration dict for a brand_id."""
+        return _active_store().load_brand_config(brand_id)
 
     def _load_seeds_manifest(self) -> list[dict]:
-        """Load and normalize seeds from the configured manifest."""
-        if not self.seeds_manifest_path.exists():
-            return []
+        """Load and normalize seeds from the active storage backend."""
         try:
-            manifest = json.loads(self.seeds_manifest_path.read_text())
-        except Exception:
-            self._log(f"[seed] Could not parse seeds manifest: {self.seeds_manifest_path}")
+            raw_seeds = self.store.load_seeds(self.brand_id)
+        except Exception as exc:
+            self._log(f"[seed] Could not load seeds from {self.store.__class__.__name__}: {exc}")
             return []
-
-        raw_seeds = manifest.get("seeds", [])
         if not isinstance(raw_seeds, list):
             return []
 
@@ -308,12 +663,12 @@ class BrandPhotographer:
             raise ValueError(
                 f"brand_id mismatch: directory '{self.brand_id}' vs config '{self.config['brand_id']}'"
             )
-        # Required reference files must exist
-        for label, filename in self.config["references"].items():
-            fpath = self.brand_dir / filename
-            if not fpath.exists():
+        # Required reference artifacts must exist in the active store.
+        required_refs = ("art_direction", "colour_system", "grid_spec", "prompt_library", "seeds_manifest")
+        for label in required_refs:
+            if label in self.config.get("references", {}) and not self.store.artifact_exists(self.brand_id, label):
                 raise FileNotFoundError(
-                    f"Brand '{self.brand_id}' references missing file: {fpath} (label: {label})"
+                    f"Brand '{self.brand_id}' references missing artifact: {label} in {self.store.__class__.__name__}"
                 )
 
     def _build_critic_system(self) -> str:
@@ -472,9 +827,7 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
         return results
 
     def get_library(self) -> list[dict]:
-        if self.library_path.exists():
-            return json.loads(self.library_path.read_text())
-        return []
+        return self.store.load_library(self.brand_id)
 
     def get_shot_ids(self) -> list[str]:
         return [item["shot_id"] for item in self.get_library()]
@@ -1192,8 +1545,7 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
         return self._lookup_library_entry(shot_id).get("prompt", "")
 
     def _save_to_library(self, result: dict):
-        library = self.get_library()
-        library.append({
+        self.store.append_library_entry(self.brand_id, {
             "shot_id": result["shot_id"],
             "shot_name": result.get("shot_name", result["shot_id"]),
             "prompt": result["prompt"],
@@ -1210,7 +1562,6 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
             "backend": self.backend,
             "model": self.model if self.backend == "openrouter" else HF_MODEL,
         })
-        self.library_path.write_text(json.dumps(library, indent=2))
 
     def _image_ref_to_data_url(self, image_ref: str) -> Optional[str]:
         """Convert a local path/URL/data URL image reference into a data URL."""

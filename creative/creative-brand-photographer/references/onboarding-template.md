@@ -24,8 +24,9 @@ If you can't get brand identity, art direction, and colour system,
 flag the gap and do NOT onboard. Partial onboarding produces
 inconsistent output. Seed assets can be gathered after initial config.
 
-## 2. Create the brand directory
+## 2. Create the brand backend records
 
+File mode uses a brand directory:
 ```
 brands/<brand_id>/
 ├── brand.json
@@ -45,6 +46,16 @@ brands/<brand_id>/
 ```
 
 `<brand_id>` should be lowercase, hyphen-separated, no spaces.
+
+Notion mode uses the data source described in `notion-backend.md`:
+
+- one `Artifact=brand_config`, `Record ID=config` row
+- one row each for `art_direction`, `colour_system`, and `grid_spec`
+- one `Artifact=prompt` row per prompt-library entry
+- one `Artifact=seed` row per seed metadata entry
+
+Seed image files still live under the persistent local `seeds/<category>/`
+directory so generation backends can read the actual image bytes.
 
 ## 3. Author `brand.json`
 

@@ -64,10 +64,12 @@ where `claude` should be available, investigate the PATH before proceeding.
 
 Four layers, each scoped to the loaded brand:
 
-1. **Brand Loader** — loads `brands/<brand_id>/brand.json` and its
-   referenced files (art direction, colour system, grid spec, prompt
-   library, seed manifest). Validates that every required file exists.
-   Binds all subsequent operations to this brand.
+1. **Brand Loader** — loads the active storage backend for the brand:
+   local files by default, or the Notion data source when
+   `BRAND_PHOTOGRAPHER_STORAGE=notion`. It reads the brand config and
+   referenced artefacts (art direction, colour system, grid spec,
+   prompt library, seed metadata), validates required artefacts, and
+   binds all subsequent operations to this brand.
 2. **Seed Selector** — given a brief, determines which generation mode
    to use (text-to-image, composite, or style-reference) based on
    available seeds. Selects the best-matching seed assets for the brief.
@@ -81,8 +83,17 @@ Four layers, each scoped to the loaded brand:
 
 ## Directory Layout
 
-The skill has two directory trees: an **ephemeral runtime tree** (wiped on
-each deploy) and a **persistent data tree** (survives across sessions).
+The skill supports two storage backends:
+
+1. **File backend (default/backwards compatible):** an **ephemeral runtime
+   tree** for skill code/templates and a **persistent data tree** for live
+   brand artefacts.
+2. **Notion backend:** a Notion data source is the canonical store for
+   brand config, reference docs, prompt rows, and seed metadata. Seed
+   image files and generated outputs remain local because generation
+   backends need concrete bytes/paths. See `references/notion-backend.md`.
+
+File-backend layout:
 
 ```
 # Ephemeral — source of truth for skill code and config templates
@@ -142,9 +153,11 @@ composite, reference, or extend.
 
 ### The manifest: seeds.json
 
-Every seed asset is registered in `seeds.json`. The file names don't
-matter — the manifest provides all semantics. Files that aren't in
-the manifest are ignored by the skill.
+Every seed asset is registered as seed metadata in the active backend:
+file mode uses `seeds.json`; Notion mode uses one `Artifact=seed` row per
+seed in the configured Notion data source. The file names don't matter —
+the metadata provides all semantics. Files that aren't registered are
+ignored by the skill.
 
 ```json
 {
@@ -348,12 +361,11 @@ Read these files from the brand directory:
 
 ### Step 4 — New brand onboarding
 
-Use `references/onboarding-template.md`. Produce all required files
-plus an empty `seeds.json`:
+Use `references/onboarding-template.md`. Produce all required artefacts
+in the active backend plus an empty seed collection:
 
-```json
-{"version": "1.0", "seeds": []}
-```
+- file mode: create `seeds.json` as `{"version": "1.0", "seeds": []}`
+- Notion mode: create no seed rows initially; seed rows are added one per asset
 
 Create the `seeds/` subdirectories. The brand starts in Mode A only
 until seeds are gathered.
@@ -473,11 +485,16 @@ relative to the brand directory (e.g. `seeds/logos/logo-stacked-black.png`).
 The local file is the authoritative copy — it must exist on disk for Mode
 B compositing to work.
 
-**Step 4 — Generate manifest entries.** Write the JSON entries and
-show them to the user for confirmation. Then write to `seeds.json` in
-the persistent brands directory.
+**Step 4 — Generate manifest entries.** Write well-structured JSON metadata
+entries and show them to the user for confirmation.
 
-**Step 5 — Report mode availability.** After any change to the seed
+**Step 5 — Write seed metadata to the active backend.** In file mode,
+append to `seeds.json` in the persistent brands directory. In Notion
+mode, create/update one `Artifact=seed` row per seed in the Brand
+Photographer Notion data source. Show the JSON metadata to the user for
+confirmation before writing.
+
+**Step 6 — Report mode availability.** After any change to the seed
 library, report what generation modes are now unlocked.
 
 ### Interview Questions by Category
@@ -619,14 +636,14 @@ When the user asks to update or reclassify:
 1. List the affected entries with their current metadata
 2. Ask what needs to change
 3. Show the updated JSON entry for confirmation
-4. Write to `seeds.json`
+4. Write to the active backend (`seeds.json` in file mode; the seed row in Notion mode)
 
 ### Workflow: Removing Seeds
 
 When the user asks to remove:
 
-1. Confirm: "Remove `bouquet-orchid-amber-001` from the manifest? The file stays on disk — this just deregisters it from the skill."
-2. On confirmation, remove the entry from `seeds.json`
+1. Confirm: "Remove `bouquet-orchid-amber-001` from the active seed registry? The local file stays on disk — this just deregisters it from the skill."
+2. On confirmation, remove the entry from the active backend (`seeds.json` or the Notion seed row)
 3. Report updated mode availability
 
 ## Brand Isolation — Non-negotiable Rules
