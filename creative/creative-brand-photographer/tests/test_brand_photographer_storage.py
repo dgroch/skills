@@ -95,6 +95,19 @@ class FakeNotion:
                 converted_children.append({"type": typ, typ: {"rich_text": [{"plain_text": x["text"]["content"]} for x in rich]}})
             self.children[page_id] = converted_children
             return page
+        if method == "PATCH" and path.startswith("/pages/"):
+            page_id = path.split("/")[2]
+            page = next(p for p in self.pages if p["id"] == page_id)
+            for key, value in (payload or {}).get("properties", {}).items():
+                if "title" in value:
+                    page["properties"][key] = {"type": "title", "title": [{"plain_text": value["title"][0]["text"]["content"]}]}
+                elif "rich_text" in value:
+                    page["properties"][key] = {"type": "rich_text", "rich_text": [{"plain_text": x["text"]["content"]} for x in value["rich_text"]]}
+                elif "select" in value:
+                    page["properties"][key] = {"type": "select", "select": value["select"]}
+                elif "number" in value:
+                    page["properties"][key] = {"type": "number", "number": value["number"]}
+            return page
         raise AssertionError(f"Unexpected request {method} {path} {payload}")
 
 
@@ -124,6 +137,81 @@ class StorageTests(unittest.TestCase):
             self.assertEqual(store.list_brands(), ["demo"])
             self.assertEqual(store.load_library("demo")[0]["shot_id"], "hero")
             self.assertEqual(store.load_seeds("demo")[0]["id"], "seed-1")
+
+    def test_seed_without_local_file_can_use_cdn_url(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            brand = root / "demo"
+            brand.mkdir()
+            cfg = {
+                "brand_id": "demo",
+                "brand_name": "Demo",
+                "references": {"seeds_manifest": "seeds.json"},
+                "critic": {"dimensions": []},
+                "grid_pattern": [],
+            }
+            (brand / "brand.json").write_text(json.dumps(cfg))
+            (brand / "seeds.json").write_text(json.dumps({"seeds": [{
+                "id": "seed-cdn",
+                "category": "bouquet",
+                "cdn_url": "https://brand-cdn.example/figandbloom/seeds/seed-cdn.jpg",
+                "tags": ["hero"],
+            }]}))
+            store = api.FileBrandStore(root)
+            seeds = store.load_seeds("demo")
+            self.assertEqual(seeds[0]["id"], "seed-cdn")
+            # Generation should be able to resolve a seed image reference even
+            # when Notion/manifest metadata is canonical and no local file path
+            # has been cached yet.
+            ref = api.seed_image_ref(seeds[0], brand)
+            self.assertEqual(ref, "https://brand-cdn.example/figandbloom/seeds/seed-cdn.jpg")
+
+    def test_build_seed_from_asset_manifest_record_preserves_cdn_and_handles(self):
+        record = {
+            "file": {"id": "drive-1", "name": "lisbon-bouquet.jpg", "webViewLink": "https://drive/item"},
+            "analysis": {
+                "content_type": "product hero",
+                "overall_description": "Warm lisbon bouquet on a table.",
+                "visual_tags": ["Lisbon", "warm whites"],
+                "mood_tone": ["soft"],
+                "products_or_flowers": ["roses", "lisianthus"],
+                "usable_for": ["product page", "ad creative"],
+                "setting_location": "studio table",
+            },
+            "preview_url": "https://brand-cdn.example/asset-manifest/lisbon.jpg",
+        }
+        seed = api.seed_from_asset_manifest_record(record, brand_id="fig-and-bloom", category="bouquet")
+        self.assertEqual(seed["id"], "asset-drive-1")
+        self.assertEqual(seed["cdn_url"], "https://brand-cdn.example/asset-manifest/lisbon.jpg")
+        self.assertEqual(seed["asset_manifest"]["drive_file_id"], "drive-1")
+        self.assertIn("roses", seed["flowers"])
+        self.assertIn("product page", seed["usable_for"])
+
+    def test_notion_seed_rows_include_asset_manifest_and_cdn_properties(self):
+        fake = FakeNotion()
+        store = api.NotionBrandStore("ds-test", api_key="secret", request_fn=fake.request)
+        seed = {
+            "id": "asset-drive-1",
+            "category": "bouquet",
+            "cdn_url": "https://brand-cdn.example/asset-manifest/lisbon.jpg",
+            "file": "seeds/asset-manifest/asset-drive-1.jpg",
+            "asset_manifest": {"drive_file_id": "drive-1", "page_id": "notion-page-1", "database_id": "asset-db"},
+        }
+        store.upsert_seed("fig-and-bloom", seed)
+        page = fake.pages[-1]
+        self.assertEqual(FakeNotion.text_prop(page, "CDN URL"), seed["cdn_url"])
+        self.assertEqual(FakeNotion.text_prop(page, "Drive File ID"), "drive-1")
+        self.assertEqual(FakeNotion.text_prop(page, "Asset Manifest Page ID"), "notion-page-1")
+        self.assertEqual(FakeNotion.text_prop(page, "Local File"), "seeds/asset-manifest/asset-drive-1.jpg")
+
+    def test_notion_seed_upsert_refreshes_json_property(self):
+        fake = FakeNotion()
+        store = api.NotionBrandStore("ds-test", api_key="secret", request_fn=fake.request)
+        store.upsert_seed("fig-and-bloom", {"id": "seed-1", "category": "bouquet", "cdn_url": "https://old.example/a.jpg"})
+        store.upsert_seed("fig-and-bloom", {"id": "seed-1", "category": "bouquet", "cdn_url": "https://new.example/a.jpg"})
+        seeds = store.load_seeds("fig-and-bloom")
+        self.assertEqual(len(seeds), 1)
+        self.assertEqual(seeds[0]["cdn_url"], "https://new.example/a.jpg")
 
     def test_notion_store_loads_rows_and_appends_prompt(self):
         fake = FakeNotion()

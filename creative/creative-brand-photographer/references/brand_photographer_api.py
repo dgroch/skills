@@ -145,6 +145,9 @@ class BrandStore:
         raise NotImplementedError
 
 
+    def upsert_seed(self, brand_id: str, seed: dict) -> None:
+        raise NotImplementedError
+
 class FileBrandStore(BrandStore):
     def __init__(self, root: Path):
         self.root = root
@@ -208,6 +211,119 @@ class FileBrandStore(BrandStore):
         manifest = json.loads(path.read_text())
         raw = manifest.get("seeds", [])
         return raw if isinstance(raw, list) else []
+
+    def upsert_seed(self, brand_id: str, seed: dict) -> None:
+        path = self.artifact_path(brand_id, "seeds_manifest")
+        manifest = {"version": "1.0", "seeds": []}
+        if path.exists():
+            try:
+                loaded = json.loads(path.read_text())
+                if isinstance(loaded, dict):
+                    manifest.update(loaded)
+            except json.JSONDecodeError:
+                pass
+        seeds = manifest.get("seeds", [])
+        if not isinstance(seeds, list):
+            seeds = []
+        sid = str(seed.get("id") or "").strip()
+        if not sid:
+            raise ValueError("seed id is required")
+        replaced = False
+        updated = []
+        for item in seeds:
+            if isinstance(item, dict) and item.get("id") == sid:
+                updated.append(seed)
+                replaced = True
+            else:
+                updated.append(item)
+        if not replaced:
+            updated.append(seed)
+        manifest["seeds"] = updated
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False))
+
+
+def _clean_list(value: Any) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, str):
+        value = [value]
+    if not isinstance(value, list):
+        return []
+    out: list[str] = []
+    seen: set[str] = set()
+    for item in value:
+        text = str(item).strip()
+        key = text.lower()
+        if text and key not in seen:
+            seen.add(key)
+            out.append(text)
+    return out
+
+
+def _slugify_seed(text: str, max_len: int = 64) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "-", str(text or "").lower()).strip("-")
+    return (slug or "asset")[:max_len].strip("-") or "asset"
+
+
+def seed_image_ref(seed: dict, brand_dir: Path) -> str:
+    """Return the best image reference for a seed: local file first, then CDN/manifest URLs."""
+    file_ref = str(seed.get("file") or seed.get("local_file") or "").strip()
+    if file_ref:
+        local = Path(file_ref)
+        if not local.is_absolute():
+            local = brand_dir / file_ref
+        if local.exists():
+            return str(local)
+    for key in ("cdn_url", "public_url", "preview_url", "source_url"):
+        url = str(seed.get(key) or "").strip()
+        if url.startswith(("http://", "https://", "data:image")):
+            return url
+    manifest = seed.get("asset_manifest") if isinstance(seed.get("asset_manifest"), dict) else {}
+    for key in ("cdn_url", "preview_url", "drive_link"):
+        url = str(manifest.get(key) or "").strip()
+        if url.startswith(("http://", "https://")):
+            return url
+    return str((brand_dir / file_ref) if file_ref else "")
+
+
+def seed_from_asset_manifest_record(record: dict, brand_id: str, category: str = "asset") -> dict:
+    """Convert a brand-asset-manifesting backup/record into a Brand Photographer seed."""
+    file_info = record.get("file") if isinstance(record.get("file"), dict) else record
+    analysis = record.get("analysis") if isinstance(record.get("analysis"), dict) else {}
+    meta = record.get("meta") if isinstance(record.get("meta"), dict) else {}
+    drive_id = str(file_info.get("id") or record.get("drive_file_id") or record.get("Drive File ID") or "").strip()
+    name = str(file_info.get("name") or record.get("name") or record.get("Asset") or drive_id or "asset").strip()
+    seed_id = f"asset-{drive_id}" if drive_id else f"asset-{_slugify_seed(name)}"
+    cdn_url = str(record.get("preview_url") or record.get("cdn_url") or record.get("Preview URL") or "").strip()
+    drive_link = str(file_info.get("webViewLink") or record.get("drive_link") or record.get("Drive Link") or "").strip()
+    tags = _clean_list(analysis.get("visual_tags")) + _clean_list(analysis.get("mood_tone"))
+    usable_for = _clean_list(analysis.get("usable_for"))
+    flowers = _clean_list(analysis.get("products_or_flowers"))
+    description = str(analysis.get("overall_description") or record.get("description") or "").strip()
+    seed = {
+        "id": seed_id,
+        "category": category or str(analysis.get("content_type") or "asset"),
+        "file": f"seeds/asset-manifest/{seed_id}{Path(name).suffix or '.jpg'}",
+        "cdn_url": cdn_url,
+        "tags": tags,
+        "flowers": flowers,
+        "usable_for": usable_for,
+        "description": description,
+        "source": "brand_asset_manifest",
+        "asset_manifest": {
+            "brand_id": brand_id,
+            "drive_file_id": drive_id,
+            "drive_link": drive_link,
+            "preview_url": cdn_url,
+            "page_id": str(record.get("page_id") or record.get("notion_page_id") or ""),
+            "database_id": str(record.get("database_id") or record.get("db_id") or ""),
+            "mime_type": str(file_info.get("mimeType") or record.get("mime_type") or ""),
+            "dimensions": f"{meta.get('width','')}x{meta.get('height','')}" if meta else str(record.get("Dimensions") or ""),
+        },
+    }
+    # Drop empty scalar/list fields while preserving nested manifest handles.
+    return {k: v for k, v in seed.items() if v not in ("", [], None)}
 
 
 class NotionBrandStore(BrandStore):
@@ -334,6 +450,16 @@ class NotionBrandStore(BrandStore):
             cursor = data.get("next_cursor")
 
     def _json_from_page(self, page: dict) -> dict:
+        # Prefer the JSON property when it contains parseable JSON. This lets
+        # upserts refresh compact records without attempting to rewrite Notion
+        # child blocks. Fall back to page children for long initial-import rows
+        # whose JSON property was only an index/preview.
+        prop_raw = self._text_prop(page, "JSON")
+        if prop_raw:
+            try:
+                return json.loads(prop_raw)
+            except json.JSONDecodeError:
+                pass
         raw = ""
         page_id = page.get("id")
         if page_id:
@@ -341,8 +467,6 @@ class NotionBrandStore(BrandStore):
                 raw = self._read_blocks_text(page_id)
             except Exception:
                 raw = ""
-        if not raw:
-            raw = self._text_prop(page, "JSON")
         if not raw:
             return {}
         return json.loads(raw)
@@ -446,6 +570,39 @@ class NotionBrandStore(BrandStore):
             if record:
                 seeds.append(record)
         return seeds
+
+    def upsert_seed(self, brand_id: str, seed: dict) -> None:
+        sid = str(seed.get("id") or "").strip()
+        if not sid:
+            raise ValueError("seed id is required")
+        manifest = seed.get("asset_manifest") if isinstance(seed.get("asset_manifest"), dict) else {}
+        json_payload = json.dumps(seed, separators=(",", ":"), ensure_ascii=False)
+        extra = {
+            "JSON": self._rt(json_payload),
+            "Category": self._select(str(seed.get("category") or "")),
+            "File": self._rt(str(seed.get("file") or seed.get("local_file") or "")),
+            "Local File": self._rt(str(seed.get("file") or seed.get("local_file") or "")),
+            "CDN URL": self._rt(str(seed.get("cdn_url") or seed.get("public_url") or manifest.get("cdn_url") or manifest.get("preview_url") or "")),
+            "Preview URL": self._rt(str(seed.get("preview_url") or manifest.get("preview_url") or seed.get("cdn_url") or "")),
+            "Drive File ID": self._rt(str(manifest.get("drive_file_id") or seed.get("drive_file_id") or "")),
+            "Asset Manifest Page ID": self._rt(str(manifest.get("page_id") or seed.get("asset_manifest_page_id") or "")),
+            "Asset Manifest DB ID": self._rt(str(manifest.get("database_id") or seed.get("asset_manifest_database_id") or "")),
+        }
+        pages = self._pages(brand_id, "seed", sid)
+        if pages:
+            # Update indexed properties plus the compact JSON property. Notion
+            # blocks are append-only via the public API, so load prefers the
+            # refreshed JSON property for upserted compact seed rows.
+            self._request("PATCH", f"/pages/{pages[0]['id']}", {"properties": extra})
+            return
+        self._create_page(
+            brand_id,
+            "seed",
+            sid,
+            f"{brand_id} / {sid}",
+            json_obj=seed,
+            extra=extra,
+        )
 
 
 def _active_store() -> BrandStore:
@@ -646,8 +803,8 @@ class BrandPhotographer:
             if not isinstance(seed, dict):
                 continue
             sid = seed.get("id")
-            sfile = seed.get("file")
-            if not sid or not sfile:
+            image_ref = seed_image_ref(seed, self.brand_dir)
+            if not sid or not image_ref:
                 continue
             normalized.append(seed)
         return normalized
@@ -1177,15 +1334,19 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
         data_urls = []
         context = {"seed_ids": [], "flowers": [], "colour_story": [], "notes": []}
         for seed in final_seeds:
-            file_ref = seed.get("file", "")
-            if not file_ref:
+            image_ref = seed_image_ref(seed, self.brand_dir)
+            if not image_ref:
                 continue
-            seed_path = self.brand_dir / file_ref
-            data_url = self._image_ref_to_data_url(str(seed_path))
+            data_url = self._image_ref_to_data_url(image_ref)
             if not data_url:
                 continue
             data_urls.append(data_url)
             context["seed_ids"].append(seed.get("id"))
+            if seed.get("cdn_url"):
+                context.setdefault("cdn_urls", []).append(seed.get("cdn_url"))
+            manifest = seed.get("asset_manifest") if isinstance(seed.get("asset_manifest"), dict) else {}
+            if manifest.get("drive_file_id"):
+                context.setdefault("asset_manifest_drive_file_ids", []).append(manifest.get("drive_file_id"))
             context["flowers"].extend(seed.get("flowers", []) if isinstance(seed.get("flowers"), list) else [])
             colour_story = seed.get("colour_story")
             if isinstance(colour_story, str) and colour_story:

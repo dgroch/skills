@@ -9,7 +9,7 @@ generate → critique → revise loop. Each brand has its own art
 direction, colour system, grid spec, prompt library, and seed metadata.
 The default backend remains local files under `brands/<brand_id>/`; the
 same API can also use a Notion data source as the canonical backend by
-setting `BRAND_PHOTOGRAPHER_STORAGE=notion`.
+setting `BRAND_PHOTOGRAPHER_STORAGE=notion`. Seed metadata can also be synced from the Brand Asset Manifest database and resolved through Brand CDN preview URLs for model-readable references.
 
 ---
 
@@ -107,6 +107,24 @@ export OPENROUTER_API_KEY="sk-or-v1-..."
 # When `claude` is on PATH, the CLI handles critique — no API key required.
 export ANTHROPIC_API_KEY="sk-ant-..."   # fallback only
 ```
+
+### Brand Asset Manifest / CDN sync
+
+To promote discovered asset-manifest rows into generation seeds, use:
+
+```bash
+python references/brand_photographer_asset_manifest_sync.py \
+  --brand-id fig-and-bloom \
+  --manifest-json <drive-video-manifest-backup.json> \
+  --category bouquet \
+  --dry-run
+```
+
+For Notion-to-Notion sync, set `NOTION_BRAND_ASSET_DATABASE_ID` and the Brand
+Photographer Notion backend env vars. For CDN publication, add
+`--upload-cdn --cdn-bucket <bucket> --cdn-key-prefix seeds/<brand-id>`. Existing
+manifest `Preview URL` values are reused as `cdn_url` unless
+`--force-cdn-upload` is passed.
 
 ### 2. Pick a brand
 

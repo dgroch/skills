@@ -91,7 +91,11 @@ The skill supports two storage backends:
 2. **Notion backend:** a Notion data source is the canonical store for
    brand config, reference docs, prompt rows, and seed metadata. Seed
    image files and generated outputs remain local because generation
-   backends need concrete bytes/paths. See `references/notion-backend.md`.
+   backends need concrete bytes/paths. Seed rows can also carry Brand
+   Asset Manifest and Brand CDN handles (`Drive File ID`, `Asset Manifest
+   Page ID`, `Preview URL`, `CDN URL`) so discovered assets become
+   generation-ready references without copying JSON files. See
+   `references/notion-backend.md`.
 
 File-backend layout:
 

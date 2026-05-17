@@ -51,7 +51,13 @@ Create one Notion database/data source with these properties:
 - `JSON` — rich text
 - `Content` — rich text
 - `Category` — select (optional convenience field)
-- `File` — rich text (optional convenience field)
+- `File` — rich text (legacy/local seed path convenience field)
+- `Local File` — rich text (cached local seed path when present)
+- `CDN URL` — rich text (public Brand CDN URL for model-readable seeds)
+- `Preview URL` — rich text (preview URL imported from Brand Asset Manifest)
+- `Drive File ID` — rich text (source Google Drive file handle)
+- `Asset Manifest Page ID` — rich text (source Notion manifest row)
+- `Asset Manifest DB ID` — rich text (source asset manifest database)
 - `Score` — number (optional convenience field)
 
 The `JSON` and `Content` properties are previews/index fields. Full JSON and long markdown are stored in each page's child blocks so they are not truncated by Notion's 2000-character rich-text property limit.
@@ -116,6 +122,48 @@ EOF
 ```
 
 For actual generation, also provide the usual image backend credentials (`OPENROUTER_API_KEY` or Higgsfield credentials).
+
+## Brand Asset Manifest + Brand CDN bridge
+
+Use `references/brand_photographer_asset_manifest_sync.py` to convert assets
+from the `productivity/brand-asset-manifesting` skill into Brand Photographer
+seed rows. The sync keeps the asset manifest as the discovery catalogue and
+writes generation-ready seed metadata here.
+
+From a manifest JSON backup:
+
+```bash
+python references/brand_photographer_asset_manifest_sync.py \
+  --brand-id fig-and-bloom \
+  --manifest-json /opt/data/brand-asset-manifests/notion-drive-assets/output/drive-video-manifest.json \
+  --category bouquet \
+  --dry-run
+```
+
+From the asset manifest Notion database:
+
+```bash
+BRAND_PHOTOGRAPHER_STORAGE=notion \
+BRAND_PHOTOGRAPHER_NOTION_DATA_SOURCE_ID="<brand-photographer-data-source>" \
+NOTION_BRAND_ASSET_DATABASE_ID="<asset-manifest-db>" \
+NOTION_API_KEY="<secret>" \
+python references/brand_photographer_asset_manifest_sync.py --brand-id fig-and-bloom
+```
+
+Optional CDN publication through `devops/devops-brand-cdn`:
+
+```bash
+python references/brand_photographer_asset_manifest_sync.py \
+  --brand-id fig-and-bloom \
+  --manifest-json <manifest-backup.json> \
+  --upload-cdn \
+  --cdn-bucket figandbloom \
+  --cdn-key-prefix seeds/fig-and-bloom
+```
+
+If a manifest row already has a `Preview URL`, that URL becomes the seed
+`cdn_url`; pass `--force-cdn-upload` only when you need to republish through
+the Brand CDN helper.
 
 ## Backwards compatibility
 
