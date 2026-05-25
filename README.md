@@ -33,6 +33,8 @@ Each skill is self-contained and includes a `SKILL.md` file (plus optional `scri
 - `creative/add-creative-builder` (`ad-creative-builder`): Build production-ready static and carousel ad creatives from existing photography, copy, and brand assets.
 - `creative/asset-adapter` (`asset-adapter`): Reformat a hero creative into platform-specific variants using deterministic crop/safe-zone rules.
 - `creative/brand-guidelines-manager` (`brand-guidelines-manager`): Enforce and maintain Fig & Bloom brand rules for visual and tonal consistency.
+- `creative/creative-communications-calendar-planner` (`creative-communications-calendar-planner`): Plan integrated Fig & Bloom email, social, and blog calendars with blog-to-email link maps and Paperclip issue breakdowns.
+- `creative/creative-social-grid-planner` (`creative-social-grid-planner`): Plan Fig & Bloom 9- or 12-tile social grid chapters using campaign-world art direction and product/human/proof balance.
 - `creative/copywriting-qa` (`copy-qa`): QA customer-facing copy against brand voice and messaging standards.
 - `creative/email-template-builder` (`email-template-builder`): Create, build, and deploy Klaviyo email campaigns and automated flows from a modular component library.
 
