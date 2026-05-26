@@ -7,9 +7,13 @@ The **Brand Photographer** agent loads a single brand configuration
 per session and generates on-brand AI photography through a
 generate → critique → revise loop. Each brand has its own art
 direction, colour system, grid spec, prompt library, and seed metadata.
-The default backend remains local files under `brands/<brand_id>/`; the
-same API can also use a Notion data source as the canonical backend by
-setting `BRAND_PHOTOGRAPHER_STORAGE=notion`. Seed metadata can also be synced from the Brand Asset Manifest database and resolved through Brand CDN preview URLs for model-readable references.
+The storage backend remains local files under `brands/<brand_id>/` for
+backwards compatibility when no Notion data source is configured; production
+Fig & Bloom runs should set `BRAND_PHOTOGRAPHER_NOTION_DATA_SOURCE_ID` (and
+optionally `BRAND_PHOTOGRAPHER_STORAGE=notion`) so the Notion data source is
+canonical.
+Seed metadata can also be synced from the Brand Asset Manifest database and
+resolved through Brand CDN preview URLs for model-readable references.
 
 ---
 
@@ -27,8 +31,8 @@ Onboarding → Brand Loader → Prompt Engine → Image Model → Critic → Pas
    or the configured Notion data source in Notion mode.
 3. The **Prompt Engine** builds prompts using the brand's art
    direction rules and colour vocabulary.
-4. The **Image Model** generates (OpenRouter / Nano Banana by
-   default, Higgsfield Soul as legacy).
+4. The **Image Model** generates through the Higgsfield CLI by default,
+   with OpenRouter available only as an explicit fallback.
 5. The **Critic** scores the image against the brand's rubric
    (constructed from `brand.json`).
 6. Passes are locked into the brand's own library.
@@ -56,19 +60,24 @@ or
 
 ### Smoke test
 
-Verify the intended critic path can execute before running a full generation:
+Verify the intended generation and critic paths can execute before running a
+full generation:
 
 ```bash
-# 1. Confirm claude CLI is on PATH (expected: a file path)
+# 1. Confirm Higgsfield CLI is installed and authenticated
+which higgsfield
+higgsfield account status
+
+# 2. Confirm claude CLI is on PATH (expected: a file path)
 which claude
 
-# 2. Run the CLI in interactive mode to confirm brand loads and critic path logs correctly
+# 3. Run the CLI in interactive mode to confirm brand loads and path logs correctly
 python3 references/brand_photographer_cli.py bower
 
-# 3. Non-interactive single-shot test (pick shot index 1)
+# 4. Non-interactive single-shot test (pick shot index 1)
 python3 references/brand_photographer_cli.py bower 1
 
-# 4. Confirm critic mode in brand_summary (should show "cli" when claude is on PATH)
+# 5. Confirm backend/critic mode in brand_summary
 python3 - <<'EOF'
 import sys; sys.path.insert(0, "references")
 from brand_photographer_api import BrandPhotographer
@@ -80,9 +89,10 @@ EOF
 Expected output when CLI is available:
 
 ```
+[generation] Higgsfield CLI authenticated — using CLI generation path
 [critic] Claude CLI found on PATH — using CLI mode
 Brand Photographer configured for 'Bower' (brand_id=bower)
-{'critic_mode': 'cli', ...}
+{'backend': 'higgsfield', 'critic_mode': 'cli', ...}
 ```
 
 ---
@@ -97,11 +107,15 @@ export BRAND_PHOTOGRAPHER_STORAGE=notion
 export BRAND_PHOTOGRAPHER_NOTION_DATA_SOURCE_ID="<notion-data-source-id>"
 export NOTION_API_KEY="<secret>"
 
-# OPENROUTER_API_KEY is always required for the default image generation backend
-export OPENROUTER_API_KEY="sk-or-v1-..."
-# Or for Higgsfield (legacy):
-# export HF_KEY="..."
-# export HF_SECRET="..."
+# Higgsfield CLI is the preferred image generation backend.
+higgsfield account status
+# If not authenticated, a human/operator must run:
+# higgsfield auth login
+# or `hf auth login` when the CLI prints that hint
+
+# OpenRouter is an explicit fallback only:
+# export BRAND_PHOTOGRAPHER_IMAGE_BACKEND=openrouter
+# export OPENROUTER_API_KEY="sk-or-v1-..."
 
 # ANTHROPIC_API_KEY is only needed if the Claude CLI is NOT installed.
 # When `claude` is on PATH, the CLI handles critique — no API key required.
@@ -144,7 +158,7 @@ photographer.generate("product_hero")
 photographer.generate_grid(season="spring")
 photographer.generate_campaign("mothers_day", flowers=["garden roses"])
 
-# Seed-constrained image+text generation (OpenRouter)
+# Seed-constrained image+text generation (Higgsfield CLI by default)
 photographer.generate(
     "fashion_hero",
     fidelity_mode="strict",
@@ -162,7 +176,9 @@ photographer.generate(
 - `fidelity_mode="guided"`: uses selected seeds as references and scores fidelity in critique.
 - `fidelity_mode="strict"`: if bouquet fidelity is graded as mismatched, quality gate forces iterate even when overall score is high.
 
-Seed images are passed to OpenRouter as multimodal `image_url` content parts (image + text prompt in one request).
+Seed images are passed to the Higgsfield CLI as repeated `--image` flags.
+When `BRAND_PHOTOGRAPHER_IMAGE_BACKEND=openrouter` is explicitly selected,
+seed images are passed as multimodal `image_url` content parts.
 
 ### CLI
 

@@ -4,6 +4,7 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 API_PATH = Path(__file__).resolve().parents[1] / "references" / "brand_photographer_api.py"
 spec = importlib.util.spec_from_file_location("brand_photographer_api", API_PATH)
@@ -138,6 +139,13 @@ class StorageTests(unittest.TestCase):
             self.assertEqual(store.load_library("demo")[0]["shot_id"], "hero")
             self.assertEqual(store.load_seeds("demo")[0]["id"], "seed-1")
 
+    def test_storage_mode_defaults_to_notion_when_data_source_is_configured(self):
+        with patch.dict(os.environ, {
+            "BRAND_PHOTOGRAPHER_NOTION_DATA_SOURCE_ID": "ds-test",
+        }, clear=False):
+            with patch.dict(os.environ, {"BRAND_PHOTOGRAPHER_STORAGE": ""}, clear=False):
+                self.assertEqual(api._storage_mode(), "notion")
+
     def test_seed_without_local_file_can_use_cdn_url(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
@@ -212,6 +220,31 @@ class StorageTests(unittest.TestCase):
         seeds = store.load_seeds("fig-and-bloom")
         self.assertEqual(len(seeds), 1)
         self.assertEqual(seeds[0]["cdn_url"], "https://new.example/a.jpg")
+
+    def test_higgsfield_cli_generation_uses_seed_images_and_parses_url(self):
+        with tempfile.TemporaryDirectory() as td:
+            seed = Path(td) / "seed.jpg"
+            seed.write_bytes(b"fake image")
+            photographer = object.__new__(api.BrandPhotographer)
+            photographer.model = "nano_banana_2"
+            photographer.verbose = False
+            captured = {}
+
+            def fake_run(cmd, **kwargs):
+                captured["cmd"] = cmd
+                return type("Result", (), {
+                    "returncode": 0,
+                    "stdout": "completed https://cdn.example/generated.jpg",
+                    "stderr": "",
+                })()
+
+            with patch.object(api.subprocess, "run", side_effect=fake_run):
+                url = photographer._generate_higgsfield("Make a bouquet", "3:4", [str(seed)])
+
+            self.assertEqual(url, "https://cdn.example/generated.jpg")
+            self.assertEqual(captured["cmd"][:4], ["higgsfield", "generate", "create", "nano_banana_2"])
+            self.assertIn("--image", captured["cmd"])
+            self.assertIn(str(seed), captured["cmd"])
 
     def test_notion_store_loads_rows_and_appends_prompt(self):
         fake = FakeNotion()
