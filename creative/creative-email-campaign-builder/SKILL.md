@@ -129,6 +129,22 @@ footer                       ← always last
 | `hero-d-noir` | Launches, VIP, re-engagement. Maximum brand statement. |
 | `hero-d-clay` / `hero-d-white` | Type-forward but warmer tone. |
 
+### Designed blocks (graphic-designed image blocks)
+
+Designed blocks live in `references/templates/blocks/` and are listed under `components.blocks` in the manifest. They are graphic-designed, fully-composed image blocks (600px wide, variable height) that are **always sliced to PNG** — never shipped as live email HTML. Because they are rasterised, they use rich CSS (`transform:rotate`, `position:absolute` layering, `box-shadow`, negative-margin overlap) that email clients would strip or break. They drop into the single 600px column exactly like any other sliced component, and use the same locked system (Cervanttis lowercase script, Lust sentence-case display, NeuzeitGro sans, Noir/Clay/White, square black buttons).
+
+| Block | When to use | Notes |
+|---|---|---|
+| `editorial-hero` | Opening beat for editorial/engagement sends where one strong photo carries the story. | Photo + Lust headline + Cervanttis accent + square button on a plate that overlaps the photo. One per email; place a normal `header` above it. |
+| `feature-list` | Explaining 2–4 reasons-to-believe / value props beside a single product polaroid. Mid-email. | Tilted polaroid + clay disc bullets. Max one per email. |
+| `polaroid-collage` | Social-proof / "in their words" moment, or a multi-occasion montage. After products, before the closing beat. | Three tilted overlapping polaroids on Clay + Lust pull-quote. Max one per email. |
+
+**Selection rules for designed blocks:**
+- They are *content blocks*, not replacements for `header`/`footer` — keep the standard `header` first and `footer` last.
+- `editorial-hero` may be used **instead of** a standard hero (it is the hero), or after one for a second editorial beat. Do not stack two designed blocks back-to-back without a divider.
+- Treat each as a single sliced unit: fill tokens, render, upload, link. No per-element editing.
+- Token case follows the same font rules: any Cervanttis token (`ACCENT_SCRIPT`, `*_CAPTION`, `QUOTE_ACCENT`) is **lowercase**; Lust tokens (`HEADLINE`, `PULL_QUOTE`) are sentence case.
+
 ---
 
 ## Step 5: Render (token injection + slicing)
@@ -140,7 +156,7 @@ This step fills tokens into templates and renders visual components as PNG slice
 Divide the selected component list into two groups:
 
 **Slice to PNG** (visual — render via Puppeteer):
-- header, all hero variants, all product cards, body-copy (illustrated variant), testimonial, upsell-noir, trust-bar, divider-illo-*
+- header, all hero variants, all product cards, **all designed blocks (`blocks/*` — editorial-hero, feature-list, polaroid-collage)**, body-copy (illustrated variant), testimonial, upsell-noir, trust-bar, divider-illo-*
 
 **Keep as HTML** (text-only — safe in all email clients, stays selectable/responsive):
 - opt-out, section-headline, delivery-cutoffs, footer, body-copy-plain, divider-line, divider-whitespace
@@ -234,6 +250,11 @@ Then in Step 5c token values, use `file://` paths instead of Shopify URLs:
 - `{{PRODUCT_IMAGE_URL}}` = `file:///tmp/[campaign-slug]/product-images/[slug].jpg`
 - `{{LIFESTYLE_IMAGE_URL}}` = `file:///tmp/[campaign-slug]/product-images/[slug]-lifestyle.jpg`
 - `{{STUDIO_IMAGE_URL}}` = `file:///tmp/[campaign-slug]/product-images/[slug]-studio.jpg`
+
+The same applies to every image token in a **designed block** — pre-download each and point the token at a local `file://` path:
+- `editorial-hero`: `{{HERO_IMAGE_URL}}`
+- `feature-list`: `{{POLAROID_IMAGE_URL}}`
+- `polaroid-collage`: `{{PHOTO_1_URL}}`, `{{PHOTO_2_URL}}`, `{{PHOTO_3_URL}}`
 
 The product photos are baked into the slice PNGs during rendering — Step 8 uploads the composited slices to Klaviyo, so the original URLs aren't needed downstream.
 
