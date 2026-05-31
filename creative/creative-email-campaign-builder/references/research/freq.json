@@ -5,8 +5,9 @@
     "rows_enumerated": 212,
     "rows_stated_approx": 214,
     "enumeration_method": "Notion MCP has no bulk-query/count tool and no API token in env; full ID set harvested via ~30 saturating semantic searches (union/dedup) then every page fetched individually for authoritative properties.",
-    "visual_sample_n": 41,
-    "visual_sample_method": "stratified across MIME (PNG/GIF) and all campaign types; images downloaded from brand CDN; dimensions+animation parsed from PNG IHDR / GIF logical-screen+frame headers; layout/colour/type/illustration/above-fold classified from Chromium-rendered contact sheets."
+    "visual_sample_n": 157,
+    "visual_sample_method": "stratified across MIME (PNG/GIF) and all campaign types; images downloaded from brand CDN; dimensions+animation parsed from PNG IHDR / GIF logical-screen+frame headers; layout/colour/type/illustration/above-fold classified from Chromium-rendered contact sheets.",
+    "visual_review_coverage": "157 unique emails (74% of 212) visually reviewed via Chromium contact sheets; an initial 41-image stratified pass plus a 116-image second pass (deduped by content hash). Dimension/animation stats below are from the original 41-image stratified subset unless noted."
   },
   "mime": {
     "png": {
@@ -169,8 +170,8 @@
     },
     "offer_promo_panel": {
       "freq_pct": 17,
-      "built": false,
-      "note": "bold display %-off + dashed code + urgency; candidate 7th designed block (promo = 16.5% of corpus)"
+      "built": true,
+      "note": "BUILT as blocks/offer-panel: huge Lust offer value + dashed code box + rotated Cervanttis sticker; promo/sale/free-ship/rewards + giveaway mode. Confirmed across the 157-email review."
     },
     "testimonial_review": {
       "freq_pct": 30,
@@ -184,6 +185,21 @@
     "footer": {
       "freq_pct": 100,
       "built": true
+    },
+    "howto_care_steps": {
+      "freq_pct": 6,
+      "built": false,
+      "note": "CANDIDATE (recommended next build): vertical numbered how-to / care sequence with an image per step (refresh, dry, make-last, eucalyptus, arranging, home-spots). Distinct from the horizontal three-column-steps-* partner-flow and from feature-list RTB bullets."
+    },
+    "comparison_vs": {
+      "freq_pct": 2,
+      "built": false,
+      "note": "CANDIDATE (niche / optional): side-by-side 'vs' block (us-vs-them, what-we-bought-vs-got, before/after). Low frequency."
+    },
+    "giveaway_panel": {
+      "freq_pct": 4,
+      "built": true,
+      "note": "NOT a separate block — handled as GIVEAWAY MODE of offer-panel (PROMO_CODE empty, prize in OFFER_VALUE)."
     }
   },
   "design_system_confirmation": {

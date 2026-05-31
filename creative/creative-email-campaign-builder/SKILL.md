@@ -141,6 +141,7 @@ Designed blocks live in `references/templates/blocks/` and are listed under `com
 | `caption-bar-hero` | Photo-led opening where one image carries the story and the message is a short caption (editorial / occasion / flower-of-the-month). The corpus's most common opener. | Full-bleed photo + caption bar (NeuzeitGro label + Cervanttis caption + button). Parametrised palette. First-class **GIF-hero** candidate. One per email; header above it. |
 | `story` | Founder / behind-the-scenes / brand-story "note" beat. Mid-email, after the hero. | Tilted-polaroid portrait + Lust headline + narrative + Cervanttis signature. Parametrised palette. Max one per email. |
 | `designed-product-card` | A single spotlight product that needs a designed treatment (badge + big serif name/price). Use plain `card-*` for 3–5 product grids. | Photo + tilted Cervanttis badge ribbon + Lust name/price + button. Parametrised palette; `BADGE_TEXT=""` hides the ribbon. Max one per email. |
+| `offer-panel` | Promo / sale / flash / Black Friday / free-shipping / rewards — and **giveaways** (GIVEAWAY MODE). Open or strong-close beat for promo sends. | Huge Lust offer value + dashed promo-code box + rotated Cervanttis sticker + button. Parametrised palette (+ seasonal accent allowed). `PROMO_CODE=""` for giveaways. The designed hero version of `sections/promo-code`. Max one per email. |
 
 **Selection rules for designed blocks:**
 - They are *content blocks*, not replacements for `header`/`footer` — keep the standard `header` first and `footer` last.

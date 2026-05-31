@@ -29,7 +29,8 @@ present).
 The renders are single 600px-wide columns but extremely tall (median ~5,000px),
 so 212 full pixel reads are not tractable. A **stratified sample of 41 emails**
 was drawn to span both MIME types (PNG/GIF) and every campaign type, downloaded
-from the brand CDN, and analysed two ways:
+from the brand CDN, and analysed two ways (later **widened to 157 unique emails
+/ 74%** for the block-taxonomy review — see *Expanded visual review* below):
 - **Dimensions + animation** parsed directly from file headers (PNG `IHDR`;
   GIF logical-screen descriptor + frame/`0x2C` count) — no PIL/ImageMagick
   needed.
@@ -119,13 +120,35 @@ exclusive). "Built" = already a component in `references/templates/`.
 | footer | 100% | ✓ | |
 
 **Taxonomy verdict.** The mine **confirms the proposed 6-type designed-block
-taxonomy**. Three are already built (editorial-hero, feature-list,
-polaroid-collage); the three remaining — **caption-bar-hero, story,
-designed-product-card** — are all genuinely recurring and worth building. The
-mine also surfaces a strong **candidate 7th**, a *designed offer/promo panel*,
-because promo is 16.5% of the corpus and those panels are visually distinct
-(bold type + dashed code). Recommend building the three confirmed blocks now and
-flagging the offer-panel as the next candidate.
+taxonomy**, all six now built (editorial-hero, feature-list, polaroid-collage,
+caption-bar-hero, story, designed-product-card). The **7th block — a designed
+offer/promo panel — is now also built** (`blocks/offer-panel`): promo is the
+second-largest bucket (16.5%) and those panels are visually distinct (huge Lust
+offer value + dashed code box + rotated sticker). See the expanded-review note
+below.
+
+### Expanded visual review (74% of the corpus)
+
+After the initial 41-image stratified pass, the review was widened to **157
+unique emails (74%)** — deduped by content hash across a second 116-email pass —
+specifically to confirm the offer-panel and to check for any *new* candidate
+blocks. Findings:
+
+- **`offer-panel` (7th) — confirmed and built.** Recurs across every
+  sale / Black Friday / flash / free-shipping / rewards send (~17%). Giveaways
+  are *not* a separate block — they're the offer-panel in **GIVEAWAY MODE**
+  (no code; prize in the offer value).
+- **`howto / care-steps` — new candidate, recommended next build (~5–7%).** A
+  *vertical* numbered how-to / care sequence with an image per step (refresh,
+  dry, make-last, eucalyptus, arranging, home-spots). Genuinely distinct from
+  the existing horizontal `three-column-steps-*` (a compact partner-flow) and
+  from `feature-list` (RTB bullets beside one polaroid).
+- **`comparison / vs` — niche candidate, optional (~1–2%).** Side-by-side
+  us-vs-them / bought-vs-got / before-after. Real but low-frequency.
+
+No other new block types surfaced across all 157 — the house vocabulary is
+stable and on-system. Recommendation: ship the 7th now (done), build
+`howto/care-steps` next, treat `comparison/vs` as nice-to-have.
 
 ### On-brand consistency (confirmed from pixels)
 - **Palette:** monochrome **Noir #000 / White / Clay #D8CCBE** dominates every
@@ -157,7 +180,7 @@ pre-flight check below.
 
 The mine maps directly onto the five requirements:
 
-1. **Variation without visual repetition** — six designed-block types + a
+1. **Variation without visual repetition** — seven designed-block types + a
    rotation scheme (see `manifest.json → variation_rules`) so consecutive sends
    don't repeat the same opening/affirm/close beats.
 2. **On-brand consistency** — every variation stays inside the locked

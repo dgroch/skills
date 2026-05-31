@@ -631,6 +631,34 @@
           "PANEL_SUB",
           "PANEL_BORDER"
         ]
+      },
+      "offer-panel": {
+        "file": "templates/blocks/offer-panel.html",
+        "classification": "slice",
+        "description": "Bold designed offer / promo HERO: NeuzeitGro caps super-label, huge Lust offer value, Lust supporting line, terms, a dashed promo-code box, a rotated Cervanttis 'sticker' ribbon, and a square button. The designed (sliced) hero version of an offer — distinct from the small inline sections/promo-code component. Confirmed across the 157-email review as the recurring promo/sale/free-ship/rewards beat (~17% of corpus).",
+        "when_to_use": "Promo / sale / flash / Black Friday / free-shipping / rewards sends — as the OPEN beat or a strong CLOSE beat. One per email. For a GIVEAWAY, use GIVEAWAY MODE (PROMO_CODE=\"\", prize in OFFER_VALUE, mechanic in SUBHEADLINE).",
+        "assets_needed": "None — type + dashed box + CSS ribbon only. No photo or illustration assets.",
+        "parametrised": {
+          "palette": "white | clay | 50clay | noir (PANEL_* tokens), or a seasonal campaign accent on PANEL_BG for occasion/promo only",
+          "code_box": "PROMO_CODE text, or \"\" to hide the whole code box",
+          "ribbon": "ACCENT_RIBBON lowercase Cervanttis, or \"\" to hide",
+          "animated": "yes — sale/urgency flash GIF candidate (see gif_hero)"
+        },
+        "tokens": [
+          "SUPER_LABEL",
+          "OFFER_VALUE",
+          "HEADLINE",
+          "SUBHEADLINE",
+          "ACCENT_RIBBON",
+          "CODE_LABEL",
+          "PROMO_CODE",
+          "CTA_TEXT",
+          "CTA_URL",
+          "PANEL_BG",
+          "PANEL_TEXT",
+          "PANEL_SUB",
+          "PANEL_BORDER"
+        ]
       }
     },
     "block_palette_presets": {
@@ -643,9 +671,9 @@
     "variation_rules": {
       "_about": "Derived from the corpus mine (references/research/freq.json). Goal: consecutive sends must not feel same-y, while every variation stays inside the locked system. Variation comes from (1) which designed block opens/affirms/closes, (2) the palette preset, and (3) the layout lever — NOT from new colours, fonts or illustrations.",
       "beats": {
-        "OPEN": ["editorial-hero", "caption-bar-hero", "hero-a", "hero-b-*", "hero-c*", "hero-d-*", "hero-image-only"],
+        "OPEN": ["editorial-hero", "caption-bar-hero", "offer-panel (promo sends)", "hero-a", "hero-b-*", "hero-c*", "hero-d-*", "hero-image-only"],
         "AFFIRM": ["feature-list", "story", "polaroid-collage", "testimonial", "designed-product-card"],
-        "CLOSE": ["upsell-noir", "promo-code", "designed-product-card"]
+        "CLOSE": ["upsell-noir", "offer-panel", "promo-code", "designed-product-card"]
       },
       "rotation": "Across a campaign series, rotate the OPEN block and its palette so no two consecutive sends repeat the same opener+palette pair. Track the last send's (open_block, palette) and pick a different combination. Editorial/newsletter sends (the corpus's largest bucket, 25.5%) should lean on caption-bar-hero + story; promo sends on editorial-hero + designed-product-card.",
       "no_repeat": [
