@@ -138,12 +138,77 @@ Designed blocks live in `references/templates/blocks/` and are listed under `com
 | `editorial-hero` | Opening beat for editorial/engagement sends where one strong photo carries the story. | Photo + Lust headline + Cervanttis accent + square button on a plate that overlaps the photo. One per email; place a normal `header` above it. |
 | `feature-list` | Explaining 2–4 reasons-to-believe / value props beside a single product polaroid. Mid-email. | Tilted polaroid + clay disc bullets. Max one per email. |
 | `polaroid-collage` | Social-proof / "in their words" moment, or a multi-occasion montage. After products, before the closing beat. | Three tilted overlapping polaroids on Clay + Lust pull-quote. Max one per email. |
+| `caption-bar-hero` | Photo-led opening where one image carries the story and the message is a short caption (editorial / occasion / flower-of-the-month). The corpus's most common opener. | Full-bleed photo + caption bar (NeuzeitGro label + Cervanttis caption + button). Parametrised palette. First-class **GIF-hero** candidate. One per email; header above it. |
+| `story` | Founder / behind-the-scenes / brand-story "note" beat. Mid-email, after the hero. | Tilted-polaroid portrait + Lust headline + narrative + Cervanttis signature. Parametrised palette. Max one per email. |
+| `designed-product-card` | A single spotlight product that needs a designed treatment (badge + big serif name/price). Use plain `card-*` for 3–5 product grids. | Photo + tilted Cervanttis badge ribbon + Lust name/price + button. Parametrised palette; `BADGE_TEXT=""` hides the ribbon. Max one per email. |
+| `offer-panel` | Promo / sale / flash / Black Friday / free-shipping / rewards — and **giveaways** (GIVEAWAY MODE). Open or strong-close beat for promo sends. | Huge Lust offer value + dashed promo-code box + rotated Cervanttis sticker + button. Parametrised palette (+ seasonal accent allowed). `PROMO_CODE=""` for giveaways. The designed hero version of `sections/promo-code`. Max one per email. |
+| `howto-steps` | Care guides / how-to / "make them last" sequences — a **vertical** numbered 3-step flow with a photo per step. Mid-email affirm beat. | Big Lust step numerals + NeuzeitGro caps titles + tilted framed step photos (alternating left/right). Parametrised palette. Exactly three steps. Use `sections/three-column-steps-*` for a compact horizontal partner-flow instead. Max one per email. |
+| `comparison-vs` | Us-vs-them / bought-vs-got / before-after side-by-side. Mid-email affirm beat for differentiation moments. | Two square photos (left greyscaled "before/others", right bordered "after/us") + central circular Cervanttis "vs" badge straddling the columns. Parametrised palette. Max one per email. |
 
 **Selection rules for designed blocks:**
 - They are *content blocks*, not replacements for `header`/`footer` — keep the standard `header` first and `footer` last.
 - `editorial-hero` may be used **instead of** a standard hero (it is the hero), or after one for a second editorial beat. Do not stack two designed blocks back-to-back without a divider.
 - Treat each as a single sliced unit: fill tokens, render, upload, link. No per-element editing.
-- Token case follows the same font rules: any Cervanttis token (`ACCENT_SCRIPT`, `*_CAPTION`, `QUOTE_ACCENT`) is **lowercase**; Lust tokens (`HEADLINE`, `PULL_QUOTE`) are sentence case.
+- Token case follows the same font rules: any Cervanttis token (`ACCENT_SCRIPT`, `*_CAPTION`, `QUOTE_ACCENT`, `CAPTION`, `SIGNATURE`, `BADGE_TEXT`) is **lowercase**; Lust tokens (`HEADLINE`, `PULL_QUOTE`, `PRODUCT_NAME`, `PRODUCT_PRICE`) are sentence case.
+
+### Parametrised palette (designed blocks)
+
+`caption-bar-hero`, `story`, `designed-product-card`, `offer-panel`,
+`howto-steps` and `comparison-vs` are **parametrised on
+palette**. Each exposes four `PANEL_*` tokens — fill all four by **copying one
+preset row verbatim** from `manifest.json → components.block_palette_presets`
+(or the `PALETTE PRESETS` block in the template comment). The agent never
+invents a hex value, so every variation stays inside the locked
+Noir/Clay/White system.
+
+| Preset | PANEL_BG | PANEL_TEXT | PANEL_SUB | PANEL_BORDER | button |
+|---|---|---|---|---|---|
+| white | `#ffffff` | `#444444` | `#aaaaaa` | `#e8e2da` | black-on-white |
+| clay | `#D8CCBE` | `#000000` | `#5f574d` | `#c7b9a9` | black-on-white |
+| 50clay | `#EBE5DF` | `#666666` | `#8a8178` | `#ded7cf` | black-on-white |
+| noir | `#000000` | `#cfcac3` | `#888888` | `#2c2825` | **white-on-black** |
+
+On the **noir** preset only, swap the button background to `#ffffff` and the
+button text to `#000000`. Layout levers: `caption-bar-hero` `IMG_HEIGHT` =
+`600` (square) or `440` (editorial 3:2); `designed-product-card` `BADGE_TEXT` =
+lowercase ribbon text or `""` to hide.
+
+### Variation & rotation scheme (don't ship same-y sends)
+
+The corpus mine (`references/research/freq.json`,
+`references/research/corpus-mine.md`) drives this. Build every email as three
+beats and **rotate** so consecutive sends of a series don't repeat:
+
+```
+OPEN    → editorial-hero | caption-bar-hero | hero-a/b/c/d | hero-image-only
+AFFIRM  → feature-list | story | polaroid-collage | testimonial | designed-product-card | howto-steps | comparison-vs
+CLOSE   → upsell-noir | promo-code | designed-product-card
+```
+
+Rotation rules (see `manifest.json → components.variation_rules`):
+- Track the previous send's `(open_block, palette)` pair and pick a **different**
+  combination for the next send in the series.
+- Editorial / newsletter sends (the corpus's largest bucket, 25.5%) lean on
+  `caption-bar-hero` + `story`; promo sends lean on `editorial-hero` +
+  `designed-product-card`.
+- **Max one of each designed block per email**; never stack two designed blocks
+  back-to-back without a divider; never repeat the OPEN palette on consecutive
+  sends.
+- Accent (non-monochrome) colour only on occasion/promo sends, only as a
+  panel/border — never on type.
+
+### Above-the-fold CTA rule (locked)
+
+Corpus emails are long single-column scrolls (median ~5,000px), so a skimmer
+sees only the **top ~700px**. The mine found the primary CTA falls **below**
+the fold in the majority of sends — fix that here:
+
+- The **primary CTA must render within the first ~700px** of the assembled
+  email. `caption-bar-hero` (button in the caption bar) and `editorial-hero`
+  (button on the plate) satisfy this by construction; a bare photo hero
+  (`hero-image-only`) does **not** — follow it immediately with a CTA-bearing
+  block.
+- Enforced by the Step 6 **above-the-fold pre-flight check**.
 
 ---
 
@@ -155,8 +220,11 @@ This step fills tokens into templates and renders visual components as PNG slice
 
 Divide the selected component list into two groups:
 
-**Slice to PNG** (visual — render via Puppeteer):
-- header, all hero variants, all product cards, **all designed blocks (`blocks/*` — editorial-hero, feature-list, polaroid-collage)**, body-copy (illustrated variant), testimonial, upsell-noir, trust-bar, divider-illo-*
+**Slice to PNG** (visual — render via Puppeteer `slice.js`):
+- header, all hero variants, all product cards, **all designed blocks (`blocks/*` — editorial-hero, feature-list, polaroid-collage, caption-bar-hero, story, designed-product-card, offer-panel, howto-steps, comparison-vs)**, body-copy (illustrated variant), testimonial, upsell-noir, trust-bar, divider-illo-*
+
+**Slice to animated GIF** (animated hero — render via `slice-gif.js`, Step 5e):
+- A `caption-bar-hero` / `editorial-hero` / `hero-image-only` whose hero is animated. ~31% of the corpus ships an animated GIF hero — treat it as a first-class output, not an afterthought.
 
 **Keep as HTML** (text-only — safe in all email clients, stays selectable/responsive):
 - opt-out, section-headline, delivery-cutoffs, footer, body-copy-plain, divider-line, divider-whitespace
@@ -296,6 +364,53 @@ Parse the `__SLICE_MANIFEST__` from `/tmp/[campaign-slug]/slice-output.txt` to g
 
 If any slice fails → fix the component HTML and re-run before proceeding.
 
+### 5e. Animated GIF hero (procedural image-creation workflow)
+
+~31% of corpus emails ship an **animated GIF hero**, and `image/gif` always
+means *animated* (the mine found 20/20 sampled GIFs were multi-frame). When a
+campaign calls for an animated hero, produce it with `slice-gif.js` instead of a
+static PNG. The corpus animates heroes three ways — pick the matching frame
+recipe:
+
+| Pattern | Frames | How each frame differs |
+|---|---|---|
+| **Reveal** (flower-of-the-month / product reveal) | 2–4 | swap `HERO_IMAGE_URL` (teaser → reveal) and/or `CAPTION` |
+| **UGC / review carousel** | 8–18 | swap `HERO_IMAGE_URL` to each UGC/review photo |
+| **Sale / urgency flash** | 4–5 | swap `PANEL_BG`/`CAPTION` to flash the offer (e.g. white ↔ clay, "ends tonight") |
+
+**Workflow** (uses `caption-bar-hero` / `editorial-hero` / `hero-image-only`):
+
+1. **Pick the hero block** and the frame recipe above. Decide N frames.
+2. **Pre-download every frame image** to local `file://` paths (Step 5b rules —
+   pre-flight, MIME + byte-size checks). Every frame must render at the **same
+   content height** — author the block height (e.g. `IMG_HEIGHT`) identically
+   across frames.
+3. **Build N frame HTML files** in a frames dir, named so they sort in play
+   order: `frame-00.html`, `frame-01.html`, … Each is the *same* block with one
+   token changed per the recipe, wrapped in `shell-preview.html` and fully
+   token-filled (no `{{ }}` left).
+4. **Render to one looping GIF:**
+
+   ```bash
+   node [puppeteer-skill-path]/references/scripts/slice-gif.js \
+     --frames /tmp/[campaign-slug]/gif-frames/ \
+     --output /tmp/[campaign-slug]/slices/hero.gif \
+     --assets [puppeteer-skill-path]/references/assets \
+     --width 600 --scale 1 --delay 700 --loop 0 --verbose
+   ```
+
+   `--scale 1` keeps the GIF file size email-friendly; `--delay` is per-frame ms;
+   `--loop 0` loops forever. The script prints a `__GIF_MANIFEST__` block (frame
+   count, dimensions, bytes) — confirm `frames` matches N.
+5. **Treat the GIF like any other slice** downstream: upload it in Step 8
+   (`POST /api/images/` accepts GIF), get the Klaviyo CDN URL, and in Step 9
+   drop it in as `<img src="…hero.gif" width="600">` wrapped in the CTA
+   `<a href>`. No special production handling — it's just an animated slice.
+
+> **Deps:** `slice-gif.js` uses `gifenc` + `pngjs`, installed by the same
+> `npm install` in `references/` as `slice.js` (Troubleshooting). If missing,
+> re-run `npm install` there.
+
 ---
 
 ## Step 6: Validation
@@ -351,6 +466,36 @@ If a card has broken images:
 - [ ] Cervanttis headlines (hero, upsell-noir, opt-out) are lowercase in token values
 - [ ] Lust headlines (body-copy, section-headline, product cards) are sentence case
 - [ ] `REVIEW_STARS` uses `★` Unicode characters
+
+**Above-the-fold pre-flight check (mandatory):**
+
+A skimmer must be able to click without scrolling. Sum the rendered heights of
+the assembled slices/blocks from the top and confirm the **primary CTA falls
+within the first ~700px**:
+
+```bash
+node -e "
+const fs=require('fs');
+// [{name, height_css_px, has_primary_cta}] in assembly order, from the slice manifest + text-block heights
+const blocks = JSON.parse(fs.readFileSync('/tmp/[campaign-slug]/assembly-order.json','utf8'));
+let y=0, foldCta=false;
+const FOLD=700;
+for (const b of blocks){ if(b.has_primary_cta && y<FOLD){foldCta=true;break;} y+=b.height_css_px; }
+if(!foldCta){ console.error('ABOVE-FOLD FAIL: primary CTA does not appear within '+FOLD+'px. Lead with a CTA-bearing hero (editorial-hero / caption-bar-hero) or add a CTA block right under the photo hero.'); process.exit(1); }
+console.log('Above-fold OK — primary CTA within '+FOLD+'px');
+"
+```
+
+- `header` (~64px) + a CTA-bearing hero (`editorial-hero`, `caption-bar-hero`,
+  `hero-a/b/c/d`) passes by construction.
+- A bare `hero-image-only` (600×750) pushes the CTA past the fold — **fail**:
+  follow it immediately with a CTA-bearing block, or switch the opener.
+
+**Variation check (campaign series):**
+- [ ] The `(open_block, palette_preset)` pair differs from the previous send in
+      the series (see `manifest.json → components.variation_rules`)
+- [ ] No designed block (`blocks/*`) appears more than once in the email
+- [ ] No two designed blocks are stacked back-to-back without a divider
 
 ---
 
@@ -499,10 +644,12 @@ Read `references/manifest.json` to confirm exact file paths and token names befo
 |---|---|
 | `references/brand-voice.md` | Writing any copy (Step 3) |
 | `references/product-selection.md` | Selecting products (Step 2) |
-| `references/manifest.json` | Component selection and token names (Steps 4–5) |
+| `references/manifest.json` | Component selection, token names, palette presets, variation rules, gif-hero (Steps 4–5) |
+| `references/research/freq.json` | Variation / rotation, block-frequency, gif-hero & above-fold decisions (Steps 4–6) |
+| `references/research/corpus-mine.md` | Why those rules exist — the readable corpus analysis |
 | `references/klaviyo-html.md` | Klaviyo API calls (Steps 8, 10) |
 | `reference-google-drive` skill | Google Drive uploads (Steps 7, 9) — use `$GWS_USER_ADMIN` |
-| `puppeteer` skill | Slice rendering (Step 5) — must be installed on VPS first |
+| `puppeteer` skill | Slice rendering (`slice.js`, Step 5) + animated GIF heroes (`slice-gif.js`, Step 5e) — install on VPS first |
 
 ---
 
@@ -543,7 +690,7 @@ node -e "require('minimist'); console.log('minimist OK')"
 node -e "require('puppeteer'); console.log('puppeteer OK')"
 ```
 
-The `references/` directory contains `package.json` with `minimist` and `puppeteer` as dependencies. Running `npm install` inside that directory is the only setup step needed. Do not run `npm install` at the repo root.
+The `references/` directory contains `package.json` with `minimist`, `puppeteer`, `gifenc` and `pngjs` as dependencies (the last two power the animated GIF-hero path, `slice-gif.js`). Running `npm install` inside that directory is the only setup step needed. Do not run `npm install` at the repo root.
 
 ### Product images render as broken placeholders despite successful slice.js run
 

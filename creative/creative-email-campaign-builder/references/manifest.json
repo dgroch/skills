@@ -557,7 +557,200 @@
           "PULL_QUOTE",
           "QUOTE_ATTRIBUTION"
         ]
+      },
+      "caption-bar-hero": {
+        "file": "templates/blocks/caption-bar-hero.html",
+        "classification": "slice",
+        "description": "Full-bleed photo above a caption/super-label bar: NeuzeitGro caps label + Cervanttis lowercase script caption + square button. The corpus's most common photo-led opener (editorial / occasion / flower-of-the-month). ~40% of sampled emails.",
+        "when_to_use": "Opening beat when one photo carries the story and the message is a short caption, not a paragraph. Differs from editorial-hero (which adds a Lust headline + plate). One per email; pair with a normal header above it.",
+        "assets_needed": "One full-bleed photo (600 wide; height = IMG_HEIGHT, 600 square or 440 editorial). For an ANIMATED hero, supply frames and render via slice-gif.js (see SKILL Step 5e).",
+        "parametrised": {
+          "palette": "white | clay | noir (PANEL_* tokens — copy a preset row verbatim)",
+          "layout": "IMG_HEIGHT = 600 (square) or 440 (editorial 3:2)",
+          "animated": "yes — first-class GIF-hero candidate (see gif_hero below)"
+        },
+        "tokens": [
+          "HERO_IMAGE_URL",
+          "IMG_HEIGHT",
+          "SUPER_LABEL",
+          "CAPTION",
+          "CTA_TEXT",
+          "CTA_URL",
+          "PANEL_BG",
+          "PANEL_TEXT",
+          "PANEL_SUB",
+          "PANEL_BORDER"
+        ]
+      },
+      "story": {
+        "file": "templates/blocks/story.html",
+        "classification": "slice",
+        "description": "Tilted-polaroid portrait (left) + narrative copy (right): NeuzeitGro super-label, Lust headline, two Neuzeit paragraphs, Cervanttis lowercase script signature, square button. Founder / behind-the-scenes / editorial 'note' beat. ~18% of sampled emails.",
+        "when_to_use": "Founder or brand-story moment (e.g. 'from the founders', an interview, a values note). Mid-email, usually after the hero. Max one per email.",
+        "assets_needed": "One portrait / behind-the-scenes photo (square crop, 240×300 display). No illustration assets.",
+        "parametrised": {
+          "palette": "white | clay | 50clay | noir (PANEL_* tokens — copy a preset row verbatim)",
+          "layout": "portrait-left, text-right (locked to the corpus norm)"
+        },
+        "tokens": [
+          "PORTRAIT_IMAGE_URL",
+          "SUPER_LABEL",
+          "HEADLINE",
+          "BODY_P1",
+          "BODY_P2",
+          "SIGNATURE",
+          "CTA_TEXT",
+          "CTA_URL",
+          "PANEL_BG",
+          "PANEL_TEXT",
+          "PANEL_SUB",
+          "PANEL_BORDER"
+        ]
+      },
+      "designed-product-card": {
+        "file": "templates/blocks/designed-product-card.html",
+        "classification": "slice",
+        "description": "Rich product spotlight: photo with a tilted Cervanttis badge ribbon (bestseller / low stock / new), Lust product name, Neuzeit occasion line, Lust price, square button. The designed alternative to the plain products/card-* components. ~48% of sampled emails carry a designed spotlight.",
+        "when_to_use": "A single hero/spotlight product that needs a designed treatment (badge, big serif name + price). For plain 3–5 product grids keep using products/card-horizontal / card-lifestyle-studio. Max one designed-product-card per email.",
+        "assets_needed": "One product photo (4:5 crop, 280×350 display). Badge ribbon is CSS-drawn — no icon assets. Set BADGE_TEXT to \"\" to hide the ribbon.",
+        "parametrised": {
+          "palette": "white | clay | 50clay | noir (PANEL_* tokens — copy a preset row verbatim)",
+          "badge": "BADGE_TEXT lowercase Cervanttis, or \"\" to hide"
+        },
+        "tokens": [
+          "PRODUCT_IMAGE_URL",
+          "BADGE_TEXT",
+          "PRODUCT_LABEL",
+          "PRODUCT_NAME",
+          "PRODUCT_OCCASION",
+          "PRODUCT_PRICE",
+          "CTA_TEXT",
+          "CTA_URL",
+          "PANEL_BG",
+          "PANEL_TEXT",
+          "PANEL_SUB",
+          "PANEL_BORDER"
+        ]
+      },
+      "offer-panel": {
+        "file": "templates/blocks/offer-panel.html",
+        "classification": "slice",
+        "description": "Bold designed offer / promo HERO: NeuzeitGro caps super-label, huge Lust offer value, Lust supporting line, terms, a dashed promo-code box, a rotated Cervanttis 'sticker' ribbon, and a square button. The designed (sliced) hero version of an offer — distinct from the small inline sections/promo-code component. Confirmed across the 157-email review as the recurring promo/sale/free-ship/rewards beat (~17% of corpus).",
+        "when_to_use": "Promo / sale / flash / Black Friday / free-shipping / rewards sends — as the OPEN beat or a strong CLOSE beat. One per email. For a GIVEAWAY, use GIVEAWAY MODE (PROMO_CODE=\"\", prize in OFFER_VALUE, mechanic in SUBHEADLINE).",
+        "assets_needed": "None — type + dashed box + CSS ribbon only. No photo or illustration assets.",
+        "parametrised": {
+          "palette": "white | clay | 50clay | noir (PANEL_* tokens), or a seasonal campaign accent on PANEL_BG for occasion/promo only",
+          "code_box": "PROMO_CODE text, or \"\" to hide the whole code box",
+          "ribbon": "ACCENT_RIBBON lowercase Cervanttis, or \"\" to hide",
+          "animated": "yes — sale/urgency flash GIF candidate (see gif_hero)"
+        },
+        "tokens": [
+          "SUPER_LABEL",
+          "OFFER_VALUE",
+          "HEADLINE",
+          "SUBHEADLINE",
+          "ACCENT_RIBBON",
+          "CODE_LABEL",
+          "PROMO_CODE",
+          "CTA_TEXT",
+          "CTA_URL",
+          "PANEL_BG",
+          "PANEL_TEXT",
+          "PANEL_SUB",
+          "PANEL_BORDER"
+        ]
+      },
+      "howto-steps": {
+        "file": "templates/blocks/howto-steps.html",
+        "classification": "slice",
+        "description": "Vertical numbered how-to / care sequence: super-label, Lust headline, intro, then exactly three steps (oversized Lust numeral + NeuzeitGro caps title + body + a tilted framed step photo, alternating sides), and a square button. The corpus's care/how-to beat (~5-7%) — refresh, dry, make-last, eucalyptus, arranging, home-spots.",
+        "when_to_use": "Editorial care / how-to / ritual sends that teach a 3-step method with an image per step. Mid-email. One per email. NOT for a compact horizontal partner-flow (use sections/three-column-steps-*) or reasons-to-believe bullets (use blocks/feature-list).",
+        "assets_needed": "Three square step photos (108×108 display). No illustration assets.",
+        "parametrised": {
+          "palette": "white | clay | 50clay | noir (PANEL_* tokens — copy a preset row verbatim)",
+          "layout": "fixed 3-step alternating rhythm (number-left/photo-right ↔ photo-left/number-right)"
+        },
+        "tokens": [
+          "SUPER_LABEL",
+          "HEADLINE",
+          "INTRO",
+          "STEP_1_NUMBER",
+          "STEP_1_TITLE",
+          "STEP_1_TEXT",
+          "STEP_1_IMAGE_URL",
+          "STEP_2_NUMBER",
+          "STEP_2_TITLE",
+          "STEP_2_TEXT",
+          "STEP_2_IMAGE_URL",
+          "STEP_3_NUMBER",
+          "STEP_3_TITLE",
+          "STEP_3_TEXT",
+          "STEP_3_IMAGE_URL",
+          "CTA_TEXT",
+          "CTA_URL",
+          "PANEL_BG",
+          "PANEL_TEXT",
+          "PANEL_SUB",
+          "PANEL_BORDER"
+        ]
+      },
+      "comparison-vs": {
+        "file": "templates/blocks/comparison-vs.html",
+        "classification": "slice",
+        "description": "Side-by-side 'vs' comparison: super-label, Lust headline, two square photos with caps labels + captions, and a circular Cervanttis 'vs' badge straddling the columns. The left/'others'/'before' photo is desaturated; the right/'us'/'after' photo is full colour with a black border. The corpus's us-vs-them / what-we-bought-vs-got / before-after beat (niche, ~1-2%).",
+        "when_to_use": "A direct before/after or us-vs-them contrast. Mid-email. One per email.",
+        "assets_needed": "Two square photos (210×210 display). No illustration assets.",
+        "parametrised": {
+          "palette": "white | clay | 50clay | noir (PANEL_* tokens — copy a preset row verbatim)",
+          "layout": "symmetric two-column (left = before/others, right = after/us)"
+        },
+        "tokens": [
+          "SUPER_LABEL",
+          "HEADLINE",
+          "LEFT_LABEL",
+          "LEFT_IMAGE_URL",
+          "LEFT_CAPTION",
+          "VS_ACCENT",
+          "RIGHT_LABEL",
+          "RIGHT_IMAGE_URL",
+          "RIGHT_CAPTION",
+          "CTA_TEXT",
+          "CTA_URL",
+          "PANEL_BG",
+          "PANEL_TEXT",
+          "PANEL_SUB",
+          "PANEL_BORDER"
+        ]
       }
+    },
+    "block_palette_presets": {
+      "_about": "Designed blocks are PARAMETRISED on palette via four PANEL_* tokens. Fill all four by copying ONE preset row verbatim — the agent never invents hex. Keeps every variation inside the locked Noir/Clay/White system. Buttons stay square black on light presets; on the noir preset swap the button to white-on-black.",
+      "white": { "PANEL_BG": "#ffffff", "PANEL_TEXT": "#444444", "PANEL_SUB": "#aaaaaa", "PANEL_BORDER": "#e8e2da" },
+      "clay": { "PANEL_BG": "#D8CCBE", "PANEL_TEXT": "#000000", "PANEL_SUB": "#5f574d", "PANEL_BORDER": "#c7b9a9" },
+      "50clay": { "PANEL_BG": "#EBE5DF", "PANEL_TEXT": "#666666", "PANEL_SUB": "#8a8178", "PANEL_BORDER": "#ded7cf" },
+      "noir": { "PANEL_BG": "#000000", "PANEL_TEXT": "#cfcac3", "PANEL_SUB": "#888888", "PANEL_BORDER": "#2c2825", "button": "white-on-black" }
+    },
+    "variation_rules": {
+      "_about": "Derived from the corpus mine (references/research/freq.json). Goal: consecutive sends must not feel same-y, while every variation stays inside the locked system. Variation comes from (1) which designed block opens/affirms/closes, (2) the palette preset, and (3) the layout lever — NOT from new colours, fonts or illustrations.",
+      "beats": {
+        "OPEN": ["editorial-hero", "caption-bar-hero", "offer-panel (promo sends)", "hero-a", "hero-b-*", "hero-c*", "hero-d-*", "hero-image-only"],
+        "AFFIRM": ["feature-list", "story", "polaroid-collage", "testimonial", "designed-product-card", "howto-steps", "comparison-vs"],
+        "CLOSE": ["upsell-noir", "offer-panel", "promo-code", "designed-product-card"]
+      },
+      "rotation": "Across a campaign series, rotate the OPEN block and its palette so no two consecutive sends repeat the same opener+palette pair. Track the last send's (open_block, palette) and pick a different combination. Editorial/newsletter sends (the corpus's largest bucket, 25.5%) should lean on caption-bar-hero + story; promo sends on editorial-hero + designed-product-card. Care-guide / how-to sends affirm with howto-steps; us-vs-them / before-after sends affirm with comparison-vs.",
+      "no_repeat": [
+        "Do not use the same designed block twice in one email (each is 'max one per email').",
+        "Do not stack two designed blocks back-to-back without a divider.",
+        "Do not repeat the same palette preset on the OPEN block in consecutive sends of a series.",
+        "Accent colour (non-mono) only on occasion/promo sends, only as a panel/border — never type."
+      ]
+    },
+    "gif_hero": {
+      "_about": "Animated GIF heroes are FIRST-CLASS: ~31% of the corpus ships one, and image/gif ALWAYS means an animated hero (see research/freq.json). The static slicer (slice.js) emits PNG; the animated path uses slice-gif.js in the puppeteer skill.",
+      "when": "Use a GIF hero for reveal moments (flower-of-the-month / product reveals, 2–4 frames), UGC / review carousels (8–18 frames), or sale/urgency flashes (4–5 frames).",
+      "applies_to_blocks": ["caption-bar-hero", "editorial-hero", "hero-image-only"],
+      "workflow_ref": "SKILL.md Step 5e — produce N frame HTML states of the SAME block, render to one looping GIF via reference/reference-puppeteer/references/scripts/slice-gif.js, then upload/link like any other slice.",
+      "slicer": "scripts/slice-gif.js (deps: gifenc, pngjs — installed by the same npm install as slice.js)"
     }
   },
   "token_rules": {
