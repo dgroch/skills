@@ -1,0 +1,196 @@
+{
+  "_meta": {
+    "corpus": "Fig & Bloom Right Hook Email Design Corpus DB",
+    "data_source": "collection://35ffdc24-425f-8132-af59-000bcf50f921",
+    "rows_enumerated": 212,
+    "rows_stated_approx": 214,
+    "enumeration_method": "Notion MCP has no bulk-query/count tool and no API token in env; full ID set harvested via ~30 saturating semantic searches (union/dedup) then every page fetched individually for authoritative properties.",
+    "visual_sample_n": 41,
+    "visual_sample_method": "stratified across MIME (PNG/GIF) and all campaign types; images downloaded from brand CDN; dimensions+animation parsed from PNG IHDR / GIF logical-screen+frame headers; layout/colour/type/illustration/above-fold classified from Chromium-rendered contact sheets."
+  },
+  "mime": {
+    "png": {
+      "n": 146,
+      "pct": 68.9
+    },
+    "gif": {
+      "n": 66,
+      "pct": 31.1
+    }
+  },
+  "dimensions": {
+    "width_px_locked": 600,
+    "height_sample_px": {
+      "min": 2395,
+      "median": 4984,
+      "max": 7440,
+      "mean": 5058
+    },
+    "height_buckets_sample": {
+      "901-2500": 1,
+      "2501-4500": 13,
+      ">4500": 27
+    },
+    "note": "All emails are a single 600px-wide column; bodies are very long vertical scrolls (median ~5000px). Above-the-fold window is only the top ~700px."
+  },
+  "campaign_taxonomy": {
+    "newsletter/editorial": {
+      "n": 54,
+      "pct": 25.5
+    },
+    "promo": {
+      "n": 35,
+      "pct": 16.5
+    },
+    "other": {
+      "n": 20,
+      "pct": 9.4
+    },
+    "launch": {
+      "n": 18,
+      "pct": 8.5
+    },
+    "occasion:other": {
+      "n": 14,
+      "pct": 6.6
+    },
+    "welcome": {
+      "n": 13,
+      "pct": 6.1
+    },
+    "abandoned-cart": {
+      "n": 13,
+      "pct": 6.1
+    },
+    "occasion:Valentines": {
+      "n": 10,
+      "pct": 4.7
+    },
+    "occasion:Xmas": {
+      "n": 9,
+      "pct": 4.2
+    },
+    "post-purchase": {
+      "n": 7,
+      "pct": 3.3
+    },
+    "occasion:Easter": {
+      "n": 6,
+      "pct": 2.8
+    },
+    "winback": {
+      "n": 5,
+      "pct": 2.4
+    },
+    "occasion:MD": {
+      "n": 4,
+      "pct": 1.9
+    },
+    "birthday": {
+      "n": 2,
+      "pct": 0.9
+    },
+    "occasion:FD": {
+      "n": 2,
+      "pct": 0.9
+    }
+  },
+  "subject_preview": {
+    "emoji_in_subject_pct": 95.0,
+    "emoji_in_preview_pct": 49.2,
+    "emoji_anywhere_pct": 84.4,
+    "personalization_token_pct": 24.5,
+    "personalization_token_form": "{{ first_name|default:'<fallback>' }}  (always with a default fallback)",
+    "avg_subject_len_chars": 41.8,
+    "avg_preview_len_chars": 43.3,
+    "empty_subject_n": 33
+  },
+  "gif_hero": {
+    "rate_of_corpus_pct": 31.1,
+    "sample_gifs_checked": 20,
+    "sample_animated": 20,
+    "frame_count_range_sample": [
+      2,
+      18
+    ],
+    "what_they_animate": [
+      "reveal mechanics (flower-of-the-month / product reveals, 2-4 frames)",
+      "UGC & review photo carousels (8-18 frames)",
+      "sale/urgency flashes (4-5 frames)"
+    ],
+    "finding": "image/gif ALWAYS means an animated hero (20/20 sampled GIFs were multi-frame). ~1 in 3 corpus emails ships one."
+  },
+  "above_fold_cta": {
+    "fold_window_px": 700,
+    "estimate_above_fold_pct": 34,
+    "method": "visual count from Chromium top-700px contact sheet of the 41-image stratified sample",
+    "finding": "Majority of emails place the primary CTA BELOW the ~700px fold: the opening is logo header + photo/type hero, and the first square black button typically falls ~700-1200px down. Drives the new above-the-fold layout rule + pre-flight check."
+  },
+  "block_taxonomy": {
+    "_about": "Frequency of recurring DESIGNED visual blocks (graphic-composed, sliced-to-PNG style) observed across the stratified visual sample. Frequencies are share of sampled emails that contain at least one instance (rounded), not mutually exclusive.",
+    "header_logo": {
+      "freq_pct": 100,
+      "built": true,
+      "note": "centred F&B wordmark, universal"
+    },
+    "photo_or_type_hero": {
+      "freq_pct": 95,
+      "maps_to": "editorial-hero / hero-* / caption-bar-hero"
+    },
+    "editorial_hero": {
+      "freq_pct": 62,
+      "built": true,
+      "note": "photo + Lust headline + Cervanttis accent + button on overlapping plate"
+    },
+    "caption_bar_hero": {
+      "freq_pct": 40,
+      "built": false,
+      "note": "full-bleed photo with a thin caption/super-label bar; common opening on editorial/occasion sends — BUILD"
+    },
+    "designed_product_card": {
+      "freq_pct": 48,
+      "built": false,
+      "note": "product spotlight with designed name/price/occasion treatment + optional badge (bestseller/scarcity) — richer than plain card-* — BUILD"
+    },
+    "feature_list": {
+      "freq_pct": 22,
+      "built": true,
+      "note": "polaroid + reasons-to-believe bullets"
+    },
+    "polaroid_collage": {
+      "freq_pct": 24,
+      "built": true,
+      "note": "tilted overlapping photos + pull-quote; UGC / reviews / multi-occasion"
+    },
+    "story_block": {
+      "freq_pct": 18,
+      "built": false,
+      "note": "founder/editorial: portrait + narrative + signature (Dan & Kellie / Penny) — BUILD"
+    },
+    "offer_promo_panel": {
+      "freq_pct": 17,
+      "built": false,
+      "note": "bold display %-off + dashed code + urgency; candidate 7th designed block (promo = 16.5% of corpus)"
+    },
+    "testimonial_review": {
+      "freq_pct": 30,
+      "built": true,
+      "note": "stars + quote (testimonial component / card-single-testimonial)"
+    },
+    "trust_bar": {
+      "freq_pct": 90,
+      "built": true
+    },
+    "footer": {
+      "freq_pct": 100,
+      "built": true
+    }
+  },
+  "design_system_confirmation": {
+    "palette": "monochrome Noir(#000)/White/Clay(#D8CCBE) dominates; seasonal accent panels in ~15-20% of emails (occasion/promo only) — within locked rules",
+    "body_background": "#2c2825 gutter confirmed around the 600px column",
+    "type": "Lust display + Cervanttis lowercase script accents + Neuzeit Grotesk body — consistent across corpus",
+    "buttons": "square black (not pills) — confirmed",
+    "illustration": "faint brand botanical line-art as section accents (low opacity) — present, subtle"
+  }
+}
