@@ -24,6 +24,7 @@
       "header",
       "all hero variants (including hero-image-only)",
       "all product cards",
+      "all designed blocks (blocks/*)",
       "body-copy",
       "testimonial",
       "upsell-noir",
@@ -499,6 +500,64 @@
         ],
         "description": "180px lifestyle photo strip. No text."
       }
+    },
+    "blocks": {
+      "_about": "Designed blocks are graphic-designed, fully-composed image blocks (600px wide, variable height) that are ALWAYS sliced to PNG. Because they are rasterised, they may use rich CSS — transform:rotate, position:absolute layering, box-shadow, negative-margin overlap — that does not survive as live email HTML. They drop into the single 600px column exactly like any other sliced component. Tokens are filled, then the block is rendered via the puppeteer slicer (Step 5). Fonts, illustrations and palette are locked, identical to the rest of the v4 system: Cervanttis (lowercase script), Lust (sentence-case display), NeuzeitGro (sans), Noir/Clay(#D8CCBE)/White, square black buttons.",
+      "editorial-hero": {
+        "file": "templates/blocks/editorial-hero.html",
+        "classification": "slice",
+        "description": "Photo + serif (Lust) headline + Cervanttis script accent + square button on a white plate that overlaps the photo (the 'layering'). The most editorial hero. Use as the opening beat of an engagement/editorial send when a single strong photo carries the story.",
+        "when_to_use": "Opening beat for editorial/engagement campaigns (not promo). One per email. Pair with a normal header component above it.",
+        "assets_needed": "One full-bleed lifestyle photo (600×440 display). No illustration assets.",
+        "tokens": [
+          "HERO_IMAGE_URL",
+          "SUPER_LABEL",
+          "ACCENT_SCRIPT",
+          "HEADLINE",
+          "SUBHEADLINE",
+          "CTA_TEXT",
+          "CTA_URL"
+        ]
+      },
+      "feature-list": {
+        "file": "templates/blocks/feature-list.html",
+        "classification": "slice",
+        "description": "Tilted polaroid (left) + icon-bullet feature list (right): Lust headline, three clay disc bullets with bold title + light one-liner, square button. Cervanttis polaroid caption.",
+        "when_to_use": "When explaining 2–4 reasons-to-believe or value props beside a single product polaroid. Mid-email, after the hero/body. Max one per email.",
+        "assets_needed": "One square-crop product/lifestyle photo (192×216 display). Clay disc bullets are CSS-drawn — no icon assets.",
+        "tokens": [
+          "SECTION_SUPER",
+          "HEADLINE",
+          "FEATURE_1_TITLE",
+          "FEATURE_1_TEXT",
+          "FEATURE_2_TITLE",
+          "FEATURE_2_TEXT",
+          "FEATURE_3_TITLE",
+          "FEATURE_3_TEXT",
+          "POLAROID_IMAGE_URL",
+          "POLAROID_CAPTION",
+          "CTA_TEXT",
+          "CTA_URL"
+        ]
+      },
+      "polaroid-collage": {
+        "file": "templates/blocks/polaroid-collage.html",
+        "classification": "slice",
+        "description": "Three tilted, overlapping polaroids (angles -7°/+2°/+8°) on a Clay panel, each with a Cervanttis caption, above a Lust pull-quote + attribution. Warm, scrapbook/social-proof beat.",
+        "when_to_use": "Social-proof or 'in their words' moment, or a multi-occasion montage. After products, before the closing beat. Max one per email.",
+        "assets_needed": "Three square-crop photos (168–176px display). No illustration assets. The collage region is a fixed 340px so the absolutely-positioned polaroids are captured by the slicer.",
+        "tokens": [
+          "PHOTO_1_URL",
+          "PHOTO_1_CAPTION",
+          "PHOTO_2_URL",
+          "PHOTO_2_CAPTION",
+          "PHOTO_3_URL",
+          "PHOTO_3_CAPTION",
+          "QUOTE_ACCENT",
+          "PULL_QUOTE",
+          "QUOTE_ATTRIBUTION"
+        ]
+      }
     }
   },
   "token_rules": {
@@ -509,7 +568,13 @@
     "PRODUCT_IMAGE_URL": "Must be 4:5 ratio (1000\u00d71250px source min). Hosted on Klaviyo media library.",
     "HERO_IMAGE_URL": "Hosted on Klaviyo media library. Lifestyle photography preferred.",
     "BODY_P2": "Leave empty string if only one paragraph needed.",
-    "PRODUCT_NAME": "Lust font \u2014 sentence case. e.g. 'Blush & Wild', 'Garden Natives'."
+    "PRODUCT_NAME": "Lust font \u2014 sentence case. e.g. 'Blush & Wild', 'Garden Natives'.",
+    "ACCENT_SCRIPT": "Designed-block Cervanttis script accent (editorial-hero) \u2014 MUST be lowercase. e.g. 'with love,'.",
+    "POLAROID_CAPTION": "Designed-block Cervanttis polaroid caption (feature-list) \u2014 MUST be lowercase. e.g. 'osaka, our bestseller'.",
+    "PHOTO_1_CAPTION / PHOTO_2_CAPTION / PHOTO_3_CAPTION": "Designed-block Cervanttis polaroid captions (polaroid-collage) \u2014 MUST be lowercase.",
+    "QUOTE_ACCENT": "Designed-block Cervanttis accent line (polaroid-collage) \u2014 MUST be lowercase. e.g. 'in their words'.",
+    "PULL_QUOTE": "Designed-block Lust pull-quote (polaroid-collage) \u2014 sentence case.",
+    "designed_block_HEADLINE": "In designed blocks (editorial-hero, feature-list) HEADLINE is Lust \u2192 sentence case. The Cervanttis accent lives in a separate token (ACCENT_SCRIPT), which is lowercase."
   },
   "locked_styles": {
     "note": "The following are baked into templates. Do not attempt to override via tokens.",

@@ -7,3 +7,7 @@ __pycache__/
 .env
 .env.*
 !.env.example
+
+# Node dependencies (installed on-demand per skill setup; not tracked)
+node_modules/
+package-lock.json
