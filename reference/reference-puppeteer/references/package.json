@@ -7,8 +7,10 @@
     "install-check": "node -e \"require('puppeteer'); console.log('Puppeteer OK');\""
   },
   "dependencies": {
-    "puppeteer": "^22.0.0",
-    "minimist": "^1.2.8"
+    "gifenc": "^1.0.3",
+    "minimist": "^1.2.8",
+    "pngjs": "^7.0.0",
+    "puppeteer": "^22.0.0"
   },
   "engines": {
     "node": ">=18.0.0"
