@@ -26,6 +26,30 @@ part” campaign, and start editing.
 > If you already have a system Chromium, set `CHROMIUM_PATH=/path/to/chromium` to skip the
 > puppeteer download (`PUPPETEER_SKIP_DOWNLOAD=1 npm install`).
 
+## Deploy to Render.com
+The repo ships a `Dockerfile` (Node + system Chromium) and a `render.yaml` Blueprint, so the
+PNG renderer works in the cloud with no code changes. Render injects `$PORT` automatically.
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/dgroch/my-email-buider)
+
+1. Push this folder to your GitHub repo (see below) — Render deploys from Git.
+2. In Render: **New → Blueprint**, pick the repo. `render.yaml` is auto-detected (free plan,
+   Docker, health check `/`). Click **Apply**.
+3. First build takes a few minutes (it installs Chromium). You get a public `*.onrender.com` URL.
+
+Notes: the **free** plan spins the service down after inactivity, so the first hit after idle
+is a slow cold start — fine for an internal tool. Unlike a sandboxed environment, Render has
+normal outbound internet, so the PNG renderer loads your CDN product images correctly.
+
+To get the code into your repo first:
+```bash
+unzip my-email-buider.zip && cd my-email-buider
+git init && git add . && git commit -m "Fig & Bloom email builder"
+git branch -M main
+git remote add origin https://github.com/dgroch/my-email-buider.git
+git push -u origin main
+```
+
 ## What it does
 - **Auto-generated forms** — fields, help text, palette-preset dropdowns, layout-lever
   enums and `lowercase` / `Sentence case` chips are all parsed from the template headers +
