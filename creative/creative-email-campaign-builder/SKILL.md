@@ -142,6 +142,8 @@ Designed blocks live in `references/templates/blocks/` and are listed under `com
 | `story` | Founder / behind-the-scenes / brand-story "note" beat. Mid-email, after the hero. | Tilted-polaroid portrait + Lust headline + narrative + Cervanttis signature. Parametrised palette. Max one per email. |
 | `designed-product-card` | A single spotlight product that needs a designed treatment (badge + big serif name/price). Use plain `card-*` for 3–5 product grids. | Photo + tilted Cervanttis badge ribbon + Lust name/price + button. Parametrised palette; `BADGE_TEXT=""` hides the ribbon. Max one per email. |
 | `offer-panel` | Promo / sale / flash / Black Friday / free-shipping / rewards — and **giveaways** (GIVEAWAY MODE). Open or strong-close beat for promo sends. | Huge Lust offer value + dashed promo-code box + rotated Cervanttis sticker + button. Parametrised palette (+ seasonal accent allowed). `PROMO_CODE=""` for giveaways. The designed hero version of `sections/promo-code`. Max one per email. |
+| `howto-steps` | Care guides / how-to / "make them last" sequences — a **vertical** numbered 3-step flow with a photo per step. Mid-email affirm beat. | Big Lust step numerals + NeuzeitGro caps titles + tilted framed step photos (alternating left/right). Parametrised palette. Exactly three steps. Use `sections/three-column-steps-*` for a compact horizontal partner-flow instead. Max one per email. |
+| `comparison-vs` | Us-vs-them / bought-vs-got / before-after side-by-side. Mid-email affirm beat for differentiation moments. | Two square photos (left greyscaled "before/others", right bordered "after/us") + central circular Cervanttis "vs" badge straddling the columns. Parametrised palette. Max one per email. |
 
 **Selection rules for designed blocks:**
 - They are *content blocks*, not replacements for `header`/`footer` — keep the standard `header` first and `footer` last.
@@ -151,7 +153,8 @@ Designed blocks live in `references/templates/blocks/` and are listed under `com
 
 ### Parametrised palette (designed blocks)
 
-`caption-bar-hero`, `story` and `designed-product-card` are **parametrised on
+`caption-bar-hero`, `story`, `designed-product-card`, `offer-panel`,
+`howto-steps` and `comparison-vs` are **parametrised on
 palette**. Each exposes four `PANEL_*` tokens — fill all four by **copying one
 preset row verbatim** from `manifest.json → components.block_palette_presets`
 (or the `PALETTE PRESETS` block in the template comment). The agent never
@@ -178,7 +181,7 @@ beats and **rotate** so consecutive sends of a series don't repeat:
 
 ```
 OPEN    → editorial-hero | caption-bar-hero | hero-a/b/c/d | hero-image-only
-AFFIRM  → feature-list | story | polaroid-collage | testimonial | designed-product-card
+AFFIRM  → feature-list | story | polaroid-collage | testimonial | designed-product-card | howto-steps | comparison-vs
 CLOSE   → upsell-noir | promo-code | designed-product-card
 ```
 
@@ -218,7 +221,7 @@ This step fills tokens into templates and renders visual components as PNG slice
 Divide the selected component list into two groups:
 
 **Slice to PNG** (visual — render via Puppeteer `slice.js`):
-- header, all hero variants, all product cards, **all designed blocks (`blocks/*` — editorial-hero, feature-list, polaroid-collage, caption-bar-hero, story, designed-product-card)**, body-copy (illustrated variant), testimonial, upsell-noir, trust-bar, divider-illo-*
+- header, all hero variants, all product cards, **all designed blocks (`blocks/*` — editorial-hero, feature-list, polaroid-collage, caption-bar-hero, story, designed-product-card, offer-panel, howto-steps, comparison-vs)**, body-copy (illustrated variant), testimonial, upsell-noir, trust-bar, divider-illo-*
 
 **Slice to animated GIF** (animated hero — render via `slice-gif.js`, Step 5e):
 - A `caption-bar-hero` / `editorial-hero` / `hero-image-only` whose hero is animated. ~31% of the corpus ships an animated GIF hero — treat it as a first-class output, not an afterthought.

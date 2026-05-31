@@ -145,13 +145,13 @@
     },
     "caption_bar_hero": {
       "freq_pct": 40,
-      "built": false,
-      "note": "full-bleed photo with a thin caption/super-label bar; common opening on editorial/occasion sends — BUILD"
+      "built": true,
+      "note": "BUILT as blocks/caption-bar-hero: full-bleed photo with a thin caption/super-label bar; common opening on editorial/occasion sends"
     },
     "designed_product_card": {
       "freq_pct": 48,
-      "built": false,
-      "note": "product spotlight with designed name/price/occasion treatment + optional badge (bestseller/scarcity) — richer than plain card-* — BUILD"
+      "built": true,
+      "note": "BUILT as blocks/designed-product-card: product spotlight with designed name/price/occasion treatment + optional badge (bestseller/scarcity) — richer than plain card-*"
     },
     "feature_list": {
       "freq_pct": 22,
@@ -165,8 +165,8 @@
     },
     "story_block": {
       "freq_pct": 18,
-      "built": false,
-      "note": "founder/editorial: portrait + narrative + signature (Dan & Kellie / Penny) — BUILD"
+      "built": true,
+      "note": "BUILT as blocks/story: founder/editorial: portrait + narrative + signature (Dan & Kellie / Penny)"
     },
     "offer_promo_panel": {
       "freq_pct": 17,
@@ -188,13 +188,13 @@
     },
     "howto_care_steps": {
       "freq_pct": 6,
-      "built": false,
-      "note": "CANDIDATE (recommended next build): vertical numbered how-to / care sequence with an image per step (refresh, dry, make-last, eucalyptus, arranging, home-spots). Distinct from the horizontal three-column-steps-* partner-flow and from feature-list RTB bullets."
+      "built": true,
+      "note": "BUILT as blocks/howto-steps: vertical numbered how-to / care sequence with an image per step (refresh, dry, make-last, eucalyptus, arranging, home-spots). Distinct from the horizontal three-column-steps-* partner-flow and from feature-list RTB bullets."
     },
     "comparison_vs": {
       "freq_pct": 2,
-      "built": false,
-      "note": "CANDIDATE (niche / optional): side-by-side 'vs' block (us-vs-them, what-we-bought-vs-got, before/after). Low frequency."
+      "built": true,
+      "note": "BUILT as blocks/comparison-vs: side-by-side 'vs' block (us-vs-them, what-we-bought-vs-got, before/after). Low frequency but on-system."
     },
     "giveaway_panel": {
       "freq_pct": 4,

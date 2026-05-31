@@ -109,23 +109,27 @@ exclusive). "Built" = already a component in `references/templates/`.
 | header (logo) | 100% | ✓ | centred wordmark, universal |
 | photo/type **hero** | 95% | ✓ | maps to `editorial-hero` / `hero-*` / `caption-bar-hero` |
 | **editorial-hero** | ~62% | ✓ | photo + Lust headline + Cervanttis accent + button on overlapping plate |
-| **designed-product-card** | ~48% | ✗ **BUILD** | product spotlight with designed name/price/occasion + optional badge (bestseller/scarcity) — richer than plain `card-*` |
-| **caption-bar-hero** | ~40% | ✗ **BUILD** | full-bleed photo with a thin caption / super-label bar; common editorial & occasion opener |
+| **designed-product-card** | ~48% | ✓ | product spotlight with designed name/price/occasion + optional badge (bestseller/scarcity) — richer than plain `card-*` |
+| **caption-bar-hero** | ~40% | ✓ | full-bleed photo with a thin caption / super-label bar; common editorial & occasion opener |
 | testimonial / review | ~30% | ✓ | stars + quote |
 | **polaroid-collage** | ~24% | ✓ | tilted overlapping photos + pull-quote (UGC / reviews / multi-occasion) |
 | **feature-list** | ~22% | ✓ | polaroid + reasons-to-believe bullets |
-| **story block** | ~18% | ✗ **BUILD** | founder/editorial: portrait + narrative + signature (Dan & Kellie / Penny) |
-| offer / promo panel | ~17% | ✗ candidate 7th | bold display %-off + dashed code + urgency (promo = 16.5% of corpus) |
+| **story block** | ~18% | ✓ | founder/editorial: portrait + narrative + signature (Dan & Kellie / Penny) |
+| **offer-panel** | ~17% | ✓ | bold display %-off + dashed code + rotated sticker; promo/sale/free-ship/rewards + giveaway mode |
+| **howto-steps** | ~6% | ✓ | vertical numbered 3-step how-to / care sequence, one photo per step |
+| **comparison-vs** | ~2% | ✓ | side-by-side us-vs-them / before-after with central "vs" badge |
 | trust-bar | ~90% | ✓ | |
 | footer | 100% | ✓ | |
 
 **Taxonomy verdict.** The mine **confirms the proposed 6-type designed-block
-taxonomy**, all six now built (editorial-hero, feature-list, polaroid-collage,
+taxonomy**, all six built (editorial-hero, feature-list, polaroid-collage,
 caption-bar-hero, story, designed-product-card). The **7th block — a designed
-offer/promo panel — is now also built** (`blocks/offer-panel`): promo is the
+offer/promo panel** (`blocks/offer-panel`) — is also built: promo is the
 second-largest bucket (16.5%) and those panels are visually distinct (huge Lust
-offer value + dashed code box + rotated sticker). See the expanded-review note
-below.
+offer value + dashed code box + rotated sticker). The expanded 74% review (below)
+then surfaced two more on-system blocks, both now built: **`howto-steps`** (8th,
+~6%) and **`comparison-vs`** (9th, ~2%) — bringing the library to **nine
+designed-block types**.
 
 ### Expanded visual review (74% of the corpus)
 
@@ -138,17 +142,17 @@ blocks. Findings:
   sale / Black Friday / flash / free-shipping / rewards send (~17%). Giveaways
   are *not* a separate block — they're the offer-panel in **GIVEAWAY MODE**
   (no code; prize in the offer value).
-- **`howto / care-steps` — new candidate, recommended next build (~5–7%).** A
-  *vertical* numbered how-to / care sequence with an image per step (refresh,
-  dry, make-last, eucalyptus, arranging, home-spots). Genuinely distinct from
-  the existing horizontal `three-column-steps-*` (a compact partner-flow) and
-  from `feature-list` (RTB bullets beside one polaroid).
-- **`comparison / vs` — niche candidate, optional (~1–2%).** Side-by-side
-  us-vs-them / bought-vs-got / before-after. Real but low-frequency.
+- **`howto-steps` (8th) — built.** A *vertical* numbered how-to / care
+  sequence with an image per step (refresh, dry, make-last, eucalyptus,
+  arranging, home-spots), ~6%. Genuinely distinct from the existing horizontal
+  `three-column-steps-*` (a compact partner-flow) and from `feature-list` (RTB
+  bullets beside one polaroid).
+- **`comparison-vs` (9th) — built.** Side-by-side us-vs-them / bought-vs-got /
+  before-after with a central "vs" badge, ~2%. Low-frequency but on-system.
 
 No other new block types surfaced across all 157 — the house vocabulary is
-stable and on-system. Recommendation: ship the 7th now (done), build
-`howto/care-steps` next, treat `comparison/vs` as nice-to-have.
+stable and on-system. All three reviewed candidates (offer-panel, howto-steps,
+comparison-vs) are now built, for **nine designed-block types** total.
 
 ### On-brand consistency (confirmed from pixels)
 - **Palette:** monochrome **Noir #000 / White / Clay #D8CCBE** dominates every
@@ -180,7 +184,7 @@ pre-flight check below.
 
 The mine maps directly onto the five requirements:
 
-1. **Variation without visual repetition** — seven designed-block types + a
+1. **Variation without visual repetition** — nine designed-block types + a
    rotation scheme (see `manifest.json → variation_rules`) so consecutive sends
    don't repeat the same opening/affirm/close beats.
 2. **On-brand consistency** — every variation stays inside the locked
