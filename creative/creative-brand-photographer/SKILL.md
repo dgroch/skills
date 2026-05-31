@@ -49,6 +49,21 @@ files:
 If you find yourself writing a new `.py` file that reimplements critique or
 generation, stop — use the bundled API instead.
 
+**Generation execution order:**
+
+1. **Higgsfield CLI (`higgsfield` command)** — preferred. Used automatically
+   when `higgsfield account status` succeeds, or when the brand config/env
+   selects `higgsfield`. The API shells out to
+   `higgsfield generate create <model_id> ... --wait` and passes seed images
+   with repeated `--image` flags.
+2. **OpenRouter** — explicit fallback only. Use it only when a caller passes
+   `backend="openrouter"` or sets `BRAND_PHOTOGRAPHER_IMAGE_BACKEND=openrouter`.
+
+If the Higgsfield CLI is missing or unauthenticated, stop and report the
+blocker: the owner must install the CLI or run `higgsfield auth login` (or
+`hf auth login` when the CLI prints that hint). Do not silently downgrade
+seed-guided campaign work to text-only output.
+
 **Critic execution order:**
 
 1. **Claude CLI (`claude` command)** — preferred. Used automatically when
@@ -65,11 +80,13 @@ where `claude` should be available, investigate the PATH before proceeding.
 Four layers, each scoped to the loaded brand:
 
 1. **Brand Loader** — loads the active storage backend for the brand:
-   local files by default, or the Notion data source when
-   `BRAND_PHOTOGRAPHER_STORAGE=notion`. It reads the brand config and
-   referenced artefacts (art direction, colour system, grid spec,
-   prompt library, seed metadata), validates required artefacts, and
-   binds all subsequent operations to this brand.
+   Notion when `BRAND_PHOTOGRAPHER_STORAGE=notion` or a Brand Photographer
+   Notion data source ID is configured, otherwise local files for backwards
+   compatibility. For Fig & Bloom production work, default to the Notion
+   backend so asset-manifest rows and seed metadata are the source of truth. It
+   reads the brand config and referenced artefacts (art direction, colour
+   system, grid spec, prompt library, seed metadata), validates required
+   artefacts, and binds all subsequent operations to this brand.
 2. **Seed Selector** — given a brief, determines which generation mode
    to use (text-to-image, composite, or style-reference) based on
    available seeds. Selects the best-matching seed assets for the brief.
@@ -162,6 +179,14 @@ file mode uses `seeds.json`; Notion mode uses one `Artifact=seed` row per
 seed in the configured Notion data source. The file names don't matter —
 the metadata provides all semantics. Files that aren't registered are
 ignored by the skill.
+
+For production Fig & Bloom work, check the Notion-backed Brand Photographer
+seed rows first. If a task references source assets that are only present in
+the Brand Asset Manifest, run
+`references/brand_photographer_asset_manifest_sync.py` to promote those
+manifest records into Brand Photographer seed rows before generating. Seed
+resolution prefers a local cached file, then `cdn_url`, then manifest preview
+or Drive links.
 
 ```json
 {
@@ -278,18 +303,21 @@ matched via `pairs_with`.
 
 **Process:**
 1. Seed selector finds best model + bouquet pair for the brief
-2. Uploads both seed images to the image API
-3. Constructs a composite/edit prompt: "Place the bouquet from image 2
+2. Resolves both seed images from Notion/file metadata, preferring local cached
+   files and falling back to CDN/manifest preview URLs
+3. Passes both seed images to the Higgsfield CLI with repeated `--image` flags
+4. Constructs a composite/edit prompt: "Place the bouquet from image 2
    into the model's hands in image 1. Maintain the lighting, backdrop,
    and styling of image 1. The bouquet should look naturally held."
-4. Runs through quality gate
-5. Saves with seed references in the library entry
+5. Runs through quality gate
+6. Saves with seed references in the library entry
 
 **Best for:** ~50% of content. Fashion editorial (the hero content),
 styled model shots, campaign assets.
 
-**API requirements:** Image-editing capable model. Gemini image edit,
-Seedream edit, or equivalent.
+**Generation requirements:** Authenticated Higgsfield CLI with an
+image-conditioned model such as `nano_banana_2`, or an explicitly selected
+fallback backend that can consume seed images.
 
 ### Mode C: Style Reference (seeds as guidance)
 
@@ -299,19 +327,20 @@ variation (different flowers, different season, different angle).
 **Process:**
 1. Seed selector finds the best reference seed
 2. Constructs a prompt that describes the desired variation
-3. Passes the seed as a style/composition reference to the model
+3. Passes the seed as a style/composition reference to the Higgsfield CLI
 4. Runs through quality gate
 
 **Best for:** ~20% of content. Seasonal variants of proven shots,
 product photography with consistent styling, packaging shots.
 
-**API requirements:** Style-reference or image-conditioned generation.
+**Generation requirements:** Authenticated Higgsfield CLI with an
+image-conditioned model, or explicit OpenRouter fallback.
 
 ### Mode selection logic
 
 ```
 IF brief requires brand-specific assets (model + bouquet, packaging, logo):
-    IF matching seeds exist in seeds.json:
+    IF matching seeds exist in the active backend (Notion seed rows preferred, else seeds.json):
         → Mode B (composite) or Mode C (style-reference)
     ELSE:
         → STOP. Report: "This shot requires seed assets that aren't
@@ -353,7 +382,8 @@ Read back:
 
 ### Step 3 — Load references
 
-Read these files from the brand directory:
+Read these artifacts from the active backend. In Notion mode, use the
+equivalent `Artifact` rows instead of local files:
 
 | File | When to read |
 |------|--------------|
@@ -362,6 +392,15 @@ Read these files from the brand directory:
 | `grid-spec.md` | Before planning batch/grid content |
 | `prompt-library.json` | When selecting existing prompts or variants |
 | `seeds.json` | When selecting seeds for Mode B/C |
+
+Before generating, confirm the seed source:
+
+- Notion mode: query/use `Artifact=seed` rows in the Brand Photographer data
+  source.
+- Asset-manifest source only: sync rows into Brand Photographer with
+  `references/brand_photographer_asset_manifest_sync.py`, then generate.
+- File mode: use the persistent `seeds.json` only when Notion is not
+  configured.
 
 ### Step 4 — New brand onboarding
 

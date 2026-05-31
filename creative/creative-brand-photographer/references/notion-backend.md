@@ -22,7 +22,8 @@ Reason: generation backends need concrete image bytes/URLs. The Notion row store
 
 ## Storage mode
 
-Default remains file-backed for backwards compatibility.
+Default remains file-backed for backwards compatibility unless a Brand
+Photographer Notion data source ID is configured.
 
 To use Notion:
 
@@ -121,7 +122,21 @@ print(BrandPhotographer.load_brand_config("fig-and-bloom")["brand_name"])
 EOF
 ```
 
-For actual generation, also provide the usual image backend credentials (`OPENROUTER_API_KEY` or Higgsfield credentials).
+For actual generation, authenticate the preferred Higgsfield CLI path:
+
+```bash
+higgsfield account status
+# If unauthenticated, a human/operator must run:
+# higgsfield auth login
+# or `hf auth login` when the CLI prints that hint
+```
+
+OpenRouter remains available only as an explicit fallback:
+
+```bash
+BRAND_PHOTOGRAPHER_IMAGE_BACKEND=openrouter OPENROUTER_API_KEY="<secret>" \
+python references/brand_photographer_cli.py fig-and-bloom 1
+```
 
 ## Brand Asset Manifest + Brand CDN bridge
 
@@ -163,7 +178,9 @@ python references/brand_photographer_asset_manifest_sync.py \
 
 If a manifest row already has a `Preview URL`, that URL becomes the seed
 `cdn_url`; pass `--force-cdn-upload` only when you need to republish through
-the Brand CDN helper.
+the Brand CDN helper. Run this sync before generation whenever the brief
+references assets that exist in the Brand Asset Manifest but are not yet
+present as `Artifact=seed` rows in the Brand Photographer data source.
 
 ## Backwards compatibility
 

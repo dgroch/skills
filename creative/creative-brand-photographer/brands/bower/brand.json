@@ -12,7 +12,8 @@
     "seeds_manifest": "seeds.json"
   },
   "image_backend": {
-    "default": "openrouter",
+    "default": "higgsfield",
+    "higgsfield_model": "nano_banana_2",
     "model": "google/gemini-3.1-flash-image-preview",
     "hero_model": "google/gemini-3-pro-image-preview"
   },

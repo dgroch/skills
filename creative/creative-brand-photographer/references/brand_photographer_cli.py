@@ -16,8 +16,10 @@ Usage:
     python3 brand_photographer_cli.py bower 1
 
 Environment:
-    OPENROUTER_API_KEY or (HF_KEY + HF_SECRET)
-    ANTHROPIC_API_KEY
+    higgsfield CLI authenticated with `higgsfield account status`
+    BRAND_PHOTOGRAPHER_STORAGE=notion + NOTION_API_KEY when using Notion
+    OPENROUTER_API_KEY only when BRAND_PHOTOGRAPHER_IMAGE_BACKEND=openrouter
+    ANTHROPIC_API_KEY only when Claude CLI is unavailable
 """
 
 import os

@@ -8,8 +8,8 @@ brand. This enforces isolation: no cross-contamination of prompts,
 rubrics, libraries, or critiques between brands.
 
 Supports two image generation backends:
-  - OpenRouter (default) — Nano Banana 2 / Pro via google/gemini models
-  - Higgsfield — Soul via higgsfield-ai/soul/standard
+  - Higgsfield CLI (preferred) — `higgsfield generate create ... --wait`
+  - OpenRouter (fallback/explicit override) — Nano Banana 2 / Pro via google/gemini models
 
 Critic execution priority:
   1. Claude CLI (`claude` command) — preferred when available on PATH.
@@ -55,6 +55,7 @@ import json
 import time
 import base64
 import fnmatch
+import re
 import shutil
 import subprocess
 import tempfile
@@ -71,8 +72,7 @@ OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 OPENROUTER_MODEL_PRO = "google/gemini-3-pro-image-preview"
 OPENROUTER_MODEL_NB2 = "google/gemini-3.1-flash-image-preview"
 
-HF_BASE = "https://platform.higgsfield.ai"
-HF_MODEL = "higgsfield-ai/soul/standard"
+HIGGSFIELD_MODEL_DEFAULT = "nano_banana_2"
 
 ANTHROPIC_URL = "https://api.anthropic.com/v1/messages"
 NOTION_API_BASE = "https://api.notion.com/v1"
@@ -108,7 +108,12 @@ def _load_env(path: str = "/opt/data/.env") -> None:
 
 
 def _storage_mode() -> str:
-    return os.environ.get("BRAND_PHOTOGRAPHER_STORAGE", "file").strip().lower()
+    configured = os.environ.get("BRAND_PHOTOGRAPHER_STORAGE", "").strip().lower()
+    if configured:
+        return configured
+    if _notion_data_source_id():
+        return "notion"
+    return "file"
 
 
 def _notion_data_source_id() -> str:
@@ -650,6 +655,33 @@ def _claude_cli_available() -> bool:
     return shutil.which("claude") is not None
 
 
+def _higgsfield_cli_available() -> bool:
+    """Return True if the `higgsfield` CLI is present on PATH."""
+    return shutil.which("higgsfield") is not None
+
+
+def _higgsfield_account_status() -> tuple[bool, str]:
+    """Return whether the Higgsfield CLI is authenticated, plus safe status text."""
+    if not _higgsfield_cli_available():
+        return False, "`higgsfield` CLI is not installed or is not on PATH"
+    try:
+        result = subprocess.run(
+            ["higgsfield", "account", "status"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+    except subprocess.TimeoutExpired:
+        return False, "`higgsfield account status` timed out"
+    except Exception as exc:
+        return False, f"`higgsfield account status` failed: {exc}"
+    output = (result.stdout or result.stderr or "").strip()
+    if result.returncode != 0:
+        msg = output[:500] or f"exit code {result.returncode}"
+        return False, f"`higgsfield account status` failed: {msg}"
+    return True, output[:500]
+
+
 class BrandNotConfiguredError(Exception):
     """Raised when the requested brand_id has no configuration."""
 
@@ -666,10 +698,9 @@ class BrandPhotographer:
 
     Args:
         brand_id: Identifier of the brand directory under brands/.
-        backend: "openrouter" (default) or "higgsfield".
+        backend: "higgsfield" (preferred) or "openrouter".
         openrouter_key: OpenRouter API key.
         model: Override the brand's configured image model.
-        hf_key / hf_secret: Higgsfield credentials (if backend=higgsfield).
         anthropic_key: Anthropic API key for API-mode critic fallback.
             Optional when `claude` CLI is available on PATH.
         max_iterations: Override brand's quality-gate iteration cap.
@@ -714,10 +745,28 @@ class BrandPhotographer:
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.seeds = self._load_seeds_manifest()
 
-        # Backend resolution (constructor arg > brand config > default)
+        # Backend resolution (constructor arg > env > Higgsfield CLI when
+        # available > brand config > OpenRouter fallback). Older brand configs
+        # may still say "openrouter"; CLI availability intentionally promotes
+        # the new preferred path unless a caller explicitly overrides it.
         brand_backend = self.config.get("image_backend", {})
-        self.backend = backend or brand_backend.get("default", "openrouter")
-        self.model = model or brand_backend.get("model", OPENROUTER_MODEL_NB2)
+        env_backend = os.environ.get("BRAND_PHOTOGRAPHER_IMAGE_BACKEND", "").strip()
+        configured_backend = str(brand_backend.get("default") or "openrouter").strip()
+        if backend:
+            self.backend = backend
+        elif env_backend:
+            self.backend = env_backend
+        elif _higgsfield_cli_available():
+            self.backend = "higgsfield"
+        else:
+            self.backend = configured_backend
+        if self.backend in ("higgsfield_cli", "higgsfield-cli"):
+            self.backend = "higgsfield"
+        self.model = model or (
+            brand_backend.get("higgsfield_model")
+            if self.backend == "higgsfield"
+            else brand_backend.get("model")
+        ) or (HIGGSFIELD_MODEL_DEFAULT if self.backend == "higgsfield" else OPENROUTER_MODEL_NB2)
 
         # Quality gate
         gate = self.config.get("quality_gate", {})
@@ -763,14 +812,15 @@ class BrandPhotographer:
                 "Content-Type": "application/json",
             }
         elif self.backend == "higgsfield":
-            self.hf_key = hf_key or os.environ.get("HF_KEY", "")
-            self.hf_secret = hf_secret or os.environ.get("HF_SECRET", "")
-            if not self.hf_key or not self.hf_secret:
-                raise ValueError("Higgsfield credentials required: set HF_KEY/HF_SECRET")
-            self.hf_headers = {
-                "Authorization": f"Key {self.hf_key}:{self.hf_secret}",
-                "Content-Type": "application/json",
-            }
+            ok, status = _higgsfield_account_status()
+            if not ok:
+                raise ValueError(
+                    "Higgsfield CLI is the preferred Brand Photographer generation path, "
+                    f"but it is not ready: {status}. Install the CLI or ask the owner to run "
+                    "`higgsfield auth login` (or `hf auth login` when the CLI prints that hint); "
+                    "use backend='openrouter' only as an explicit fallback."
+                )
+            self._log("[generation] Higgsfield CLI authenticated — using CLI generation path")
         else:
             raise ValueError(f"Unknown backend: {self.backend}. Use 'openrouter' or 'higgsfield'.")
 
@@ -1078,55 +1128,74 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
         ratio: str,
         seed_images: Optional[list[str]] = None,
     ) -> Optional[str]:
-        if seed_images:
-            self._log("    [seed] Higgsfield backend ignores seed images in this implementation")
         ar = RATIO_MAP.get(ratio, ratio)
         if ar not in VALID_RATIOS:
             ar = "3:4"
 
-        request_id = None
-        for attempt in range(3):
-            try:
-                res = requests.post(
-                    f"{HF_BASE}/{HF_MODEL}",
-                    headers=self.hf_headers,
-                    json={"prompt": prompt, "aspect_ratio": ar},
-                    timeout=30,
-                )
-                if res.status_code >= 500 and attempt < 2:
-                    time.sleep(10 * (attempt + 1))
-                    continue
-                res.raise_for_status()
-                request_id = res.json()["request_id"]
-                break
-            except Exception as e:
-                if attempt == 2:
-                    self._log(f"    Submit error: {e}")
-                    return None
-        if not request_id:
-            return None
+        cmd = [
+            "higgsfield",
+            "generate",
+            "create",
+            self.model,
+            "--prompt",
+            prompt,
+            "--aspect_ratio",
+            ar,
+            "--wait",
+            "--wait-timeout",
+            os.environ.get("BRAND_PHOTOGRAPHER_HIGGSFIELD_WAIT_TIMEOUT", "20m"),
+        ]
 
-        start = time.time()
-        while time.time() - start < POLL_TIMEOUT:
-            time.sleep(POLL_INTERVAL)
+        temp_paths: list[str] = []
+        for image_ref in seed_images or []:
+            local_path = self._image_ref_to_local_path(image_ref)
+            if not local_path:
+                self._log(f"    [seed] Could not resolve seed image for Higgsfield CLI: {str(image_ref)[:120]}")
+                continue
+            if image_ref.startswith(("http", "data:image")):
+                temp_paths.append(local_path)
+            cmd.extend(["--image", local_path])
+
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60 * 25)
+            if result.returncode != 0:
+                safe_err = (result.stderr or result.stdout or "").strip()[:800]
+                self._log(f"    Higgsfield CLI error: {safe_err}")
+                return None
+            output = (result.stdout or result.stderr or "").strip()
             try:
-                res = requests.get(
-                    f"{HF_BASE}/requests/{request_id}/status",
-                    headers=self.hf_headers,
-                    timeout=15,
-                )
-                data = res.json()
-                status = data.get("status", "unknown")
-                if status == "completed":
-                    return data["images"][0]["url"]
-                elif status in ("failed", "nsfw"):
-                    self._log(f"    Generation {status}")
-                    return None
-            except Exception:
+                data = json.loads(output)
+                for key in ("url", "image_url", "result_url", "output_url"):
+                    if isinstance(data, dict) and isinstance(data.get(key), str) and data[key].startswith("http"):
+                        return data[key]
+                if isinstance(data, dict):
+                    images = data.get("images") or data.get("outputs") or []
+                    for item in images:
+                        if isinstance(item, dict):
+                            url = item.get("url") or item.get("image_url")
+                            if isinstance(url, str) and url.startswith("http"):
+                                return url
+                        elif isinstance(item, str) and item.startswith("http"):
+                            return item
+            except json.JSONDecodeError:
                 pass
-
-        self._log("    Timeout")
-        return None
+            urls = re.findall(r"https?://\S+", output)
+            if urls:
+                return urls[-1].rstrip(").,]")
+            self._log(f"    Higgsfield CLI returned no URL: {output[:500]}")
+            return None
+        except subprocess.TimeoutExpired:
+            self._log("    Higgsfield CLI timed out")
+            return None
+        except Exception as e:
+            self._log(f"    Higgsfield CLI error: {e}")
+            return None
+        finally:
+            for path in temp_paths:
+                try:
+                    Path(path).unlink(missing_ok=True)
+                except Exception:
+                    pass
 
     # ── Quality gate ─────────────────────────────────────────────────────
 
@@ -1269,9 +1338,7 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
         prompt: str,
         seed_constraints: dict,
     ) -> tuple[list[str], dict]:
-        """Return data URLs for generation + metadata for critique context."""
-        if self.backend != "openrouter":
-            return [], {}
+        """Return seed image refs for generation + metadata for critique context."""
         if not self.seeds:
             return [], {}
 
@@ -1331,16 +1398,17 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
         else:
             final_seeds = selected[:2]
 
-        data_urls = []
+        image_refs = []
         context = {"seed_ids": [], "flowers": [], "colour_story": [], "notes": []}
         for seed in final_seeds:
             image_ref = seed_image_ref(seed, self.brand_dir)
             if not image_ref:
                 continue
-            data_url = self._image_ref_to_data_url(image_ref)
-            if not data_url:
+            if self.backend == "openrouter":
+                image_ref = self._image_ref_to_data_url(image_ref) or ""
+            if not image_ref:
                 continue
-            data_urls.append(data_url)
+            image_refs.append(image_ref)
             context["seed_ids"].append(seed.get("id"))
             if seed.get("cdn_url"):
                 context.setdefault("cdn_urls", []).append(seed.get("cdn_url"))
@@ -1357,7 +1425,7 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
         context["flowers"] = sorted({f for f in context["flowers"] if isinstance(f, str)})
         context["colour_story"] = sorted({c for c in context["colour_story"] if isinstance(c, str)})
         context["notes"] = context["notes"][:3]
-        return data_urls, context
+        return image_refs, context
 
     # ── Critic — CLI path ────────────────────────────────────────────────
 
@@ -1721,7 +1789,7 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
             "selected_seeds": result.get("selected_seeds"),
             "brand_id": self.brand_id,
             "backend": self.backend,
-            "model": self.model if self.backend == "openrouter" else HF_MODEL,
+            "model": self.model,
         })
 
     def _image_ref_to_data_url(self, image_ref: str) -> Optional[str]:
