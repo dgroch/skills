@@ -37,6 +37,8 @@ Each skill is self-contained and includes a `SKILL.md` file (plus optional `scri
 - `creative/creative-social-grid-planner` (`creative-social-grid-planner`): Plan Fig & Bloom 9- or 12-tile social grid chapters using campaign-world art direction and product/human/proof balance.
 - `creative/copywriting-qa` (`copy-qa`): QA customer-facing copy against brand voice and messaging standards.
 - `creative/email-template-builder` (`email-template-builder`): Create, build, and deploy Klaviyo email campaigns and automated flows from a modular component library.
+- `creative/blog-post-builder` (`blog-post-builder`): Build and publish a Fig & Bloom Shopify blog post end-to-end from a Notion editorial brief — brand voice + Thought-Leader Lens drafting, internal linking, and Shopify publish.
+- `creative/blog-internal-linking` (`blog-internal-linking`): Add internal links and product merchandising (single callout or shoppable banner) to any Fig & Bloom blog post, the "Wikipedia way", and publish to Shopify.
 
 ### Human Resources
 
