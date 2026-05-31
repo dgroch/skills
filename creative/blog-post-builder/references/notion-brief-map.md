@@ -53,6 +53,6 @@ from the Blog Posts hub rather than hard-coding post IDs.
 
 - The **Internal Linking Map** is the source of truth for *what to link to*;
   **live Shopify** is the source of truth for *which product*. Both are handled
-  by the `blog-internal-linking` skill.
+  in step 4 of the build — see `internal-linking.md`.
 - The lens workflow page is the canonical version of the 7-step drafting
   procedure summarised in `brand-voice-and-lens.md`.

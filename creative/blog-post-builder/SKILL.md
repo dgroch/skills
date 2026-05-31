@@ -4,13 +4,13 @@ description: >
   Build and publish a Fig & Bloom Shopify blog post end-to-end from a brief in
   Notion. Reads the post brief (Marketing → Editorial → Blog Posts → {Month}),
   drafts it through the brand voice + Thought-Leader Lens workflow, applies
-  internal links and product merchandising, then publishes the article to the
-  Shopify blog. Use whenever someone says "write the May blog post", "build the
-  blog post from the brief", "draft and publish this Notion blog brief", or
-  "turn this editorial brief into a live blog post". Pairs with the
-  blog-internal-linking skill (links + shoppable products), the
-  creative-brand-photographer skill (imagery) and the editorial brand-voice
-  framework.
+  internal links and product merchandising (the "Wikipedia way" — single callout
+  or shoppable banner), then publishes the article to the Shopify blog. Use
+  whenever someone says "write the May blog post", "build the blog post from the
+  brief", "draft and publish this Notion blog brief", "add internal links / make
+  this post shoppable", or "turn this editorial brief into a live blog post".
+  Pairs with the creative-brand-photographer skill (imagery) and the editorial
+  brand-voice framework.
 ---
 
 # Blog Post Builder — Fig & Bloom
@@ -30,7 +30,10 @@ brief that already exists in Notion.
 The Notion map (IDs, brief tree, how a brief inherits) is in
 **`references/notion-brief-map.md`**. A self-contained copy of the brand voice
 rules + the 7-lens drafting workflow is in **`references/brand-voice-and-lens.md`**
-— read it so the skill still works if Notion is slow or unreachable.
+— read it so the skill still works if Notion is slow or unreachable. The full
+internal-linking + merchandising + Shopify-publish process is in
+**`references/internal-linking.md`** (banner pipeline in
+`references/shoppable-banner.md`; renderer/uploader in `scripts/`).
 
 ## Inputs
 
@@ -86,14 +89,15 @@ Run the 7-step workflow (full text in `references/brand-voice-and-lens.md`) as
   woven closing direction.
 
 ### 4. Internal links + product merchandising
-Hand the draft to the **`blog-internal-linking`** skill (in this repo). It:
-- maps each concept (occasion, palette, recipient, care, season, geography) to
+Apply internal linking + merchandising (full rules, Map IDs, and modes in
+**`references/internal-linking.md`**):
+- map each concept (occasion, palette, recipient, care, season, geography) to
   the single best canonical page via the **Internal Linking Map**, at
   ~1 link / 120–150 words, descriptive anchors, no duplicate/self links;
-- guarantees **≥1 commercial link + ≥1 related blog post + product
+- guarantee **≥1 commercial link + ≥1 related blog post + product
   merchandising** (single callout by default, or a shoppable banner for a
   curated set);
-- searches **live Shopify** for the in-stock product the post features (real
+- search **live Shopify** for the in-stock product the post features (real
   imagery only), placed near the close — never right after a sympathy passage.
 
 ### 5. Publish to the Shopify blog
@@ -105,8 +109,8 @@ Hand the draft to the **`blog-internal-linking`** skill (in this repo). It:
   not R2. For large bodies, render the HTML **single-line with single-quoted
   attributes** before putting it in a GraphQL variable (no escaping war).
 - Store: `lechoixflowers.myshopify.com` (public domain `figandbloom.com`). Full
-  Shopify edit notes + the banner pipeline live in the `blog-internal-linking`
-  skill's `references/shoppable-banner.md`.
+  Shopify edit notes are in `references/internal-linking.md`; the banner pipeline
+  in `references/shoppable-banner.md`.
 
 ### 6. QA before publish (combined gate)
 - **Useful before it sells?** Headline matches the awareness state? Feels Fig &
@@ -126,7 +130,5 @@ the campaign promise: *Fig & Bloom helps customers send the right feeling, with
 craft and delivery certainty behind it.*
 
 ## Related skills
-- **`blog-internal-linking`** — links + shoppable products + Shopify publishing
-  notes (this repo).
 - **`creative-brand-photographer`** — on-brand imagery for the post.
 - **`creative-copy-qa`** — independent brand-voice QA pass before publish.
