@@ -113,6 +113,17 @@ higgsfield account status
 # higgsfield auth login
 # or `hf auth login` when the CLI prints that hint
 
+Operator note: complete Higgsfield auth in the same Unix account and HOME used
+by Brand Photographer runs. In Paperclip that means `HOME=/paperclip` with the
+installed CLI at `/paperclip/.local/bin/higgsfield`; the session token is stored
+under `/paperclip/.config/higgsfield/`. API-key env vars such as `HF_KEY`,
+`HF_SECRET`, `HF_API_KEY_ID`, or `HF_API_KEY_SECRET` do not authenticate this
+CLI path. After login, verify with:
+
+```bash
+PATH="/paperclip/.local/bin:$PATH" higgsfield account status
+```
+
 # OpenRouter is an explicit fallback only:
 # export BRAND_PHOTOGRAPHER_IMAGE_BACKEND=openrouter
 # export OPENROUTER_API_KEY="sk-or-v1-..."

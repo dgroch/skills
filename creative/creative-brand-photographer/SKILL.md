@@ -64,6 +64,14 @@ blocker: the owner must install the CLI or run `higgsfield auth login` (or
 `hf auth login` when the CLI prints that hint). Do not silently downgrade
 seed-guided campaign work to text-only output.
 
+For Paperclip-hosted Brand Photographer runs, auth must be completed in the
+runtime account that owns `HOME=/paperclip`; the installed CLI is expected at
+`/paperclip/.local/bin/higgsfield` and stores session credentials under
+`/paperclip/.config/higgsfield/`. Legacy Higgsfield API-key env vars
+(`HF_KEY`, `HF_SECRET`, `HF_API_KEY_ID`, `HF_API_KEY_SECRET`) are not used by
+the Brand Photographer Higgsfield path. Confirm readiness with
+`PATH="/paperclip/.local/bin:$PATH" higgsfield account status`.
+
 **Critic execution order:**
 
 1. **Claude CLI (`claude` command)** — preferred. Used automatically when

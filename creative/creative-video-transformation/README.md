@@ -44,11 +44,16 @@ brew install ffmpeg
 ### Environment variables
 
 ```bash
-# Higgsfield auth — get keys from https://cloud.higgsfield.ai/api-keys
-export HF_API_KEY_ID="your-key-id"
-export HF_API_KEY_SECRET="your-key-secret"
-# OR combined:
-export HF_KEY="your-key-id:your-key-secret"
+# Higgsfield auth — canonical Paperclip path uses the installed CLI session.
+# Complete this once in the same runtime account, then verify:
+higgsfield account status
+# If unauthenticated:
+# higgsfield auth login
+# or `hf auth login` when the CLI prints that hint
+#
+# Legacy SDK scripts in this package still accept HF_API_KEY_ID/HF_API_KEY_SECRET
+# or HF_KEY for direct SDK probes. Do not use those env vars for CLI-backed
+# Brand Photographer or creative-higgsfield-client runs.
 
 # Claude for shot analysis — no ANTHROPIC_API_KEY needed in Paperclip.
 # The skill calls the `claude` CLI directly, which uses the native session auth.
