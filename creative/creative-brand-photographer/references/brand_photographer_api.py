@@ -655,18 +655,30 @@ def _claude_cli_available() -> bool:
     return shutil.which("claude") is not None
 
 
+def _higgsfield_cli_path() -> Optional[str]:
+    """Return the installed Higgsfield CLI path, preferring PATH."""
+    found = shutil.which("higgsfield")
+    if found:
+        return found
+    bundled = Path("/paperclip/.local/bin/higgsfield")
+    if bundled.exists() and os.access(bundled, os.X_OK):
+        return str(bundled)
+    return None
+
+
 def _higgsfield_cli_available() -> bool:
-    """Return True if the `higgsfield` CLI is present on PATH."""
-    return shutil.which("higgsfield") is not None
+    """Return True if the `higgsfield` CLI is installed for this runtime."""
+    return _higgsfield_cli_path() is not None
 
 
 def _higgsfield_account_status() -> tuple[bool, str]:
     """Return whether the Higgsfield CLI is authenticated, plus safe status text."""
-    if not _higgsfield_cli_available():
-        return False, "`higgsfield` CLI is not installed or is not on PATH"
+    cli = _higgsfield_cli_path()
+    if not cli:
+        return False, "`higgsfield` CLI is not installed or is not on PATH or /paperclip/.local/bin"
     try:
         result = subprocess.run(
-            ["higgsfield", "account", "status"],
+            [cli, "account", "status"],
             capture_output=True,
             text=True,
             timeout=30,
@@ -1133,7 +1145,7 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
             ar = "3:4"
 
         cmd = [
-            "higgsfield",
+            _higgsfield_cli_path() or "higgsfield",
             "generate",
             "create",
             self.model,

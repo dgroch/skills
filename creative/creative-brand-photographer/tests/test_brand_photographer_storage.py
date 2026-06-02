@@ -242,9 +242,28 @@ class StorageTests(unittest.TestCase):
                 url = photographer._generate_higgsfield("Make a bouquet", "3:4", [str(seed)])
 
             self.assertEqual(url, "https://cdn.example/generated.jpg")
-            self.assertEqual(captured["cmd"][:4], ["higgsfield", "generate", "create", "nano_banana_2"])
+            self.assertEqual(Path(captured["cmd"][0]).name, "higgsfield")
+            self.assertEqual(captured["cmd"][1:4], ["generate", "create", "nano_banana_2"])
             self.assertIn("--image", captured["cmd"])
             self.assertIn(str(seed), captured["cmd"])
+
+    def test_higgsfield_cli_path_falls_back_to_paperclip_install(self):
+        def fake_which(name):
+            self.assertEqual(name, "higgsfield")
+            return None
+
+        def fake_exists(self):
+            return str(self) == "/paperclip/.local/bin/higgsfield"
+
+        def fake_access(path, mode):
+            self.assertEqual(path, Path("/paperclip/.local/bin/higgsfield"))
+            self.assertEqual(mode, os.X_OK)
+            return True
+
+        with patch.object(api.shutil, "which", side_effect=fake_which), \
+             patch.object(api.Path, "exists", fake_exists), \
+             patch.object(api.os, "access", side_effect=fake_access):
+            self.assertEqual(api._higgsfield_cli_path(), "/paperclip/.local/bin/higgsfield")
 
     def test_notion_store_loads_rows_and_appends_prompt(self):
         fake = FakeNotion()
