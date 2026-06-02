@@ -1,0 +1,32 @@
+<!-- TEMPLATE: T5 — Long-form Story | serif headline + body on a panel, link-in-bio footer
+TOKENS:
+  {{HEADLINE}}     — Lust serif headline (optional). Pass "" to lead with the body.
+  {{BODY}}         — the story paragraph(s) (Lust serif). Use <br><br> between paragraphs.
+  {{FOOTER_CTA}}   — link-in-bio footer line (NeuzeitGro bold caps). e.g. "Visit the link in bio for the full story."
+  STYLE PRESET (copy ONE row from manifest.json → style_presets verbatim — use white / paper / clay / photo):
+  {{PANEL_BG}} {{INK}}
+  {{ALIGN}}        — "center" or "left"
+  VISUAL-COLUMN PRESET (copy ONE row from manifest.json → t5_visual_presets):
+  {{LEFT_W}}       — left visual column width, e.g. "420px"; "0px" hides it (illustration{none}, full-width text)
+  {{PHOTO_URL}}    — photo for the left column (illustration{none}/photo)
+  {{PHOTO_DISPLAY}} — "block" (photo) or "none"
+  {{ARCH_DISPLAY}}  — "block" (illustration{arch-sky} flat scene) or "none"
+RULES:
+  - Body is the main risk for overflow on the post (1350) canvas — the render validator flags it; shorten copy if so.
+  - arch-sky is a locked CSS scene (sky / sun / hill); no external asset needed.
+-->
+<div class="fill" style="position:absolute;inset:0;background-color:{{PANEL_BG}};display:flex;">
+  <div class="leftcol" style="position:relative;width:{{LEFT_W}};flex:0 0 {{LEFT_W}};overflow:hidden;">
+    <div class="photo" style="display:{{PHOTO_DISPLAY}};position:absolute;inset:0;background-image:url('{{PHOTO_URL}}');background-size:cover;background-position:center;"></div>
+    <div class="arch" style="display:{{ARCH_DISPLAY}};position:absolute;inset:0;background:linear-gradient(#cfe6f2 0%,#e8f1f3 55%,#eef0ea 100%);">
+      <div style="position:absolute;left:-60px;top:60px;width:320px;height:320px;border-radius:50%;background:#ffffff;"></div>
+      <div style="position:absolute;left:0;right:0;bottom:0;height:30%;background:#8aa53f;"></div>
+      <div style="position:absolute;left:0;right:0;bottom:24%;height:9%;background:#b9c977;"></div>
+    </div>
+  </div>
+  <div class="textcol" style="position:relative;flex:1 1 auto;display:flex;flex-direction:column;justify-content:center;padding:0 86px;text-align:{{ALIGN}};color:{{INK}};">
+    <h1 class="headline" style="font-family:'Lust',Georgia,'Times New Roman',serif;font-weight:normal;font-size:64px;line-height:1.12;margin:0 0 28px 0;">{{HEADLINE}}</h1>
+    <p class="body" style="font-family:'Lust',Georgia,'Times New Roman',serif;font-weight:normal;font-size:48px;line-height:1.32;margin:0;">{{BODY}}</p>
+    <p class="footer-cta" style="font-family:'NeuzeitGro','Gill Sans',sans-serif;font-weight:700;font-size:22px;letter-spacing:.12em;text-transform:uppercase;margin:56px 0 0 0;opacity:.85;">{{FOOTER_CTA}}</p>
+  </div>
+</div>

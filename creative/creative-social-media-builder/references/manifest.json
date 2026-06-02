@@ -1,0 +1,205 @@
+{
+  "version": "1.0",
+  "description": "Fig & Bloom social-media creative library. The agent selects ONE template, writes copy for the content tokens, copies style-preset rows verbatim, then renders to a flat PNG. No HTML is generated — only token values.",
+  "output": {
+    "format": "PNG",
+    "ratios": {
+      "1080x1920": "Story — primary canvas (all 8 source PSDs are this ratio)",
+      "1080x1350": "Post — 4:5. Templates reflow to this, not just crop."
+    },
+    "both_required": true
+  },
+  "render": {
+    "script": "references/scripts/render.js",
+    "shell_preview": "references/shell/shell-preview.html",
+    "shell_production": "references/shell/shell-production.html",
+    "dependency": "puppeteer skill — verify with: node -e \"require('puppeteer'); console.log('OK')\"",
+    "method": "1. Pick a template. 2. Write content-token values. 3. Copy a style-preset row (+ any per-template preset) verbatim. 4. Save tokens to a JSON file. 5. node references/scripts/render.js --template <id> --tokens vals.json --all-ratios --output-dir out/. 6. Parse __RENDER_MANIFEST__: ok:true, every result errors:[]. 7. Present PNGs for approval.",
+    "shell_tokens": {
+      "CANVAS_W": "1080 (injected by render.js)",
+      "CANVAS_H": "1920 (story) or 1350 (post) (injected by render.js)",
+      "RATIO": "1080x1920 | 1080x1350 (injected)",
+      "TITLE": "optional creative name",
+      "CONTENT": "the filled template, injected between <!-- CONTENT_START --> and <!-- CONTENT_END -->"
+    },
+    "ASSETS_BASE": "Resolved by render.js to file://<references>/illustrations. Templates reference illustration files as {{ASSETS_BASE}}/<File>.png."
+  },
+  "global_tokens": {
+    "ratio": "1080x1920 | 1080x1350",
+    "background": "photo | white | black | tan(clay) | paper",
+    "photo_slot": "image dropped into a background-image url() — supply file:// (preferred, offline-safe) or https",
+    "align": "left | center",
+    "illustration": "none | {solid asset: Body|BodyFlower|Face1|Face2|FrontFace|HandFlower|HandPlant|HandRose × Black|White} | arch-sky (T5 CSS scene)",
+    "text_treatment": "plain | black-box-per-word (T3)",
+    "cta": "none | READ MORE | TAP FOR MORE | link-in-bio",
+    "logo": "none | monogram (\"F&B\") | full (\"Fig & Bloom\")",
+    "typeface": "script (Cervanttis) | serif (Lust) | sans (NeuzeitGro)"
+  },
+  "fonts": {
+    "cervanttis": { "role": "script — signatures, captions, display script, poll labels", "case": "lowercase", "stack": "'Cervanttis','Palatino Linotype',Palatino,Georgia,serif", "file": "fonts/cervanttis.ttf", "cdn": "https://cdn.shopify.com/s/files/1/0657/8723/2489/files/cervanttis.ttf" },
+    "lust": { "role": "serif display — quotes, headlines, body of long-form, link lines", "case": "sentence/title; small-caps in T2", "stack": "'Lust',Georgia,'Times New Roman',serif", "file": "fonts/Lust-Regular.otf", "cdn": "https://cdn.shopify.com/s/files/1/0657/8723/2489/files/Lust-Regular.woff2" },
+    "neuzeit_light": { "role": "sans body / sub-lines", "weight": 300, "stack": "'NeuzeitGro','Gill Sans',sans-serif", "file": "fonts/NeuzeitGro-Lig.otf", "cdn": "https://cdn.shopify.com/s/files/1/0657/8723/2489/files/NeuzeitGro-Lig.otf" },
+    "neuzeit_bold": { "role": "sans labels / overlines / CTAs", "weight": 700, "stack": "'NeuzeitGro','Gill Sans',sans-serif", "file": "fonts/NeuzeitGro-Bol.otf", "cdn": "https://cdn.shopify.com/s/files/1/0657/8723/2489/files/NeuzeitGro-Bol.otf" }
+  },
+  "colours": { "noir": "#000000", "white": "#ffffff", "clay": "#D8CCBE", "paper": "#E7DED2", "ink_dark": "#1a1a1a", "ink_clay": "#2b2b2b" },
+  "style_presets": {
+    "_about": "Shared background/ink presets. Fill {{BG_COLOR}}/{{PANEL_BG}}, {{INK}}, {{SCRIM}} (and {{PHOTO_URL}} where used) by COPYING ONE ROW verbatim. The agent never invents a hex value.",
+    "photo-dark": { "BG_COLOR": "#1a1a1a", "PANEL_BG": "#1a1a1a", "INK": "#ffffff", "SCRIM": "rgba(0,0,0,0.34)", "note": "photo bg + legibility scrim; set PHOTO_URL" },
+    "photo-plain": { "BG_COLOR": "#1a1a1a", "PANEL_BG": "#1a1a1a", "INK": "#ffffff", "SCRIM": "rgba(0,0,0,0.0)", "note": "photo bg, no scrim; set PHOTO_URL" },
+    "black": { "BG_COLOR": "#000000", "PANEL_BG": "#000000", "INK": "#ffffff", "SCRIM": "rgba(0,0,0,0)", "note": "solid noir; PHOTO_URL=\"\"" },
+    "white": { "BG_COLOR": "#ffffff", "PANEL_BG": "#ffffff", "INK": "#1a1a1a", "SCRIM": "rgba(0,0,0,0)", "note": "solid white; PHOTO_URL=\"\"" },
+    "clay": { "BG_COLOR": "#D8CCBE", "PANEL_BG": "#D8CCBE", "INK": "#2b2b2b", "SCRIM": "rgba(0,0,0,0)", "note": "solid clay; PHOTO_URL=\"\"" },
+    "paper": { "BG_COLOR": "#E7DED2", "PANEL_BG": "#E7DED2", "INK": "#2b2b2b", "SCRIM": "rgba(0,0,0,0)", "note": "warm paper; PHOTO_URL=\"\"" }
+  },
+  "t1_container_presets": {
+    "_about": "T1 quote container. Copy one row into CONTAINER_BG / CONTAINER_INK / CONTAINER_PAD.",
+    "black-box": { "CONTAINER_BG": "#000000", "CONTAINER_INK": "#ffffff", "CONTAINER_PAD": "56px 64px" },
+    "white-box": { "CONTAINER_BG": "#ffffff", "CONTAINER_INK": "#1a1a1a", "CONTAINER_PAD": "56px 64px" },
+    "none": { "CONTAINER_BG": "transparent", "CONTAINER_INK": "inherit", "CONTAINER_PAD": "0" }
+  },
+  "t1_attr_presets": {
+    "_about": "T1 attribution style. role = printed name; signature = Cervanttis script. Copy one row into ATTR_FONT / ATTR_SIZE / ATTR_TRANSFORM.",
+    "role": { "ATTR_FONT": "'NeuzeitGro','Gill Sans',sans-serif", "ATTR_SIZE": "26px", "ATTR_TRANSFORM": "uppercase" },
+    "signature": { "ATTR_FONT": "'Cervanttis','Palatino Linotype',Palatino,Georgia,serif", "ATTR_SIZE": "76px", "ATTR_TRANSFORM": "none" }
+  },
+  "t3_type_presets": {
+    "_about": "T3 display typeface. Copy one row into TYPE_FONT / TYPE_SIZE / TYPE_TRANSFORM / TYPE_WEIGHT. For treatment{black-box-per-word} set WORD_BG=#000000, WORD_PAD=\"0.04em 0.18em\"; for plain set WORD_BG=transparent, WORD_PAD=0.",
+    "sans": { "TYPE_FONT": "'NeuzeitGro','Gill Sans',sans-serif", "TYPE_SIZE": "300px", "TYPE_TRANSFORM": "uppercase", "TYPE_WEIGHT": "700" },
+    "script": { "TYPE_FONT": "'Cervanttis','Palatino Linotype',Palatino,Georgia,serif", "TYPE_SIZE": "220px", "TYPE_TRANSFORM": "none", "TYPE_WEIGHT": "400" },
+    "serif-caps": { "TYPE_FONT": "'Lust',Georgia,'Times New Roman',serif", "TYPE_SIZE": "210px", "TYPE_TRANSFORM": "uppercase", "TYPE_WEIGHT": "400" }
+  },
+  "t4_caption_presets": {
+    "_about": "T4 caption style. Copy one row into CAPTION_FONT / CAPTION_SIZE / CAPTION_TRANSFORM / BAR_BG / BAR_INK.",
+    "script": { "CAPTION_FONT": "'Cervanttis','Palatino Linotype',Palatino,Georgia,serif", "CAPTION_SIZE": "96px", "CAPTION_TRANSFORM": "none", "BAR_BG": "rgba(255,255,255,0.0)", "BAR_INK": "#ffffff" },
+    "serif-box": { "CAPTION_FONT": "'Lust',Georgia,'Times New Roman',serif", "CAPTION_SIZE": "46px", "CAPTION_TRANSFORM": "none", "BAR_BG": "#ffffff", "BAR_INK": "#1a1a1a" }
+  },
+  "t4_photo_presets": {
+    "_about": "T4 photo treatment. Copy one row into PHOTO_INSET / FRAME_BG.",
+    "full-bleed": { "PHOTO_INSET": "0", "FRAME_BG": "#1a1a1a" },
+    "offset-block": { "PHOTO_INSET": "96px", "FRAME_BG": "#E7DED2" }
+  },
+  "t5_visual_presets": {
+    "_about": "T5 left visual column. Copy one row into LEFT_W / PHOTO_URL? / PHOTO_DISPLAY / ARCH_DISPLAY. (Set PHOTO_URL on the photo row.)",
+    "photo": { "LEFT_W": "420px", "PHOTO_DISPLAY": "block", "ARCH_DISPLAY": "none" },
+    "arch-sky": { "LEFT_W": "420px", "PHOTO_DISPLAY": "none", "ARCH_DISPLAY": "block" },
+    "none": { "LEFT_W": "0px", "PHOTO_URL": "", "PHOTO_DISPLAY": "none", "ARCH_DISPLAY": "none" }
+  },
+  "t8_label_presets": {
+    "_about": "T8 poll label bar. Copy one row into BAR_BG / BAR_INK.",
+    "white": { "BAR_BG": "#ffffff", "BAR_INK": "#1a1a1a" },
+    "noir": { "BAR_BG": "#000000", "BAR_INK": "#ffffff" }
+  },
+  "token_rules": {
+    "Cervanttis_lowercase": "Any Cervanttis value (T1 signature, T3 script phrase, T4 script caption, T8 label) MUST be lowercase.",
+    "Lust_sentence_case": "Lust values (quotes, headlines, body, link lines) are sentence case. T2 headline is rendered small-caps from sentence-case input.",
+    "presets_verbatim": "Style/preset tokens are filled by COPYING a preset row — never hand-typed hex.",
+    "photos_local": "Prefer file:// paths for photos (offline-safe render). Pre-download remote images first.",
+    "keep_copy_short": "T5/T6 body and T3 phrase are the overflow risks on the 1350 post canvas. The render validator fails on overflow — shorten copy or choose the other ratio."
+  },
+  "templates": [
+    {
+      "id": "T1",
+      "name": "Quote / Testimonial",
+      "purpose": "Pull-quote with attribution (printed name+role, or script signature)",
+      "file": "templates/t1-quote.html",
+      "ratios": ["1080x1920", "1080x1350"],
+      "sources": "JPEG Robert Irwin footage quote; PSD D3 (Darren L), D4, D5 (Jean Houston)",
+      "tokens": ["QUOTE", "ATTRIBUTION_NAME", "ATTRIBUTION_ROLE", "ATTR_FONT", "ATTR_SIZE", "ATTR_TRANSFORM", "BG_COLOR", "INK", "SCRIM", "PHOTO_URL", "CONTAINER_BG", "CONTAINER_INK", "CONTAINER_PAD", "ALIGN"],
+      "presets": ["style_presets", "t1_container_presets", "t1_attr_presets"],
+      "slots": { "photo_slot": "optional (bg)", "illustration": "no" }
+    },
+    {
+      "id": "T2",
+      "name": "Statement + Attribution",
+      "purpose": "Overline + serif-caps headline + attribution, bottom-anchored",
+      "file": "templates/t2-statement.html",
+      "ratios": ["1080x1920", "1080x1350"],
+      "sources": "JPEG Series Headline (REGIONAL SERIES, GIFT GUIDE); PSD D7",
+      "tokens": ["OVERLINE", "HEADLINE", "ATTRIBUTION", "BG_COLOR", "INK", "SCRIM", "PHOTO_URL", "ALIGN", "LOGO"],
+      "presets": ["style_presets"],
+      "slots": { "photo_slot": "optional (bg; placeholder when solid)", "illustration": "no" }
+    },
+    {
+      "id": "T3",
+      "name": "Display Phrase",
+      "purpose": "One oversized word / short phrase as hero",
+      "file": "templates/t3-display-phrase.html",
+      "ratios": ["1080x1920", "1080x1350"],
+      "sources": "JPEG WIN, giveaway time; PSD D2 (black-box caps), D6 (script \"celebrate love\")",
+      "tokens": ["PHRASE", "TYPE_FONT", "TYPE_SIZE", "TYPE_TRANSFORM", "TYPE_WEIGHT", "WORD_BG", "WORD_PAD", "BG_COLOR", "INK", "SCRIM", "PHOTO_URL"],
+      "presets": ["style_presets", "t3_type_presets"],
+      "slots": { "photo_slot": "optional (bg)", "illustration": "no" }
+    },
+    {
+      "id": "T4",
+      "name": "Captioned Photo",
+      "purpose": "Photo (full-bleed or offset block) + short caption",
+      "file": "templates/t4-captioned-photo.html",
+      "ratios": ["1080x1920", "1080x1350"],
+      "sources": "JPEG Lower-Third Label Box (\"In the studio\", \"Just Arrived!\"); PSD D1 (script caption)",
+      "tokens": ["PHOTO_URL", "CAPTION", "CTA", "CAPTION_FONT", "CAPTION_SIZE", "CAPTION_TRANSFORM", "BAR_BG", "BAR_INK", "PHOTO_INSET", "FRAME_BG"],
+      "presets": ["t4_caption_presets", "t4_photo_presets"],
+      "slots": { "photo_slot": "required", "illustration": "no" }
+    },
+    {
+      "id": "T5",
+      "name": "Long-form Story",
+      "purpose": "Serif headline + body paragraph on a panel, link-in-bio footer",
+      "file": "templates/t5-longform-story.html",
+      "ratios": ["1080x1920", "1080x1350"],
+      "sources": "JPEG only (Fortitude Valley, Tasmanian write-up, gift-guide body)",
+      "tokens": ["HEADLINE", "BODY", "FOOTER_CTA", "PANEL_BG", "INK", "ALIGN", "LEFT_W", "PHOTO_URL", "PHOTO_DISPLAY", "ARCH_DISPLAY"],
+      "presets": ["style_presets", "t5_visual_presets"],
+      "slots": { "photo_slot": "optional (left column)", "illustration": "optional (arch-sky)" }
+    },
+    {
+      "id": "T6",
+      "name": "Feature Card",
+      "purpose": "White-canvas editorial: serif headline + inset photo + body + CTA",
+      "file": "templates/t6-feature-card.html",
+      "ratios": ["1080x1920", "1080x1350"],
+      "sources": "JPEG only (\"ask me anything / MEET KELLIE\", \"Corporate client gift ideas\", \"J.Crew launch\")",
+      "tokens": ["SUPER_LABEL", "HEADLINE", "INSET_PHOTO", "BODY", "CTA", "PANEL_BG", "INK"],
+      "presets": ["style_presets"],
+      "slots": { "photo_slot": "required (inset)", "illustration": "no" }
+    },
+    {
+      "id": "T7",
+      "name": "Link / CTA Card",
+      "purpose": "Near-empty canvas, one centred line + logo",
+      "file": "templates/t7-link-cta.html",
+      "ratios": ["1080x1920", "1080x1350"],
+      "sources": "JPEG only (\"Head to the link in bio for our full guide\")",
+      "tokens": ["LINE", "LOGO", "PANEL_BG", "INK"],
+      "presets": ["style_presets"],
+      "slots": { "photo_slot": "no", "illustration": "no" }
+    },
+    {
+      "id": "T8",
+      "name": "Comparison / Poll",
+      "purpose": "Two stacked photos + script label",
+      "file": "templates/t8-comparison-poll.html",
+      "ratios": ["1080x1920", "1080x1350"],
+      "sources": "JPEG only (\"this or that?\")",
+      "tokens": ["PHOTO_TOP", "PHOTO_BOTTOM", "LABEL", "BAR_BG", "BAR_INK"],
+      "presets": ["t8_label_presets"],
+      "slots": { "photo_slot": "required (×2)", "illustration": "no" }
+    },
+    {
+      "id": "T9",
+      "name": "Illustration Hero",
+      "purpose": "Hero brand illustration + serif headline on paper/solid",
+      "file": "templates/t9-illustration-hero.html",
+      "ratios": ["1080x1920", "1080x1350"],
+      "sources": "PSD only (D8 \"we're hiring\")",
+      "tokens": ["HEADLINE", "SUBLINE", "ILLUSTRATION", "PANEL_BG", "INK", "ALIGN"],
+      "presets": ["style_presets"],
+      "slots": { "photo_slot": "no", "illustration": "required (solid library; line-art TBC — see gaps)" }
+    }
+  ],
+  "gaps": {
+    "line_art_library": "UNCONFIRMED. PSDs D3/D4/D5/D8 use single-line drawings. T9 and the lineart variant of T1 currently use the locked SOLID illustration set (Black/White) as a stand-in. Decide: do the solids suffice, or must line-art be extracted from the PSD layers / supplied separately? Blocks only the true line-art look of T9 + T1.",
+    "logo_assets": "The full horizontal lockup exists on the Shopify CDN (https://cdn.shopify.com/s/files/1/0657/8723/2489/files/F_B_Logo_Horizontal_BLK_914x200_0eb09d11-e91b-4f05-8ef4-9e54a99cb903.png). Templates currently render the logo as Lust text (\"F&B\" / \"Fig & Bloom\") for offline-safe rendering. Confirm whether a raster monogram + full lockup should be embedded as assets instead.",
+    "corpus_housekeeping": "tmp/ must not ship. Recommendation (carried from design phase): push PSDs/JPGs to the R2 CDN (brand-cdn skill) and keep links only; the small font/illustration files already live in references/. tmp/ is .gitignored."
+  }
+}

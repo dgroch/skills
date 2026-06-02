@@ -1,0 +1,27 @@
+<!-- TEMPLATE: T1 — Quote / Testimonial | pull-quote + attribution
+TOKENS:
+  {{QUOTE}}              — the pull-quote (Lust serif). Sentence case. No surrounding quote marks (baked).
+  {{ATTRIBUTION_NAME}}   — name (NeuzeitGro caps) OR script signature (Cervanttis) per ATTR_FONT
+  {{ATTRIBUTION_ROLE}}   — role/sub-line (NeuzeitGro). Pass "" to hide.
+  {{ATTR_FONT}}          — attribution font-family value. Copy a preset: ROLE = NeuzeitGro caps, SIGNATURE = Cervanttis.
+  {{ATTR_SIZE}}          — attribution font-size, from the ATTR preset (e.g. "26px" role / "72px" signature)
+  {{ATTR_TRANSFORM}}     — "uppercase" (role) or "none" (signature)
+  STYLE PRESET (copy ONE row from manifest.json → style_presets verbatim):
+  {{BG_COLOR}} {{INK}} {{SCRIM}}
+  {{PHOTO_URL}}          — file:// or https photo for bg{photo} presets; "" for solid presets
+  CONTAINER PRESET (copy ONE row from manifest.json → t1_container_presets):
+  {{CONTAINER_BG}} {{CONTAINER_INK}} {{CONTAINER_PAD}}
+  {{ALIGN}}              — "center" or "left"
+RULES:
+  - Locked layout. Vary only via the content tokens and the verbatim preset rows.
+  - Reflows between 1080×1920 (story) and 1080×1350 (post): the quote block stays vertically centred.
+-->
+<div class="fill" style="position:absolute;inset:0;background-color:{{BG_COLOR}};display:flex;align-items:center;justify-content:center;">
+  <div class="photo" style="position:absolute;inset:0;background-image:url('{{PHOTO_URL}}');background-size:cover;background-position:center;"></div>
+  <div class="scrim" style="position:absolute;inset:0;background:{{SCRIM}};"></div>
+  <div class="box" style="position:relative;z-index:2;max-width:840px;margin:0 96px;padding:{{CONTAINER_PAD}};background:{{CONTAINER_BG}};text-align:{{ALIGN}};">
+    <p class="quote" style="font-family:'Lust',Georgia,'Times New Roman',serif;font-weight:normal;font-size:60px;line-height:1.28;color:{{CONTAINER_INK}};margin:0;">{{QUOTE}}</p>
+    <p class="attr-name" style="font-family:{{ATTR_FONT}};font-weight:700;font-synthesis:none;font-size:{{ATTR_SIZE}};letter-spacing:.16em;text-transform:{{ATTR_TRANSFORM}};color:{{CONTAINER_INK}};margin:40px 0 0 0;line-height:1.1;">{{ATTRIBUTION_NAME}}</p>
+    <p class="attr-role" style="font-family:'NeuzeitGro','Gill Sans',sans-serif;font-weight:300;font-size:22px;letter-spacing:.22em;text-transform:uppercase;color:{{CONTAINER_INK}};opacity:.75;margin:14px 0 0 0;">{{ATTRIBUTION_ROLE}}</p>
+  </div>
+</div>

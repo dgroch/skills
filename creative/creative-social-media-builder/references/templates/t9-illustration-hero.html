@@ -1,0 +1,21 @@
+<!-- TEMPLATE: T9 — Illustration Hero | hero brand illustration + serif headline on paper/solid
+TOKENS:
+  {{HEADLINE}}        — Lust serif headline (e.g. "We're hiring").
+  {{SUBLINE}}         — optional NeuzeitGro line under the headline. Pass "" to hide.
+  {{ILLUSTRATION}}    — illustration asset FILENAME from references/illustrations/, resolved against {{ASSETS_BASE}}.
+                        Use the variant that matches the background: *_Black on paper/white, *_White on black.
+                        e.g. "HandFlower_Black.png", "FrontFace_White.png".
+  STYLE PRESET (copy ONE row from manifest.json → style_presets — use paper / white / black):
+  {{PANEL_BG}} {{INK}}
+  {{ALIGN}}           — "center" or "left"
+NOTE ON LINE-ART (see SKILL.md + manifest gaps): the dedicated single-line library is UNCONFIRMED. This
+  template uses the locked solid brand illustration set (Body, BodyFlower, Face1/2, FrontFace, HandFlower,
+  HandPlant, HandRose — Black & White) as the hero mark until line-art variants are supplied/extracted.
+RULES:
+  - Illustration is the hero; headline sits beneath. Reflows by centring the stack in both ratios.
+-->
+<div class="fill" style="position:absolute;inset:0;background-color:{{PANEL_BG}};display:flex;flex-direction:column;justify-content:center;align-items:center;padding:120px 96px;text-align:{{ALIGN}};color:{{INK}};">
+  <img class="illo" src="{{ASSETS_BASE}}/{{ILLUSTRATION}}" alt="" style="display:block;height:760px;max-height:48vh;width:auto;margin:0 0 56px 0;">
+  <h1 class="headline" style="font-family:'Lust',Georgia,'Times New Roman',serif;font-weight:normal;font-size:92px;line-height:1.06;margin:0;">{{HEADLINE}}</h1>
+  <p class="subline" style="font-family:'NeuzeitGro','Gill Sans',sans-serif;font-weight:300;font-size:30px;letter-spacing:.04em;margin:28px 0 0 0;opacity:.85;">{{SUBLINE}}</p>
+</div>

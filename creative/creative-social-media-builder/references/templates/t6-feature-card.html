@@ -1,0 +1,20 @@
+<!-- TEMPLATE: T6 — Feature Card | white-canvas editorial: serif headline + inset photo + body + CTA
+TOKENS:
+  {{SUPER_LABEL}}  — NeuzeitGro caps overline (e.g. "ASK ME ANYTHING"). Pass "" to hide.
+  {{HEADLINE}}     — Lust serif headline (e.g. "Meet Kellie").
+  {{INSET_PHOTO}}  — inset photo (file:// or https). 4:5 crop reads best.
+  {{BODY}}         — body paragraph(s), NeuzeitGro light. Use <br><br> between paragraphs.
+  {{CTA}}          — "READ MORE" | "TAP FOR MORE" | "" (none, hides the button)
+  STYLE PRESET (copy ONE row from manifest.json → style_presets — typically white / paper / clay):
+  {{PANEL_BG}} {{INK}}
+RULES:
+  - Editorial white-canvas layout: overline → headline → inset photo → body → button, centred.
+  - Reflows by centring the stack; long body is the overflow risk on post (1350) — the validator flags it.
+-->
+<div class="fill" style="position:absolute;inset:0;background-color:{{PANEL_BG}};display:flex;flex-direction:column;justify-content:center;align-items:center;padding:120px 96px;text-align:center;color:{{INK}};">
+  <p class="super" style="font-family:'NeuzeitGro','Gill Sans',sans-serif;font-weight:700;font-size:22px;letter-spacing:.32em;text-transform:uppercase;margin:0 0 24px 0;opacity:.85;">{{SUPER_LABEL}}</p>
+  <h1 class="headline" style="font-family:'Lust',Georgia,'Times New Roman',serif;font-weight:normal;font-size:80px;line-height:1.08;margin:0 0 48px 0;">{{HEADLINE}}</h1>
+  <div class="inset" style="width:600px;height:750px;max-height:46vh;background-image:url('{{INSET_PHOTO}}');background-size:cover;background-position:center;margin:0 0 48px 0;"></div>
+  <p class="body" style="font-family:'NeuzeitGro','Gill Sans',sans-serif;font-weight:300;font-size:32px;line-height:1.6;max-width:780px;margin:0;">{{BODY}}</p>
+  <a class="cta" href="#" style="font-family:'NeuzeitGro','Gill Sans',sans-serif;font-weight:700;font-size:22px;letter-spacing:.18em;text-transform:uppercase;background:#000000;color:#ffffff;text-decoration:none;padding:22px 56px;display:inline-block;margin:48px 0 0 0;">{{CTA}}</a>
+</div>
