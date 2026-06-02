@@ -97,7 +97,9 @@ Four layers, each scoped to the loaded brand:
    artefacts, and binds all subsequent operations to this brand.
 2. **Seed Selector** — given a brief, determines which generation mode
    to use (text-to-image, composite, or style-reference) based on
-   available seeds. Selects the best-matching seed assets for the brief.
+   available seeds. For Fig & Bloom, first searches the hosted semantic
+   image API for Manifest-backed reference candidates, then selects the
+   best-matching seed assets for the brief.
 3. **Prompt Engine** — selects or constructs a prompt for the brief,
    drawing from the loaded brand's prompt library, seed assets, or
    art direction rules.
@@ -190,11 +192,47 @@ ignored by the skill.
 
 For production Fig & Bloom work, check the Notion-backed Brand Photographer
 seed rows first. If a task references source assets that are only present in
-the Brand Asset Manifest, run
-`references/brand_photographer_asset_manifest_sync.py` to promote those
-manifest records into Brand Photographer seed rows before generating. Seed
-resolution prefers a local cached file, then `cdn_url`, then manifest preview
-or Drive links.
+the Brand Asset Manifest, discover candidates with the hosted semantic image
+search API, then run `references/brand_photographer_asset_manifest_sync.py` to
+promote those manifest records into Brand Photographer seed rows before
+generating. Seed resolution prefers a local cached file, then `cdn_url`, then
+manifest preview or Drive links.
+
+### Fig & Bloom semantic image search API
+
+Use the hosted Asset Library API to find real Fig & Bloom reference imagery
+before asking Daniel for seed photos or falling back to generic text-to-image.
+This is the preferred discovery path for shop exteriors/interiors, product
+truth, packaging, lifestyle references, and UGC-style seed candidates.
+
+- Base URL: `https://asset-library-u70t.onrender.com`
+- Endpoint: `GET /api/search?q=<natural-language-query>&cursor=<offset>`
+- Response shape: `{ "results": Asset[], "nextCursor": string | null }`
+- Result fields: `id` (Notion Manifest page ID), `title`, `url` (Brand CDN
+  preview), `description`, `mediaType`, `driveLink`
+- Pagination: pass the returned numeric `nextCursor` back as `cursor`
+- Behaviour: semantic search is used when the prebuilt index is present;
+  keyword/Notion fallback is automatic if embeddings fail
+
+Example:
+
+```bash
+curl -s "https://asset-library-u70t.onrender.com/api/search?q=white%20Sydney%20shop%20exterior%20facade&cursor=0"
+```
+
+Selection rules:
+
+1. Search with a concrete visual query derived from the brief, e.g. product,
+   setting, colour, occasion, composition, people/space, and format.
+2. Keep `mediaType=image` for image-generation references unless the brief
+   explicitly asks for video/B-roll inspiration.
+3. Prefer candidates with a strong `description` match and a valid Brand CDN
+   `url`; use `driveLink` only when the generation backend needs original files.
+4. Promote selected Manifest page IDs into Brand Photographer seed rows before
+   using them as Mode B/C seeds; do not treat arbitrary search results as
+   registered seeds until they are synced/registered.
+5. If no good match appears in the first page, page once or refine the query
+   before asking Daniel for new seed assets.
 
 ```json
 {
@@ -350,6 +388,10 @@ image-conditioned model, or explicit OpenRouter fallback.
 IF brief requires brand-specific assets (model + bouquet, packaging, logo):
     IF matching seeds exist in the active backend (Notion seed rows preferred, else seeds.json):
         → Mode B (composite) or Mode C (style-reference)
+    ELSE IF brand is Fig & Bloom:
+        → Search the hosted semantic image API for matching Manifest assets
+        → Promote suitable Manifest IDs into Brand Photographer seed rows
+        → Then use Mode B or Mode C if the registered seeds satisfy the brief
     ELSE:
         → STOP. Report: "This shot requires seed assets that aren't
           available. Needed: [list]. Falling back to text-to-image
@@ -405,7 +447,9 @@ Before generating, confirm the seed source:
 
 - Notion mode: query/use `Artifact=seed` rows in the Brand Photographer data
   source.
-- Asset-manifest source only: sync rows into Brand Photographer with
+- Fig & Bloom asset discovery: if suitable seed rows are missing, query the
+  hosted semantic image API and shortlist Manifest-backed image candidates.
+- Asset-manifest source only: sync selected rows into Brand Photographer with
   `references/brand_photographer_asset_manifest_sync.py`, then generate.
 - File mode: use the persistent `seeds.json` only when Notion is not
   configured.
@@ -485,6 +529,7 @@ well-structured manifest entries.
 ### Triggers
 
 - User uploads images with intent to register as seeds
+- User asks to find existing Fig & Bloom imagery/reference photos for a brief
 - User asks to review, audit, or update the seed library
 - User asks what's missing or what modes are available
 - User asks to remove or reclassify a seed
