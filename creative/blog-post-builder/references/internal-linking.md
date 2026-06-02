@@ -20,6 +20,10 @@ the publishing notes in step 5.
    - Shopify MCP `graphql_query` → `products(query: "...")`, filter to
      `status: ACTIVE` and `availableForSale: true`; grab `handle`,
      `featuredImage.url`, and `priceRangeV2.minVariantPrice` (for "From $X").
+   - **Approved designs only.** Callouts and any product-specific link may only
+     use these 7 hero designs — bouquet AND vase-arrangement versions: Osaka,
+     Marseille, Broome, Pyrenees, Amour, Monaco Pink, Monaco White. Confirm
+     `status: ACTIVE` before linking. Collection/landing links are unrestricted.
 
 ## Rules (link like Wikipedia)
 
@@ -30,6 +34,9 @@ the publishing notes in step 5.
   target's keyword; vary wording; never "click here".
 - **Every post needs:** ≥1 commercial link (collection/landing page) + ≥1
   related blog post + product merchandising (a single callout *or* a banner).
+- **Product links are allow-listed:** callouts/product links point only to the
+  approved hero designs above (Osaka, Marseille, Broome, Pyrenees, Amour,
+  Monaco Pink, Monaco White — bouquet + vase). Collections/landing pages are unrestricted.
 - **Never:** self-link, repeat a target, or print a literal "CTA:" label.
 - **Priority drives eagerness:** Core links freely; Secondary when clearly
   relevant; Situational only on a strong match.
