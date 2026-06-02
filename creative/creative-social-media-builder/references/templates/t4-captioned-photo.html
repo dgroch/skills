@@ -1,23 +1,30 @@
-<!-- TEMPLATE: T4 — Captioned Photo | photo + short caption (lower-third)
+<!-- TEMPLATE: T4 — Captioned Photo | photo + short caption (lower-third or upper band)
 TOKENS:
   {{PHOTO_URL}}       — full-bleed / offset photo (file:// or https)
   {{CAPTION}}         — short caption (e.g. "In the studio", "Just Arrived!", "freshly picked")
-  {{CTA}}             — optional small CTA line under the caption (NeuzeitGro caps). Pass "" to hide.
+  {{CTA}}             — optional small CTA line under the caption (NeuzeitGro LIGHT). Pass "" to hide.
   CAPTION-STYLE PRESET (copy ONE row from manifest.json → t4_caption_presets):
   {{CAPTION_FONT}} {{CAPTION_SIZE}} {{CAPTION_TRANSFORM}} {{BAR_BG}} {{BAR_INK}}
   PHOTO-TREATMENT PRESET (copy ONE row from manifest.json → t4_photo_presets):
   {{PHOTO_INSET}}     — "0" (full-bleed) or e.g. "96px" (offset-block, frame shows)
   {{FRAME_BG}}        — frame colour behind an offset photo; matches the bar for full-bleed
+  PLACEMENT PRESET (copy ONE row from manifest.json → t4_placement_presets; defaults applied by render.js):
+  {{PHOTO_POS}}       — CSS background-position to land a clean band, e.g. "center", "center 30%" (default "center")
+  {{BAR_ANCHOR}}      — caption-block anchor, e.g. "bottom:140px" or "top:88px" (default "bottom:140px")
+  {{CTA_SIZE}}        — CTA font-size, e.g. "20px" or "28px" (default "20px")
 RULES:
-  - script preset = Cervanttis caption over a clean bar; serif-box preset = the lower-third label box.
-  - Caption bar is pinned to the lower third; reflows cleanly to both ratios.
+  - script preset = Cervanttis caption over a clean band; serif-box preset = the lower-third label box.
+  - CAPTION INK FOLLOWS THE BAND: white ink over dark/mid bands, dark ink over light bands. The band must be
+    clean AND shadow-free (uniform luminance) — avoid mid-tones where neither black nor white wins. The render
+    contrast validator samples the band behind the caption and WARNs/FAILs on low contrast or a textured band.
+  - CTA uses NeuzeitGro Light (weight 300), not Bold.
 -->
 <div class="fill" style="position:absolute;inset:0;background-color:{{FRAME_BG}};">
-  <div class="photo" style="position:absolute;inset:{{PHOTO_INSET}};background-image:url('{{PHOTO_URL}}');background-size:cover;background-position:center;"></div>
-  <div class="bar" style="position:absolute;left:0;right:0;bottom:140px;display:flex;flex-direction:column;align-items:center;">
+  <div class="photo" style="position:absolute;inset:{{PHOTO_INSET}};background-image:url('{{PHOTO_URL}}');background-size:cover;background-position:{{PHOTO_POS}};"></div>
+  <div class="bar" style="position:absolute;left:0;right:0;{{BAR_ANCHOR}};display:flex;flex-direction:column;align-items:center;">
     <div class="bar-inner" style="background:{{BAR_BG}};padding:34px 64px;text-align:center;max-width:860px;">
       <p class="caption" style="font-family:{{CAPTION_FONT}};font-weight:400;font-synthesis:none;font-size:{{CAPTION_SIZE}};line-height:1.05;letter-spacing:.02em;text-transform:{{CAPTION_TRANSFORM}};color:{{BAR_INK}};margin:0;">{{CAPTION}}</p>
-      <p class="cta" style="font-family:'NeuzeitGro','Gill Sans',sans-serif;font-weight:700;font-size:20px;letter-spacing:.24em;text-transform:uppercase;color:{{BAR_INK}};opacity:.85;margin:18px 0 0 0;">{{CTA}}</p>
+      <p class="cta" style="font-family:'NeuzeitGro','Gill Sans',sans-serif;font-weight:300;font-synthesis:none;font-size:{{CTA_SIZE}};letter-spacing:.24em;text-transform:uppercase;color:{{BAR_INK}};opacity:.85;margin:18px 0 0 0;">{{CTA}}</p>
     </div>
   </div>
 </div>

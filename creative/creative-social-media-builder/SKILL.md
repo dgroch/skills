@@ -90,11 +90,33 @@ Write a flat `{ "TOKEN": "value" }` JSON file. Two kinds of token:
 - **Content tokens** — the copy and the image paths. Prefer **`file://` paths** for photos (offline-safe render); pre-download remote images first.
 - **Preset tokens** — fill by **copying ONE preset row verbatim** from the relevant `manifest.json` group:
   - `style_presets` (every template): `photo-dark`, `photo-plain`, `black`, `white`, `clay`, `paper` → fills `BG_COLOR`/`PANEL_BG`, `INK`, `SCRIM`.
-  - Per-template groups: `t1_container_presets`, `t1_attr_presets`, `t3_type_presets`, `t4_caption_presets`, `t4_photo_presets`, `t5_visual_presets`, `t8_label_presets`.
+  - Per-template groups: `t1_container_presets`, `t1_attr_presets`, `t3_type_presets`, `t4_caption_presets`, `t4_photo_presets`, `t4_placement_presets`, `t5_visual_presets`, `t8_label_presets`.
 
 Optional tokens (e.g. an unused `CTA`, `OVERLINE`, `ATTRIBUTION_ROLE`) take the empty string `""` — empty text holders collapse automatically.
 
 Illustration tokens (T9, and any `{{ASSETS_BASE}}` reference) take a **filename** from `references/illustrations/` (e.g. `HandFlower_Black.png`) — `render.js` resolves the path.
+
+### T4 — caption placement (legibility)
+
+Text on a photo is the one place a creative can fail silently, so T4 has explicit rules (the render contrast validator in Step 6 enforces them).
+
+**Caption ink rule — ink follows the band:**
+- **White ink over dark/mid bands; dark ink over light bands.** Set `BAR_INK` to match the band, not the other way round.
+- "Light" is not enough — the band must be **clean AND shadow-free (uniform luminance)**. A caption that crosses a shadow edge reads badly even at a good average contrast.
+- Avoid mid-tones where neither black nor white wins cleanly — choose a different band or use the serif-box fallback.
+
+**Band selection logic:**
+1. Identify the cleanest band (uniform luminance, no shadow) in the photo.
+2. Choose the anchor (`BAR_ANCHOR: top:88px` for a top band, `bottom:140px`/`bottom:90px` for a bottom band) to land the caption there — copy a `t4_placement_presets` row.
+3. Choose `PHOTO_POS` (CSS `background-position`, e.g. `center 30%`) to crop/shift the photo so the clean band is in view.
+4. Set `BAR_INK` by band luminance: dark band → white ink; light band → dark ink.
+5. Drop the `CTA` (`""`) when it would collide with the subject or a busy area. The CTA renders in NeuzeitGro **Light (300)**; `CTA_SIZE` controls its size (`28px` for the serif-box).
+
+**Fallback ladder (cheapest first):**
+1. **Anchor** to an existing clean band (`upper-band` / `lower-band` preset) — free, instant.
+2. **Reframe** via `PHOTO_POS` to expose a clean band — free.
+3. **Serif-box** (`t4_caption_presets:serif-box` + `t4_placement_presets:serif-box`) — a white box guarantees legibility when no clean band exists — free.
+4. **Generative outpaint** (Higgsfield Nano Banana 2 Edit) to manufacture negative space — **only** when 1–3 cannot resolve. Pull the full-res original via Drive File ID (not the preview URL), save the result to R2, and log a new manifest row.
 
 ## Step 5 — Render
 
@@ -117,9 +139,10 @@ node references/scripts/render.js \
 - [ ] `canvas` equals the target (1080×1920 / 1080×1350) for both ratios.
 - [ ] `overflow.right / bottom / scroll` are all 0 — **no text or photo exceeds the canvas at either ratio** (the 4:5 reflow check).
 - [ ] `broken_images` is empty for every result.
+- [ ] **Contrast** — every `contrast[]` entry is ≥ 3:1 (no contrast error) and ideally ≥ 4.5:1. Resolve `warnings` for low contrast or a textured/shadowed band (`band_stdev` > 0.16) before shipping on-image text (T1 over photo, T2, T3, T4).
 - [ ] Cervanttis values are lowercase; Lust values sentence case.
 
-If a result reports overflow (usually T5/T6 body or a too-long T3 phrase on the 1350 post), **shorten the copy** (or split to the story-only ratio) and re-render. Do not ship a creative with a non-empty `errors` array.
+If a result reports **overflow** (usually T5/T6 body or a too-long T3 phrase on the 1350 post), **shorten the copy** (or split to the story-only ratio) and re-render. If it reports a **contrast** failure or warning, follow the T4 fallback ladder (re-ink → reframe via `PHOTO_POS` → serif-box → outpaint). Do not ship a creative with a non-empty `errors` array.
 
 ## Step 7 — Preview
 

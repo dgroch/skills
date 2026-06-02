@@ -35,6 +35,18 @@
     "logo": "none | monogram (\"F&B\") | full (\"Fig & Bloom\")",
     "typeface": "script (Cervanttis) | serif (Lust) | sans (NeuzeitGro)"
   },
+  "validation": {
+    "_about": "render.js gates every render and exits non-zero on any error. The build passes only when ok:true and every result has errors:[].",
+    "dimensions": "canvas must equal the target ratio (1080x1920 / 1080x1350).",
+    "overflow": "no text/photo may exceed the canvas at either ratio (the 4:5 reflow check). FAIL.",
+    "broken_images": "<img> assets must load (illustrations). FAIL if any broke.",
+    "contrast": {
+      "what": "Samples the halo band behind each on-image text element (.caption/.phrase/.quote/.headline/.line/.label/.attr-name/.overline) from the rendered PNG and checks legibility against the text colour.",
+      "fail": "contrast < 3:1 → error (illegible). Switch ink to follow the band (white over dark, dark over light) or move to a cleaner band.",
+      "warn": "contrast < 4.5:1 → warning; OR band luminance stdev > 0.16 → textured/shadowed band warning (legibility unreliable even if mean passes — the bench-disapproval case).",
+      "note": "Solid backgrounds read as uniform and pass automatically; only on-image text gets a real check."
+    }
+  },
   "fonts": {
     "cervanttis": { "role": "script — signatures, captions, display script, poll labels", "case": "lowercase", "stack": "'Cervanttis','Palatino Linotype',Palatino,Georgia,serif", "file": "fonts/cervanttis.ttf", "cdn": "https://cdn.shopify.com/s/files/1/0657/8723/2489/files/cervanttis.ttf" },
     "lust": { "role": "serif display — quotes, headlines, body of long-form, link lines", "case": "sentence/title; small-caps in T2", "stack": "'Lust',Georgia,'Times New Roman',serif", "file": "fonts/Lust-Regular.otf", "cdn": "https://cdn.shopify.com/s/files/1/0657/8723/2489/files/Lust-Regular.woff2" },
@@ -77,6 +89,12 @@
     "_about": "T4 photo treatment. Copy one row into PHOTO_INSET / FRAME_BG.",
     "full-bleed": { "PHOTO_INSET": "0", "FRAME_BG": "#1a1a1a" },
     "offset-block": { "PHOTO_INSET": "96px", "FRAME_BG": "#E7DED2" }
+  },
+  "t4_placement_presets": {
+    "_about": "T4 caption PLACEMENT — where the caption lands and which ink wins on that band. Copy ONE row. INK MUST FOLLOW THE BAND: white over dark/mid, dark over light; the band must be clean AND shadow-free. The render contrast validator samples the band and FAILs (<3:1) / WARNs (<4.5:1 or textured band). These rows set BAR_ANCHOR/BAR_INK (and BAR_BG/CTA_SIZE for serif-box) — they take precedence over the caption preset's BAR_BG/BAR_INK. Pair with a t4_caption_presets row for the font, and set PHOTO_POS to crop a clean band into view.",
+    "upper-band": { "BAR_ANCHOR": "top:88px", "BAR_INK": "#ffffff", "BAR_BG": "rgba(0,0,0,0)", "CTA": "", "note": "white script over a dark/mid top band (e.g. green wall). The approved B-white primary treatment." },
+    "lower-band": { "BAR_ANCHOR": "bottom:90px", "BAR_INK": "#3a2c1c", "BAR_BG": "rgba(0,0,0,0)", "CTA": "", "note": "dark ink over a clean LIGHT bottom band only" },
+    "serif-box": { "BAR_BG": "#ffffff", "BAR_INK": "#1a1a1a", "CTA_SIZE": "28px", "note": "guaranteed-legibility fallback — white box, dark ink, larger CTA. Use the serif-box caption preset (Lust) with this." }
   },
   "t5_visual_presets": {
     "_about": "T5 left visual column. Copy one row into LEFT_W / PHOTO_URL? / PHOTO_DISPLAY / ARCH_DISPLAY. (Set PHOTO_URL on the photo row.)",
@@ -137,8 +155,9 @@
       "file": "templates/t4-captioned-photo.html",
       "ratios": ["1080x1920", "1080x1350"],
       "sources": "JPEG Lower-Third Label Box (\"In the studio\", \"Just Arrived!\"); PSD D1 (script caption)",
-      "tokens": ["PHOTO_URL", "CAPTION", "CTA", "CAPTION_FONT", "CAPTION_SIZE", "CAPTION_TRANSFORM", "BAR_BG", "BAR_INK", "PHOTO_INSET", "FRAME_BG"],
-      "presets": ["t4_caption_presets", "t4_photo_presets"],
+      "tokens": ["PHOTO_URL", "CAPTION", "CTA", "CAPTION_FONT", "CAPTION_SIZE", "CAPTION_TRANSFORM", "BAR_BG", "BAR_INK", "PHOTO_INSET", "FRAME_BG", "PHOTO_POS", "BAR_ANCHOR", "CTA_SIZE"],
+      "optional_tokens": { "PHOTO_POS": "center", "BAR_ANCHOR": "bottom:140px", "CTA_SIZE": "20px", "_note": "LAYOUT tokens — render.js supplies these defaults if omitted (backward-compatible). CTA renders in NeuzeitGro Light (300)." },
+      "presets": ["t4_caption_presets", "t4_photo_presets", "t4_placement_presets"],
       "slots": { "photo_slot": "required", "illustration": "no" }
     },
     {

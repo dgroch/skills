@@ -52,8 +52,63 @@ const RATIOS = { '1080x1920': { w: 1080, h: 1920, kind: 'story' }, '1080x1350': 
 const SCALE = parseInt(args.scale || 1, 10);
 const SHELL = (args.shell || 'preview') === 'production' ? 'shell-production.html' : 'shell-preview.html';
 
+// Backward-compatible defaults for optional LAYOUT tokens (T4 placement etc.).
+// Templates that don't reference them ignore them; templates that do get a sane
+// value when the caller omits them. Caller tokens always win.
+const LAYOUT_DEFAULTS = { PHOTO_POS: 'center', BAR_ANCHOR: 'bottom:140px', CTA_SIZE: '20px' };
+
+// Contrast thresholds (WCAG-style). Text over a photo is checked against the
+// band luminance sampled from the rendered PNG. See analyseContrast().
+const CONTRAST_FAIL = 3.0;   // below this → hard error (illegible)
+const CONTRAST_WARN = 4.5;   // below this → warning (AA large-text floor)
+const BAND_STDEV_WARN = 0.16; // luminance stdev (0..1) above this → textured/shadowed band
+
 function info(...m) { if (args.verbose) console.log('[render]', ...m); }
 function fail(...m) { console.error('[render] ERROR:', ...m); process.exit(1); }
+
+// --- Contrast helpers ----------------------------------------------------
+// Parse "#rgb" / "#rrggbb" / "rgb()" / "rgba()" → [r,g,b] 0..255 (alpha ignored).
+function parseColor(c) {
+  if (!c) return null;
+  c = String(c).trim();
+  let m = c.match(/^#([0-9a-f]{3})$/i);
+  if (m) return m[1].split('').map(h => parseInt(h + h, 16));
+  m = c.match(/^#([0-9a-f]{6})$/i);
+  if (m) return [0, 2, 4].map(i => parseInt(m[1].substr(i, 2), 16));
+  m = c.match(/rgba?\(([^)]+)\)/i);
+  if (m) { const p = m[1].split(',').map(s => parseFloat(s)); return [p[0], p[1], p[2]]; }
+  return null;
+}
+function relLuminance([r, g, b]) {
+  const lin = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+}
+function contrastRatio(l1, l2) { const a = Math.max(l1, l2), b = Math.min(l1, l2); return (a + 0.05) / (b + 0.05); }
+
+// Mean + stdev of per-pixel relative luminance in the HALO around the caption
+// glyphs: pixels inside `outerPx` but outside the tight text box `innerPx`. The
+// halo is what governs legibility — for a white box it reads white, for a solid
+// bg it reads the bg, for a photo it reads the local band (and a shadow/edge
+// crossing the text shows up as high stdev).
+function sampleBandLuminance(png, outerPx, innerPx) {
+  const { width, data } = png;
+  const x0 = Math.max(0, Math.floor(outerPx.left)), x1 = Math.min(width, Math.ceil(outerPx.right));
+  const y0 = Math.max(0, Math.floor(outerPx.top)), y1 = Math.min(png.height, Math.ceil(outerPx.bottom));
+  const iL = Math.floor(innerPx.left), iR = Math.ceil(innerPx.right);
+  const iT = Math.floor(innerPx.top), iB = Math.ceil(innerPx.bottom);
+  const lums = [];
+  for (let y = y0; y < y1; y += 2) {
+    for (let x = x0; x < x1; x += 2) {
+      if (x >= iL && x < iR && y >= iT && y < iB) continue; // skip the glyph box
+      const i = (y * width + x) * 4;
+      lums.push(relLuminance([data[i], data[i + 1], data[i + 2]]));
+    }
+  }
+  if (!lums.length) return null;
+  const mean = lums.reduce((a, b) => a + b, 0) / lums.length;
+  const variance = lums.reduce((a, b) => a + (b - mean) * (b - mean), 0) / lums.length;
+  return { mean, stdev: Math.sqrt(variance), n: lums.length };
+}
 
 // Resolve puppeteer from the reference-puppeteer skill (installed once via npm install there).
 function loadPuppeteer() {
@@ -148,11 +203,35 @@ async function renderOne(puppeteer, templateFile, tokens, ratioKey, outPath) {
       overRight = Math.max(overRight, Math.round(b.right - cb.right));
       overBottom = Math.max(overBottom, Math.round(b.bottom - cb.bottom));
     });
+
+    // Collect on-image text candidates for the contrast validator. For each, get
+    // the TIGHT text box (via a Range) and a local "band" strip beside the text.
+    const captions = [];
+    const SEL = '.caption, .phrase, .quote, .headline, .line, .label, .attr-name, .overline';
+    c.querySelectorAll(SEL).forEach(el => {
+      const txt = (el.textContent || '').trim();
+      if (!txt) return;
+      let tr;
+      try { const rg = document.createRange(); rg.selectNodeContents(el); tr = rg.getBoundingClientRect(); }
+      catch (_) { tr = el.getBoundingClientRect(); }
+      if (!tr || tr.width < 4 || tr.height < 4) return;
+      const color = getComputedStyle(el).color;
+      const pad = Math.max(10, 0.35 * tr.height); // halo thickness around the glyphs
+      const inner = { left: tr.left - cb.left, right: tr.right - cb.left, top: tr.top - cb.top, bottom: tr.bottom - cb.top };
+      const outer = {
+        left: Math.max(cb.left, tr.left - pad) - cb.left,
+        right: Math.min(cb.right, tr.right + pad) - cb.left,
+        top: Math.max(cb.top, tr.top - pad) - cb.top,
+        bottom: Math.min(cb.bottom, tr.bottom + pad) - cb.top,
+      };
+      captions.push({ cls: el.className, color, outer, inner });
+    });
+
     return {
       canvasW: Math.round(cb.width), canvasH: Math.round(cb.height),
       scrollW: c.scrollWidth, scrollH: c.scrollHeight,
       clientW: c.clientWidth, clientH: c.clientHeight,
-      overRight, overBottom, broken,
+      overRight, overBottom, broken, captions,
     };
   });
 
@@ -174,6 +253,7 @@ async function renderOne(puppeteer, templateFile, tokens, ratioKey, outPath) {
     overflow: { right: Math.max(0, diag.overRight), bottom: Math.max(0, diag.overBottom),
                 scroll: Math.max(0, diag.scrollH - diag.clientH) },
     broken_images: diag.broken,
+    contrast: [],
     errors: [],
     warnings: [],
   };
@@ -183,6 +263,39 @@ async function renderOne(puppeteer, templateFile, tokens, ratioKey, outPath) {
     result.errors.push(`content overflow (right:${result.overflow.right} bottom:${result.overflow.bottom} scroll:${result.overflow.scroll}) — text/photo exceeds the ${ratioKey} canvas; shorten copy or pick the other ratio`);
   if (diag.broken.length) result.errors.push(`broken images: ${diag.broken.join(', ')}`);
 
+  // --- Contrast validator: sample the band behind each on-image text element
+  // from the rendered PNG and check legibility against the text colour. Solid
+  // backgrounds read as uniform high-contrast and pass; photo bands get a real
+  // check. Catches T4/T3-style legibility failures (and shadowed/textured bands)
+  // automatically, so the agent self-corrects instead of relying on eyeballing.
+  try {
+    const PNG = require('pngjs').PNG;
+    const png = PNG.sync.read(fs.readFileSync(outPath));
+    for (const cap of (diag.captions || [])) {
+      const ink = parseColor(cap.color);
+      if (!ink) continue;
+      const toPx = o => ({ left: o.left * SCALE, right: o.right * SCALE, top: o.top * SCALE, bottom: o.bottom * SCALE });
+      const band = sampleBandLuminance(png, toPx(cap.outer), toPx(cap.inner));
+      if (!band) continue;
+      const inkL = relLuminance(ink);
+      const ratio = contrastRatio(inkL, band.mean);
+      const entry = {
+        el: cap.cls, contrast: Math.round(ratio * 100) / 100,
+        band_stdev: Math.round(band.stdev * 1000) / 1000,
+      };
+      result.contrast.push(entry);
+      const where = `${cap.cls} (contrast ${entry.contrast}:1`;
+      if (ratio < CONTRAST_FAIL)
+        result.errors.push(`${where}, < ${CONTRAST_FAIL}:1) — caption illegible on this band; switch ink (white over dark, dark over light) or move the caption to a cleaner band`);
+      else if (ratio < CONTRAST_WARN)
+        result.warnings.push(`${where}, < ${CONTRAST_WARN}:1) — low contrast; consider a cleaner band, opposite ink, or the serif-box fallback`);
+      if (band.stdev > BAND_STDEV_WARN)
+        result.warnings.push(`${cap.cls} sits on a textured/shadowed band (luminance stdev ${entry.band_stdev}) — legibility is unreliable even if mean contrast passes; pick a uniform band or use the serif-box fallback`);
+    }
+  } catch (e) {
+    result.warnings.push(`contrast check skipped: ${e.message}`);
+  }
+
   info(`✓ ${outPath} (${Math.round(stat.size / 1024)}KB) ${result.errors.length ? 'WITH ERRORS' : 'clean'}`);
   return result;
 }
@@ -190,7 +303,7 @@ async function renderOne(puppeteer, templateFile, tokens, ratioKey, outPath) {
 async function main() {
   if (!args.template) fail('--template is required');
   const templateFile = resolveTemplate(args.template);
-  const tokens = args.tokens ? JSON.parse(fs.readFileSync(path.resolve(args.tokens), 'utf8')) : {};
+  const tokens = Object.assign({}, LAYOUT_DEFAULTS, args.tokens ? JSON.parse(fs.readFileSync(path.resolve(args.tokens), 'utf8')) : {});
   const puppeteer = loadPuppeteer();
 
   const jobs = [];
