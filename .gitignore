@@ -11,3 +11,7 @@ __pycache__/
 # Node dependencies (installed on-demand per skill setup; not tracked)
 node_modules/
 package-lock.json
+
+# creative-social-media-builder: source corpus (PSDs/JPGs) and render output are never shipped
+creative/creative-social-media-builder/tmp/
+creative/creative-social-media-builder/out/

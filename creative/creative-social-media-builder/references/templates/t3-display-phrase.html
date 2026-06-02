@@ -1,0 +1,35 @@
+<!-- TEMPLATE: T3 — Display Phrase | one oversized word / short phrase as hero
+TOKENS:
+  {{PHRASE}}        — the hero word/phrase (plain text). Words are auto-wrapped so the optional
+                      black highlight box hugs EACH word (the D2 "black-box-per-word" look).
+  {{TYPE_FONT}}     — display font-family value. Copy a preset from manifest.json → t3_type_presets:
+                      sans (NeuzeitGro bold), script (Cervanttis), serif-caps (Lust).
+  {{TYPE_SIZE}}     — display font-size from the same preset (e.g. "300px" sans / "220px" script).
+  {{TYPE_TRANSFORM}} — "uppercase" (sans/serif-caps) or "none" (script).
+  {{TYPE_WEIGHT}}   — "700" (sans) or "400" (script/serif-caps).
+  {{WORD_BG}}       — per-word highlight background: "#000000" for treatment{black-box-per-word}, "transparent" for plain.
+  {{WORD_PAD}}      — per-word padding: "0.04em 0.18em" for black-box, "0" for plain.
+  STYLE PRESET (copy ONE row from manifest.json → style_presets verbatim):
+  {{BG_COLOR}} {{INK}} {{SCRIM}}
+  {{PHOTO_URL}}     — bg photo (bg{photo}); "" for placeholder/solid presets
+RULES:
+  - Centred in both ratios. Keep the phrase short (1–3 words) so it never overflows the post (1350) canvas.
+-->
+<div class="fill" style="position:absolute;inset:0;background-color:{{BG_COLOR}};display:flex;align-items:center;justify-content:center;">
+  <div class="photo" style="position:absolute;inset:0;background-image:url('{{PHOTO_URL}}');background-size:cover;background-position:center;"></div>
+  <div class="scrim" style="position:absolute;inset:0;background:{{SCRIM}};"></div>
+  <h1 class="phrase" data-word-bg="{{WORD_BG}}" data-word-pad="{{WORD_PAD}}" style="position:relative;z-index:2;font-family:{{TYPE_FONT}};font-weight:{{TYPE_WEIGHT}};font-synthesis:none;font-size:{{TYPE_SIZE}};line-height:1.06;text-transform:{{TYPE_TRANSFORM}};color:{{INK}};text-align:center;margin:0 64px;display:flex;flex-wrap:wrap;gap:.14em .18em;align-items:center;justify-content:center;">{{PHRASE}}</h1>
+</div>
+<script>
+(function(){
+  var h=document.querySelector('.phrase');
+  var bg=h.getAttribute('data-word-bg')||'transparent', pad=h.getAttribute('data-word-pad')||'0';
+  var words=(h.textContent||'').trim().split(/\s+/).filter(Boolean);
+  h.textContent='';
+  words.forEach(function(w){
+    var s=document.createElement('span');
+    s.textContent=w; s.style.background=bg; s.style.padding=pad; s.style.display='inline-block';
+    h.appendChild(s);
+  });
+})();
+</script>

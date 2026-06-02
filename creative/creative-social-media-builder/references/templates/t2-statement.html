@@ -1,0 +1,23 @@
+<!-- TEMPLATE: T2 — Statement + Attribution | overline + serif-caps headline, bottom-anchored
+TOKENS:
+  {{OVERLINE}}      — NeuzeitGro caps micro-label (e.g. "REGIONAL SERIES"). Pass "" to hide.
+  {{HEADLINE}}      — Lust serif headline, rendered small-caps. Sentence case input.
+  {{ATTRIBUTION}}   — sub-line / attribution (NeuzeitGro). Pass "" to hide.
+  STYLE PRESET (copy ONE row from manifest.json → style_presets verbatim):
+  {{BG_COLOR}} {{INK}} {{SCRIM}}
+  {{PHOTO_URL}}     — file:// or https bg photo (bg{photo}); "" for the placeholder/solid presets
+  {{ALIGN}}         — "center" or "left"
+  {{LOGO}}          — full lockup text, e.g. "Fig & Bloom"; pass "" to hide
+RULES:
+  - Headline is Lust in small-caps. Bottom-anchored block; reflows by sitting on the lower third in both ratios.
+-->
+<div class="fill" style="position:absolute;inset:0;background-color:{{BG_COLOR}};display:flex;flex-direction:column;justify-content:flex-end;">
+  <div class="photo" style="position:absolute;inset:0;background-image:url('{{PHOTO_URL}}');background-size:cover;background-position:center;"></div>
+  <div class="scrim" style="position:absolute;inset:0;background:{{SCRIM}};"></div>
+  <div class="content" style="position:relative;z-index:2;padding:0 96px 132px 96px;text-align:{{ALIGN}};color:{{INK}};">
+    <p class="overline" style="font-family:'NeuzeitGro','Gill Sans',sans-serif;font-weight:700;font-size:22px;letter-spacing:.34em;text-transform:uppercase;margin:0 0 28px 0;opacity:.9;">{{OVERLINE}}</p>
+    <h1 class="headline" style="font-family:'Lust',Georgia,'Times New Roman',serif;font-weight:normal;font-size:76px;line-height:1.08;font-variant:small-caps;letter-spacing:.02em;margin:0;">{{HEADLINE}}</h1>
+    <p class="attribution" style="font-family:'NeuzeitGro','Gill Sans',sans-serif;font-weight:300;font-size:26px;letter-spacing:.04em;margin:32px 0 0 0;opacity:.85;">{{ATTRIBUTION}}</p>
+    <div class="logo" style="font-family:'Lust',Georgia,serif;font-size:40px;letter-spacing:.08em;margin:40px 0 0 0;">{{LOGO}}</div>
+  </div>
+</div>

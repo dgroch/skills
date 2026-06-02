@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<title>{{TITLE}}</title>
+<style>
+/* PRODUCTION SHELL — brand fonts loaded from the Fig & Bloom Shopify CDN (same
+   URLs as the email builder's shell-production.html). Use this shell when a
+   lighter HTML file is wanted and the renderer has network access. The
+   render script defaults to shell-preview.html (base64) for guaranteed,
+   offline-safe, pixel-accurate fonts; this shell is the CDN-backed fallback. */
+@font-face{font-family:'Cervanttis';src:url('https://cdn.shopify.com/s/files/1/0657/8723/2489/files/cervanttis.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap;}
+@font-face{font-family:'Lust';src:url('https://cdn.shopify.com/s/files/1/0657/8723/2489/files/Lust-Regular.woff2') format('woff2');font-weight:normal;font-style:normal;font-display:swap;}
+@font-face{font-family:'NeuzeitGro';src:url('https://cdn.shopify.com/s/files/1/0657/8723/2489/files/NeuzeitGro-Lig.otf') format('opentype');font-weight:300;font-style:normal;font-display:swap;}
+@font-face{font-family:'NeuzeitGro';src:url('https://cdn.shopify.com/s/files/1/0657/8723/2489/files/NeuzeitGro-Bol.otf') format('opentype');font-weight:700;font-style:normal;font-display:swap;}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{margin:0;padding:0;background:#ffffff;}
+#canvas{position:relative;overflow:hidden;width:{{CANVAS_W}}px;height:{{CANVAS_H}}px;background:#ffffff;}
+#canvas, #canvas *{-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision;}
+/* Optional tokens passed as "" collapse cleanly — hide empty TEXT holders only,
+   never the visual layers (.photo/.scrim/.arch/.inset are empty by design). */
+#canvas p:empty, #canvas a:empty, #canvas h1:empty, #canvas h2:empty, #canvas div.logo:empty{display:none!important;}
+</style>
+</head>
+<body>
+<div id="canvas" class="ratio-{{RATIO}}">
+<!-- CONTENT_START -->
+{{CONTENT}}
+<!-- CONTENT_END -->
+</div>
+</body></html>
