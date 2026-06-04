@@ -1,9 +1,125 @@
 ---
 name: creative-email-campaign-builder
-description: Build complete Klaviyo email campaigns for Fig & Bloom using the v4 template library. Use this skill whenever someone asks to create an email campaign, email design, Klaviyo email, marketing email, promotional email, newsletter, or EDM for Fig & Bloom.
+description: Build complete Klaviyo email campaigns for Fig & Bloom. The builder is JSON-first — the agent reasons about strategy and components, then produces campaign JSON that the hosted builder assembles, renders, and persists. Use this skill whenever someone asks to create an email campaign, email design, Klaviyo email, marketing email, promotional email, newsletter, or EDM for Fig & Bloom.
 ---
 
-# Email Campaign Builder — Fig & Bloom (v4)
+# CANONICAL WORKFLOW — READ FIRST
+
+**The Fig & Bloom email builder is JSON-first. The deliverable is campaign JSON, saved to the builder (Notion-backed). HTML/PNG/slices are *derived artefacts*, never the deliverable.**
+
+The agent's job is strategy and component reasoning: understand the campaign objective, choose the components that visually express it, and emit valid builder JSON. The hosted builder does assembly, rendering, and persistence.
+
+Hosted builder: **https://my-email-builder.onrender.com** (free Render plan — first request after idle is a slow cold start; retry).
+
+### The agent MUST
+1. **Fetch the live schema** — `GET /api/schema` — to discover the current component list, exact token names, palette presets, and case rules. The schema is the execution contract; never assume it from memory.
+2. **Identify the campaign objective and awareness state** (see *Component strategy by objective* below and `references/component-strategy.md`).
+3. **Select components that express the objective**, then **generate builder campaign JSON**.
+4. **Validate/assemble/render via the API** — `POST /api/assemble` (preview HTML + `unfilled` token report), `POST /api/render` / `POST /api/render-slices` (PNGs).
+5. **Save the campaign JSON to the builder** — `POST /api/designs` (new) or `PUT /api/designs/:id` (update). This is the source of record. Capture the returned design `id`.
+6. **Treat HTML/PNG/slices as derived** — export (`POST /api/export`) only when explicitly asked.
+7. **Push to Klaviyo only after human approval** — `POST /api/klaviyo-draft`. Never auto-send.
+
+### The agent MUST NOT
+- **Hand-code standalone HTML as the deliverable.** Only as an emergency fallback when the builder/API is unavailable *and* the user explicitly approves it.
+- **Treat local `v4`/`v5`/"engine" files as the source of truth.** The live builder + its `/api/schema` are canonical. The bundled template library in `references/` is the *rendering layer* the builder uses — read it to understand components, not to bypass the JSON workflow.
+- **Drive the UI manually** except to import/preview/debug. The UI is a human surface over the same API; agents use the API.
+- **Skip persistence.** An email isn't "built" until its JSON is saved and the returned design `id` is confirmed.
+
+### Component identifiers are GROUP-PREFIXED (critical)
+`/api/assemble` resolves `component` to `design-system/templates/<component>.html`, so the value **must include the group folder**:
+
+- Heroes → `heroes/hero-a`, `heroes/hero-d-clay`, `heroes/hero-image-only`
+- Sections → `sections/body-copy-plain`, `sections/section-headline`, `sections/upsell-noir`, `sections/trust-bar`
+- Products → `products/card-horizontal`, `products/card-lifestyle-studio`
+- Designed blocks → `blocks/caption-bar-hero`, `blocks/editorial-hero`, `blocks/offer-panel`
+- Dividers → `dividers/divider-line`, `dividers/divider-illo-clay`
+- **Top-level (no prefix):** `header`, `footer`
+
+A **bare** name like `hero-d-clay` returns `{"unfilled":[{"token":"(missing template)"}]}` and renders nothing. Always check your component names against `GET /api/schema` `components[].name` before saving. After `POST /api/assemble`, confirm `unfilled` contains **no** `(missing template)` entries.
+
+### Source-of-truth hierarchy
+1. User brief / Paperclip / Notion campaign plan (intent)
+2. Live builder schema — `GET /api/schema` (execution contract)
+3. Existing campaign JSON in the builder — `GET /api/designs`, `GET /api/designs/:id`
+4. Brand voice + component strategy in this skill (`references/`)
+5. Rendered HTML / PNG / slices — **derived, never source**
+
+### Decision tree
+- **"Build an email"** → fetch schema → choose components for the objective → generate JSON → `POST /api/assemble` (verify no `(missing template)`/`unfilled`) → render to preview → **save** (`POST /api/designs`) → report the design `id`/URL.
+- **"Edit this email"** → `GET /api/designs` to find it → `GET /api/designs/:id` → modify the JSON `blocks`/`tokens` → re-assemble/render → `PUT /api/designs/:id`.
+- **"Give me the HTML"** → still generate/validate JSON first, then `POST /api/export`. Note that designed `blocks/*` ship as rasterised PNGs (upload to Klaviyo), not live HTML.
+- **Builder/API unavailable** → **stop and report the blocker.** Only hand-code HTML if the user approves an emergency, explicitly non-canonical fallback.
+
+### Live API (verified)
+| Method | Path | Body | Returns |
+|---|---|---|---|
+| GET  | `/api/schema` | — | components (group-prefixed names), tokens, palette presets, case + ordering rules |
+| POST | `/api/assemble` | `{campaign}` | `{html, unfilled}` — preview HTML + leftover/missing tokens |
+| POST | `/api/render` | `{campaign}` | `{pngBase64, brokenImages, height}` — full email PNG |
+| POST | `/api/render-slices` | `{campaign}` | per-block PNG slices for Klaviyo upload |
+| POST | `/api/export` | `{campaign}` | `{html, unfilled, campaign}` — production HTML (keeps `{{ASSETS_BASE}}` + Klaviyo tags) |
+| GET  | `/api/designs` | — | `{designs:[{id,name,createdAt,updatedAt}]}` |
+| GET  | `/api/designs/:id` | — | full saved record incl. `campaign` |
+| POST | `/api/designs` | `{name, campaign}` | created record (capture `id`) |
+| PUT  | `/api/designs/:id` | `{name, campaign}` | updated record |
+| POST | `/api/designs/:id/clone` | `{}` | cloned record |
+| DELETE | `/api/designs/:id` | — | deletes |
+| GET  | `/api/klaviyo-audiences` | — | lists/segments for targeting |
+| POST | `/api/klaviyo-draft` | `{campaign, ...}` | creates a Klaviyo draft (**after approval only**) |
+
+> **Not yet available:** `GET /api/agent-contract` and `GET /api/examples` return 404 as of this writing. Do not depend on them; discover the contract from `/api/schema` and the *Decision tree* above. If they later ship, prefer `/api/agent-contract` as the machine-readable entry point.
+
+### Minimal valid campaign JSON
+A `campaign` is `{ campaignName, bodyBg, blocks: [{ component, tokens }] }`. Note the group-prefixed `component` values:
+
+```json
+{
+  "campaignName": "RH | 2026-06 Farewell Weekend",
+  "bodyBg": "#2c2825",
+  "blocks": [
+    { "component": "header", "tokens": {} },
+    { "component": "heroes/hero-d-clay", "tokens": {
+        "SUPER_LABEL": "Friday 5 & Saturday 6 June",
+        "HEADLINE": "a fond farewell",
+        "SUBHEADLINE": "Seven favourites are available for one last weekend.",
+        "CTA_TEXT": "Shop the farewell designs",
+        "CTA_URL": "https://figandbloom.com/collections/bouquets" } },
+    { "component": "sections/body-copy-plain", "tokens": {
+        "SUPER_LABEL": "Seven favourites",
+        "HEADLINE": "Seven you've loved, one last weekend.",
+        "BODY_P1": "…", "BODY_P2": "…" } },
+    { "component": "sections/trust-bar", "tokens": {} },
+    { "component": "footer", "tokens": {} }
+  ]
+}
+```
+
+> `HEADLINE` casing depends on the component's font (Cervanttis heroes → lowercase; Lust sections/cards → Sentence case). See *Step 3* and `token_rules` in `/api/schema`. Worked JSON examples per objective are in `references/component-strategy.md`.
+
+### Completion checklist (report any unmet item as incomplete)
+- [ ] Campaign JSON created with **group-prefixed** component names
+- [ ] `GET /api/schema` consulted for current components + token names
+- [ ] `POST /api/assemble` returns **no** `(missing template)` and **no** unexpected `unfilled` tokens
+- [ ] Render/preview checked visually; `brokenImages` empty
+- [ ] Product URLs/images verified (live, correct ratio)
+- [ ] Campaign JSON **saved** (`POST`/`PUT /api/designs`) and design `id`/URL captured
+- [ ] Derived HTML/PNG exported only if requested
+- [ ] Klaviyo draft created only after explicit approval
+
+---
+
+# Email Campaign Builder — Fig & Bloom
+
+> **How this document is organised.** The block above is the canonical, JSON-first
+> operating contract — follow it. The sections below are the **rendering / design
+> reference layer**: they describe the locked template library, component semantics,
+> token rules, slicing, and Klaviyo handoff that the hosted builder applies when it
+> assembles your JSON. Read them to reason about *which* components to choose and
+> *how* their tokens behave — not as an alternative to the JSON workflow. Where the
+> older step-by-step pipeline below describes building slices and HTML by hand, that
+> is the builder's internal job; the agent's deliverable remains validated, saved
+> campaign JSON.
 
 Builds production-ready Klaviyo emails by assembling pre-built, locked templates. The agent selects components and injects content. It does not write HTML or make design decisions.
 
@@ -642,6 +758,7 @@ Read `references/manifest.json` to confirm exact file paths and token names befo
 
 | Reference file | Read before... |
 |---|---|
+| `references/component-strategy.md` | Choosing components for the campaign objective (before writing JSON) |
 | `references/brand-voice.md` | Writing any copy (Step 3) |
 | `references/product-selection.md` | Selecting products (Step 2) |
 | `references/manifest.json` | Component selection, token names, palette presets, variation rules, gif-hero (Steps 4–5) |
