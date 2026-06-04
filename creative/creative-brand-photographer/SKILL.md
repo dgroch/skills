@@ -1,7 +1,7 @@
 ---
 name: creative-brand-photographer
 description: Generates brand-consistent AI photography for any configured brand, with an automated critique loop and image-seed compositing.
-version: 3.0.0
+version: 3.1.0
 author: Dan Groch
 license: MIT
 metadata:
@@ -200,24 +200,69 @@ manifest preview or Drive links.
 
 ### Fig & Bloom semantic image search API
 
-Use the hosted Asset Library API to find real Fig & Bloom reference imagery
+Use the hosted Asset Library to find real Fig & Bloom reference imagery
 before asking Daniel for seed photos or falling back to generic text-to-image.
 This is the preferred discovery path for shop exteriors/interiors, product
-truth, packaging, lifestyle references, and UGC-style seed candidates.
+truth, packaging, lifestyle references, and UGC-style seed candidates. The
+service is the **my-media-library** app (source:
+`github.com/dgroch/my-media-library`) — semantic search over the Brand Asset
+Manifest in Notion, returning Brand CDN preview URLs.
 
-- Base URL: `https://asset-library-u70t.onrender.com`
-- Endpoint: `GET /api/search?q=<natural-language-query>&cursor=<offset>`
-- Response shape: `{ "results": Asset[], "nextCursor": string | null }`
-- Result fields: `id` (Notion Manifest page ID), `title`, `url` (Brand CDN
+- **Base URL:** configurable via `BRAND_PHOTOGRAPHER_ASSET_LIBRARY_URL`.
+  Default: `https://asset-library-u70t.onrender.com`. The base URL lives in one
+  place (`ASSET_LIBRARY_BASE_URL_DEFAULT` in `brand_photographer_api.py`); set
+  the env var to repoint the skill at whichever deployment is live. Whichever
+  host is used **must serve `GET /api/search`** — confirm with `/openapi.json`.
+- **Endpoints:**
+  - `GET /api/search?q=<natural-language-query>&cursor=<opaque>` →
+    `{ "results": Asset[], "nextCursor": string | null }`
+  - `GET /api/collections` → `{ "collections": CollectionSummary[] }`
+  - `POST /api/collections` with `{ name?, assetIds: string[] }` → `{ id }`
+  - `GET /api/collections/{id}` → `{ id, name, items: Asset[] }`
+  - `GET /openapi.json` → OpenAPI 3.1 spec
+- **Result fields:** `id` (Notion Manifest page ID), `title`, `url` (Brand CDN
   preview), `description`, `mediaType`, `driveLink`
-- Pagination: pass the returned numeric `nextCursor` back as `cursor`
-- Behaviour: semantic search is used when the prebuilt index is present;
-  keyword/Notion fallback is automatic if embeddings fail
+- **Pagination:** pass the returned `nextCursor` back as `cursor`
+- **Behaviour:** semantic search (OpenAI embeddings) is used when the prebuilt
+  index is present; keyword/Notion fallback is automatic if embeddings fail
 
-Example:
+**Preferred call path — the bundled API:** use the helper in
+`brand_photographer_api.py` rather than ad-hoc curl, so the configurable base
+URL and graceful error handling are applied consistently:
+
+```python
+from brand_photographer_api import BrandPhotographer, search_asset_library
+
+# Module-level helper (no brand instance needed):
+hits = search_asset_library("white Sydney shop exterior facade")
+
+# Or, scoped to a loaded brand (filters to mediaType=image by default):
+photographer = BrandPhotographer(brand_id="fig-and-bloom")
+candidates = photographer.discover_seed_candidates("autumn doorstep delivery")
+# → {"query", "results", "nextCursor", "base_url"[, "error"]}
+```
+
+**Automatic seed-discovery fallback (wired into the seed selector):** when a
+brief needs brand-specific seeds but no *registered* seed matches, the quality
+gate's seed selector (`_select_seed_images`) automatically queries the Asset
+Library and uses the top image candidates as Mode B/C seed references — no
+manual curl required. This is gated by `asset_search_enabled`, resolved as:
+
+1. env `BRAND_PHOTOGRAPHER_ASSET_SEARCH` (`1/true/on` or `0/false/off`), else
+2. brand config `asset_search.enabled` in `brand.json`, else
+3. default **on for Fig & Bloom**, off for other brands.
+
+The fallback is skipped when the caller pins explicit seed ids
+(`required_seed_ids` / `bouquet_seed_ids` / `model_seed_ids`) — those must
+resolve to registered seeds. Library hits used this way are ephemeral
+(`source: asset_library_search`); promote the ones you want to keep into
+registered seed rows with `brand_photographer_asset_manifest_sync.py`.
+
+Direct HTTP (fallback / debugging) — honour the configured base URL:
 
 ```bash
-curl -s "https://asset-library-u70t.onrender.com/api/search?q=white%20Sydney%20shop%20exterior%20facade&cursor=0"
+BASE="${BRAND_PHOTOGRAPHER_ASSET_LIBRARY_URL:-https://asset-library-u70t.onrender.com}"
+curl -s "$BASE/api/search?q=white%20Sydney%20shop%20exterior%20facade&cursor=0"
 ```
 
 Selection rules:

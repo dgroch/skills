@@ -265,6 +265,74 @@ class StorageTests(unittest.TestCase):
              patch.object(api.os, "access", side_effect=fake_access):
             self.assertEqual(api._higgsfield_cli_path(), "/paperclip/.local/bin/higgsfield")
 
+    def test_search_result_converts_to_generation_ready_seed(self):
+        asset = {
+            "id": "manifest-page-1",
+            "title": "SydneyLaunch428.jpg",
+            "url": "https://brand-cdn.example/figandbloom/sydney.jpg",
+            "description": "Bright modern flower shop interior.",
+            "mediaType": "image",
+            "driveLink": "",
+        }
+        seed = api.seed_from_search_result(asset, brand_id="fig-and-bloom", category="space")
+        self.assertEqual(seed["id"], "search-manifest-page-1")
+        self.assertEqual(seed["cdn_url"], "https://brand-cdn.example/figandbloom/sydney.jpg")
+        self.assertEqual(seed["asset_manifest"]["page_id"], "manifest-page-1")
+        # cdn_url is resolvable as an image reference without a local file.
+        self.assertEqual(api.seed_image_ref(seed, Path("/tmp/nope")), seed["cdn_url"])
+
+    def test_select_seed_images_falls_back_to_asset_library(self):
+        photographer = object.__new__(api.BrandPhotographer)
+        photographer.seeds = []
+        photographer.asset_search_enabled = True
+        photographer.brand_id = "fig-and-bloom"
+        photographer.brand_dir = Path("/tmp/does-not-exist")
+        photographer.backend = "higgsfield"
+        photographer.verbose = False
+        fake = {
+            "results": [{
+                "id": "page-1", "title": "Sydney shop",
+                "url": "https://brand-cdn.example/sydney.jpg",
+                "description": "shop exterior", "mediaType": "image", "driveLink": "",
+            }],
+            "nextCursor": None, "base_url": "https://x",
+        }
+        with patch.object(api, "search_asset_library", return_value=fake) as mocked:
+            refs, ctx = photographer._select_seed_images(
+                "storefront", "white sydney shop exterior", {}
+            )
+        self.assertTrue(mocked.called)
+        self.assertIn("https://brand-cdn.example/sydney.jpg", refs)
+        self.assertEqual(ctx["seed_ids"], ["search-page-1"])
+
+    def test_select_seed_images_skips_library_when_disabled(self):
+        photographer = object.__new__(api.BrandPhotographer)
+        photographer.seeds = []
+        photographer.asset_search_enabled = False
+        photographer.brand_id = "bower"
+        photographer.brand_dir = Path("/tmp/does-not-exist")
+        photographer.backend = "higgsfield"
+        photographer.verbose = False
+        with patch.object(api, "search_asset_library") as mocked:
+            refs, ctx = photographer._select_seed_images("hero", "a bouquet", {})
+        self.assertFalse(mocked.called)
+        self.assertEqual(refs, [])
+
+    def test_select_seed_images_skips_library_for_explicit_seed_ids(self):
+        photographer = object.__new__(api.BrandPhotographer)
+        photographer.seeds = []
+        photographer.asset_search_enabled = True
+        photographer.brand_id = "fig-and-bloom"
+        photographer.brand_dir = Path("/tmp/does-not-exist")
+        photographer.backend = "higgsfield"
+        photographer.verbose = False
+        with patch.object(api, "search_asset_library") as mocked:
+            refs, ctx = photographer._select_seed_images(
+                "hero", "a bouquet", {"required_seed_ids": ["bouquet-001"]}
+            )
+        self.assertFalse(mocked.called)
+        self.assertEqual(refs, [])
+
     def test_notion_store_loads_rows_and_appends_prompt(self):
         fake = FakeNotion()
         cfg = {

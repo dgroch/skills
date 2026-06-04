@@ -131,7 +131,42 @@ PATH="/paperclip/.local/bin:$PATH" higgsfield account status
 # ANTHROPIC_API_KEY is only needed if the Claude CLI is NOT installed.
 # When `claude` is on PATH, the CLI handles critique — no API key required.
 export ANTHROPIC_API_KEY="sk-ant-..."   # fallback only
+
+# Asset Library (semantic search over the Brand Asset Manifest).
+# Source: github.com/dgroch/my-media-library. Override the base URL to point
+# the skill at whichever deployment is live; the host must serve /api/search.
+export BRAND_PHOTOGRAPHER_ASSET_LIBRARY_URL="https://asset-library-u70t.onrender.com"
 ```
+
+### Asset Library (semantic image search)
+
+Discover real Fig & Bloom reference imagery before falling back to text-to-image.
+The base URL is configurable (`BRAND_PHOTOGRAPHER_ASSET_LIBRARY_URL`, default
+`https://asset-library-u70t.onrender.com`) and centralised in
+`ASSET_LIBRARY_BASE_URL_DEFAULT` in `brand_photographer_api.py`. Use the bundled
+helper rather than ad-hoc HTTP:
+
+```python
+from brand_photographer_api import BrandPhotographer, search_asset_library
+
+search_asset_library("white Sydney shop exterior facade")
+# → {"results": Asset[], "nextCursor": str | None, "base_url": str}
+
+BrandPhotographer(brand_id="fig-and-bloom").discover_seed_candidates(
+    "autumn doorstep delivery"
+)  # filters to mediaType=image; degrades gracefully (adds "error") if the host
+   # is unreachable or has no /api/search route
+```
+
+The seed selector also calls this **automatically**: when a brief needs
+brand-specific seeds and no registered seed matches, `_select_seed_images`
+queries the library and uses the top image hits as Mode B/C references. Toggle
+with `BRAND_PHOTOGRAPHER_ASSET_SEARCH` (or `asset_search.enabled` in
+`brand.json`); default on for Fig & Bloom, off otherwise. It is skipped when the
+caller pins explicit seed ids.
+
+Promote selected results into seed rows with
+`brand_photographer_asset_manifest_sync.py` before using them as Mode B/C seeds.
 
 ### Brand Asset Manifest / CDN sync
 
