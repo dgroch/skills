@@ -79,6 +79,13 @@ NOTION_API_BASE = "https://api.notion.com/v1"
 NOTION_VERSION = "2025-09-03"
 DEFAULT_CLAUDE_MODEL = "claude-sonnet-4-20250514"
 
+# Fig & Bloom Asset Library — hosted semantic search over the Brand Asset
+# Manifest (source: github.com/dgroch/my-media-library). One configurable base
+# URL is used everywhere so the deployment can move without code changes; set
+# BRAND_PHOTOGRAPHER_ASSET_LIBRARY_URL to point at whichever host is live.
+# Whichever host is used MUST expose `GET /api/search` (see /openapi.json).
+ASSET_LIBRARY_BASE_URL_DEFAULT = "https://asset-library-u70t.onrender.com"
+
 MAX_ITERATIONS = 5
 PASS_THRESHOLD = 7
 POLL_INTERVAL = 5
@@ -329,6 +336,80 @@ def seed_from_asset_manifest_record(record: dict, brand_id: str, category: str =
     }
     # Drop empty scalar/list fields while preserving nested manifest handles.
     return {k: v for k, v in seed.items() if v not in ("", [], None)}
+
+
+def seed_from_search_result(asset: dict, brand_id: str = "", category: str = "asset") -> dict:
+    """Convert an Asset Library `/api/search` result into an ephemeral seed dict.
+
+    Search results carry `{id, title, url, description, mediaType, driveLink}`.
+    The returned seed is generation-ready (`cdn_url` resolves to the Brand CDN
+    preview) but is NOT a registered seed — promote it via
+    `brand_photographer_asset_manifest_sync.py` to persist it as a seed row.
+    """
+    page_id = str(asset.get("id") or "").strip()
+    title = str(asset.get("title") or page_id or "asset").strip()
+    cdn_url = str(asset.get("url") or "").strip()
+    seed_id = f"search-{page_id}" if page_id else f"search-{_slugify_seed(title)}"
+    manifest = {k: v for k, v in {
+        "brand_id": brand_id,
+        "page_id": page_id,
+        "preview_url": cdn_url,
+        "drive_link": str(asset.get("driveLink") or "").strip(),
+    }.items() if v}
+    seed = {
+        "id": seed_id,
+        "category": category or "asset",
+        "cdn_url": cdn_url,
+        "description": str(asset.get("description") or "").strip(),
+        "source": "asset_library_search",
+        "asset_manifest": manifest,
+    }
+    return {k: v for k, v in seed.items() if v not in ("", [], None, {})}
+
+
+def _asset_library_base_url(base_url: Optional[str] = None) -> str:
+    """Resolve the Asset Library base URL (arg > env > default), no trailing slash."""
+    resolved = (
+        base_url
+        or os.environ.get("BRAND_PHOTOGRAPHER_ASSET_LIBRARY_URL")
+        or ASSET_LIBRARY_BASE_URL_DEFAULT
+    ).strip()
+    return resolved.rstrip("/")
+
+
+def search_asset_library(
+    query: str,
+    cursor: str = "0",
+    base_url: Optional[str] = None,
+    timeout: int = 60,
+) -> dict:
+    """Semantic search over the Fig & Bloom Brand Asset Manifest.
+
+    Calls `GET {base}/api/search?q=<query>&cursor=<cursor>` on the hosted Asset
+    Library (github.com/dgroch/my-media-library) and returns the parsed JSON:
+    `{"results": Asset[], "nextCursor": str | None}`. Each Asset carries
+    `id` (Notion Manifest page ID), `title`, `url` (Brand CDN preview),
+    `description`, `mediaType`, and `driveLink`.
+
+    On any transport/parse error this returns an empty result set with an
+    `error` key rather than raising, so callers can degrade gracefully.
+    """
+    _load_env()
+    base = _asset_library_base_url(base_url)
+    params = urllib.parse.urlencode({"q": query, "cursor": str(cursor)})
+    url = f"{base}/api/search?{params}"
+    try:
+        res = requests.get(url, timeout=timeout)
+        res.raise_for_status()
+        data = res.json()
+    except Exception as exc:
+        return {"results": [], "nextCursor": None, "base_url": base, "error": str(exc)}
+    results = data.get("results", []) if isinstance(data, dict) else []
+    return {
+        "results": results if isinstance(results, list) else [],
+        "nextCursor": data.get("nextCursor") if isinstance(data, dict) else None,
+        "base_url": base,
+    }
 
 
 class NotionBrandStore(BrandStore):
@@ -757,6 +838,23 @@ class BrandPhotographer:
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.seeds = self._load_seeds_manifest()
 
+        # Asset Library programmatic search — used as a seed-discovery fallback
+        # when no registered seed satisfies a brief (the "search the hosted API"
+        # branch of the mode-selection logic). Resolution order:
+        # env BRAND_PHOTOGRAPHER_ASSET_SEARCH > brand config asset_search.enabled
+        # > default on for Fig & Bloom, off otherwise.
+        asset_cfg = self.config.get("asset_search", {})
+        asset_cfg = asset_cfg if isinstance(asset_cfg, dict) else {}
+        env_flag = os.environ.get("BRAND_PHOTOGRAPHER_ASSET_SEARCH", "").strip().lower()
+        if env_flag in ("1", "true", "yes", "on"):
+            self.asset_search_enabled = True
+        elif env_flag in ("0", "false", "no", "off"):
+            self.asset_search_enabled = False
+        elif "enabled" in asset_cfg:
+            self.asset_search_enabled = bool(asset_cfg.get("enabled"))
+        else:
+            self.asset_search_enabled = (brand_id == "fig-and-bloom")
+
         # Backend resolution (constructor arg > env > Higgsfield CLI when
         # available > brand config > OpenRouter fallback). Older brand configs
         # may still say "openrouter"; CLI availability intentionally promotes
@@ -1067,6 +1165,45 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
             "library_size": len(self.get_library()),
         }
 
+    # ── Asset discovery ──────────────────────────────────────────────────
+
+    def discover_seed_candidates(
+        self,
+        query: str,
+        cursor: str = "0",
+        media_type: str = "image",
+        limit: int = 12,
+    ) -> dict:
+        """Search the hosted Asset Library for Manifest-backed seed candidates.
+
+        This is the preferred discovery path before asking for new seed photos
+        or falling back to generic text-to-image: it returns real Brand Asset
+        Manifest records (shop exteriors/interiors, product truth, packaging,
+        lifestyle, UGC) that can be promoted into Brand Photographer seed rows.
+
+        Filters to `media_type` (default "image") so image-generation references
+        don't pick up video/B-roll cards. Returns
+        `{"query", "results", "nextCursor", "base_url"}`; selected results
+        should be promoted via brand_photographer_asset_manifest_sync.py before
+        use as Mode B/C seeds.
+        """
+        data = search_asset_library(query, cursor=cursor)
+        results = data.get("results", []) or []
+        if media_type:
+            results = [
+                r for r in results
+                if str(r.get("mediaType", "")).lower() == media_type.lower()
+            ]
+        out = {
+            "query": query,
+            "results": results[:limit],
+            "nextCursor": data.get("nextCursor"),
+            "base_url": data.get("base_url"),
+        }
+        if data.get("error"):
+            out["error"] = data["error"]
+        return out
+
     # ── Generation backends ──────────────────────────────────────────────
 
     def _generate_image(self, prompt: str, ratio: str, seed_images: Optional[list[str]] = None) -> Optional[str]:
@@ -1344,6 +1481,30 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
             return {}
         return max(matches, key=lambda x: x.get("score", 0) or 0)
 
+    def _library_seed_candidates(self, prompt: str, shot_id: str, limit: int = 2) -> list[dict]:
+        """Query the hosted Asset Library for image seeds when no local seed matches."""
+        query = (prompt or shot_id or "").strip()
+        if not query:
+            return []
+        try:
+            found = self.discover_seed_candidates(query, media_type="image", limit=max(limit, 6))
+        except Exception as exc:
+            self._log(f"  [asset-search] library query failed: {exc}")
+            return []
+        if found.get("error"):
+            self._log(f"  [asset-search] library unavailable: {found['error']}")
+            return []
+        seeds: list[dict] = []
+        for asset in found.get("results", []):
+            seed = seed_from_search_result(asset, brand_id=self.brand_id)
+            if seed.get("cdn_url"):
+                seeds.append(seed)
+            if len(seeds) >= limit:
+                break
+        if seeds:
+            self._log(f"  [asset-search] {len(seeds)} library candidate(s) for '{query[:60]}'")
+        return seeds
+
     def _select_seed_images(
         self,
         shot_id: str,
@@ -1351,9 +1512,6 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
         seed_constraints: dict,
     ) -> tuple[list[str], dict]:
         """Return seed image refs for generation + metadata for critique context."""
-        if not self.seeds:
-            return [], {}
-
         required_ids = set(seed_constraints.get("required_seed_ids", []))
         bouquet_ids = set(seed_constraints.get("bouquet_seed_ids", []))
         model_ids = set(seed_constraints.get("model_seed_ids", []))
@@ -1409,6 +1567,15 @@ Respond ONLY with valid JSON (no markdown, no backticks, no preamble):
                 final_seeds.append(paired or models[0])
         else:
             final_seeds = selected[:2]
+
+        # Programmatic fallback: when no registered seed satisfies the brief,
+        # query the hosted Asset Library for Manifest-backed image candidates
+        # (the "search the hosted semantic API" branch of mode selection).
+        # Skipped when the caller pinned explicit seed ids — those must resolve
+        # to registered seeds, not arbitrary search hits.
+        explicit_requested = bool(required_ids or bouquet_ids or model_ids)
+        if not final_seeds and self.asset_search_enabled and not explicit_requested:
+            final_seeds = self._library_seed_candidates(prompt, shot_id)
 
         image_refs = []
         context = {"seed_ids": [], "flowers": [], "colour_story": [], "notes": []}
