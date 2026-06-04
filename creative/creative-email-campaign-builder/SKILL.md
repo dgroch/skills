@@ -36,7 +36,7 @@ Hosted builder: **https://my-email-builder.onrender.com** (free Render plan — 
 - Dividers → `dividers/divider-line`, `dividers/divider-illo-clay`
 - **Top-level (no prefix):** `header`, `footer`
 
-A **bare** name like `hero-d-clay` returns `{"unfilled":[{"token":"(missing template)"}]}` and renders nothing. Always check your component names against `GET /api/schema` `components[].name` before saving. After `POST /api/assemble`, confirm `unfilled` contains **no** `(missing template)` entries.
+A **bare** name like `hero-d-clay` renders nothing. The fastest guard is **`POST /api/validate`** (preferred): it returns structured, teaching errors — for a bare name it gives `rule`, `message`, and a `suggestion` (e.g. `"heroes/hero-d-clay"`) — and also flags casing violations, **without rendering**. Run it before saving. (As a fallback, `POST /api/assemble` surfaces the same class of failure as `(missing template)` entries in `unfilled`.) Component names can also be checked directly against `GET /api/schema` `components[].name`.
 
 ### Source-of-truth hierarchy
 1. User brief / Paperclip / Notion campaign plan (intent)
@@ -46,15 +46,18 @@ A **bare** name like `hero-d-clay` returns `{"unfilled":[{"token":"(missing temp
 5. Rendered HTML / PNG / slices — **derived, never source**
 
 ### Decision tree
-- **"Build an email"** → fetch schema → choose components for the objective → generate JSON → `POST /api/assemble` (verify no `(missing template)`/`unfilled`) → render to preview → **save** (`POST /api/designs`) → report the design `id`/URL.
-- **"Edit this email"** → `GET /api/designs` to find it → `GET /api/designs/:id` → modify the JSON `blocks`/`tokens` → re-assemble/render → `PUT /api/designs/:id`.
+- **"Build an email"** → fetch schema → choose components for the objective (use `/api/schema` `objectives` + each component's `bestFor`/`avoidFor`) → generate JSON → **`POST /api/validate`** (fix any errors) → `POST /api/assemble` → render to preview → **save** (`POST /api/designs`) → report the design `id`/URL.
+- **"Show me a proven example"** → `GET /api/examples?objective=<type>` for an approved campaign JSON to start from, then adapt.
+- **"Edit this email"** → `GET /api/designs` to find it → `GET /api/designs/:id` → modify the JSON `blocks`/`tokens` → validate → re-assemble/render → `PUT /api/designs/:id`.
 - **"Give me the HTML"** → still generate/validate JSON first, then `POST /api/export`. Note that designed `blocks/*` ship as rasterised PNGs (upload to Klaviyo), not live HTML.
 - **Builder/API unavailable** → **stop and report the blocker.** Only hand-code HTML if the user approves an emergency, explicitly non-canonical fallback.
 
 ### Live API (verified)
 | Method | Path | Body | Returns |
 |---|---|---|---|
-| GET  | `/api/schema` | — | components (group-prefixed names), tokens, palette presets, case + ordering rules |
+| GET  | `/api/schema` | — | components (group-prefixed names + intent metadata `bestFor`/`avoidFor`/`visualRole`/`tone`), tokens, palette presets, case + ordering rules, `objectives` taxonomy |
+| POST | `/api/validate` | `{campaign}` | `{ok, issues[]}` — teaching errors (unknown/bare component → `suggestion`; casing violations). No render. **Run before saving.** |
+| GET  | `/api/examples` | `?objective=<type>` | approved campaign JSON exemplars (filterable by objective) |
 | POST | `/api/assemble` | `{campaign}` | `{html, unfilled}` — preview HTML + leftover/missing tokens |
 | POST | `/api/render` | `{campaign}` | `{pngBase64, brokenImages, height}` — full email PNG |
 | POST | `/api/render-slices` | `{campaign}` | per-block PNG slices for Klaviyo upload |
@@ -68,7 +71,7 @@ A **bare** name like `hero-d-clay` returns `{"unfilled":[{"token":"(missing temp
 | GET  | `/api/klaviyo-audiences` | — | lists/segments for targeting |
 | POST | `/api/klaviyo-draft` | `{campaign, ...}` | creates a Klaviyo draft (**after approval only**) |
 
-> **Not yet available:** `GET /api/agent-contract` and `GET /api/examples` return 404 as of this writing. Do not depend on them; discover the contract from `/api/schema` and the *Decision tree* above. If they later ship, prefer `/api/agent-contract` as the machine-readable entry point.
+> **Discovery entry point:** `GET /api/schema` is the canonical contract (components, intent metadata, `objectives`, rules). There is intentionally **no** `/api/agent-contract` — it would duplicate the schema and the workflow above. Use `/api/schema` + `/api/examples` + this skill.
 
 ### Minimal valid campaign JSON
 A `campaign` is `{ campaignName, bodyBg, blocks: [{ component, tokens }] }`. Note the group-prefixed `component` values:
@@ -100,6 +103,7 @@ A `campaign` is `{ campaignName, bodyBg, blocks: [{ component, tokens }] }`. Not
 ### Completion checklist (report any unmet item as incomplete)
 - [ ] Campaign JSON created with **group-prefixed** component names
 - [ ] `GET /api/schema` consulted for current components + token names
+- [ ] `POST /api/validate` returns `ok: true` (no unknown-component or casing errors)
 - [ ] `POST /api/assemble` returns **no** `(missing template)` and **no** unexpected `unfilled` tokens
 - [ ] Render/preview checked visually; `brokenImages` empty
 - [ ] Product URLs/images verified (live, correct ratio)

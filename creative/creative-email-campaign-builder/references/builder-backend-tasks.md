@@ -1,5 +1,13 @@
 # Builder Backend — Task Spec (for `dgroch/my-email-buider`)
 
+> **STATUS: DELIVERED & LIVE** (deploy repo `main` PR #6, commit `b3b7fb8`; verified live
+> on https://my-email-builder.onrender.com). `/api/validate` (teaching errors incl. the
+> bare-name → group-prefixed `suggestion`), `/api/examples` (+`?objective=`), `/api/schema`
+> intent metadata (`bestFor`/`avoidFor`/`visualRole`/`tone`) and the `objectives` taxonomy
+> are all shipped. `/api/agent-contract` was intentionally **not** built (redundant — see
+> Task 1). The RH farewell redesign is seeded as the `farewell_sellthrough` example.
+> Retained below as the historical spec / record of intent.
+
 These tasks belong in the **builder's own repo** (https://github.com/dgroch/my-email-buider),
 which is what deploys to https://my-email-builder.onrender.com. They are **out of scope
 for `dgroch/skills`** — recorded here so the agent-facing and builder-facing sides stay
