@@ -26,6 +26,30 @@ Hosted builder: **https://my-email-builder.onrender.com** (free Render plan — 
 - **Drive the UI manually** except to import/preview/debug. The UI is a human surface over the same API; agents use the API.
 - **Skip persistence.** An email isn't "built" until its JSON is saved and the returned design `id` is confirmed.
 
+### Campaign objectives (taxonomy)
+
+One primary objective per send. These are the `objectives[].id`/`label` from
+`GET /api/schema` (canonical — confirm there before relying on this list). Each carries a
+`blockSequence`, `heroOptions`, `proofModules`, `avoid` list, and `subjectPatterns` in the
+schema; the playbooks live in `references/component-strategy.md`.
+
+| Objective id | Label |
+|---|---|
+| `farewell_sellthrough` | Farewell / final sell-through of a discontinued range |
+| `range_launch` | Launch a new range or collection |
+| `product_spotlight` | Spotlight a single hero product |
+| `occasion_gifting` | Occasion / seasonal gifting (Mother’s Day, Valentines, etc.) |
+| `discount_offer` | Discount / promotional offer |
+| `value_prop` | Communicate why we’re different (value proposition) |
+| `education_howto` | Educational / how-to / care content |
+| `social_proof` | Reviews / testimonials / customer stories |
+| `lifecycle` | Lifecycle / nurture (welcome, re-engagement, post-purchase) |
+| `editorial_digest` | Recurring editorial digest / monthly newsletter |
+
+Pick the send's `subjectLine` from that objective's `subjectPatterns` and persist it
+(with `previewText`) on the saved design — see the completion checklist and
+`references/component-strategy.md`.
+
 ### Component identifiers are GROUP-PREFIXED (critical)
 `/api/assemble` resolves `component` to `design-system/templates/<component>.html`, so the value **must include the group folder**:
 
@@ -106,6 +130,8 @@ A `campaign` is `{ campaignName, bodyBg, blocks: [{ component, tokens }] }`. Not
 - [ ] `POST /api/validate` returns `ok: true` (no unknown-component or casing errors)
 - [ ] `POST /api/assemble` returns **no** `(missing template)` and **no** unexpected `unfilled` tokens
 - [ ] Render/preview checked visually; `brokenImages` empty
+- [ ] Each designed-block PNG passed the visual-QA rubric (composition, type contrast, focal clarity, brand restraint); levers regenerated on any fail
+- [ ] `subjectLine` + `previewText` set, chosen from the objective's `subjectPatterns` (`/api/schema`), and persisted on the design (`POST`/`PUT /api/designs`)
 - [ ] Product URLs/images verified (live, correct ratio)
 - [ ] Campaign JSON **saved** (`POST`/`PUT /api/designs`) and design `id`/URL captured
 - [ ] Derived HTML/PNG exported only if requested
@@ -264,6 +290,8 @@ Designed blocks live in `references/templates/blocks/` and are listed under `com
 | `offer-panel` | Promo / sale / flash / Black Friday / free-shipping / rewards — and **giveaways** (GIVEAWAY MODE). Open or strong-close beat for promo sends. | Huge Lust offer value + dashed promo-code box + rotated Cervanttis sticker + button. Parametrised palette (+ seasonal accent allowed). `PROMO_CODE=""` for giveaways. The designed hero version of `sections/promo-code`. Max one per email. |
 | `howto-steps` | Care guides / how-to / "make them last" sequences — a **vertical** numbered 3-step flow with a photo per step. Mid-email affirm beat. | Big Lust step numerals + NeuzeitGro caps titles + tilted framed step photos (alternating left/right). Parametrised palette. Exactly three steps. Use `sections/three-column-steps-*` for a compact horizontal partner-flow instead. Max one per email. |
 | `comparison-vs` | Us-vs-them / bought-vs-got / before-after side-by-side. Mid-email affirm beat for differentiation moments. | Two square photos (left greyscaled "before/others", right bordered "after/us") + central circular Cervanttis "vs" badge straddling the columns. Parametrised palette. Max one per email. |
+| `editorial-collage` **(DRAFT — pending design review)** | A more art-directed editorial/newsletter opener or affirm beat wanting a layered, gallery-wall feel beyond `polaroid-collage`. | Three overlapping tilted photo frames + NeuzeitGro label + Cervanttis accent + Lust pull-quote + button. Parametrised palette; `ROTATION` lever. **Max one per email; slice to PNG.** Draft — not ship-ready until a designer signs off. |
+| `annotated-product` **(DRAFT — pending design review)** | A single hero product whose 2–3 reasons-to-believe read best as hand-written callouts pinned on the photo — a playful alternative to `designed-product-card`. Mid-email. | Product photo + three rotated, overlapping Cervanttis callout chips + Lust name/price + button. Parametrised palette; `ROTATION` lever. **Max one per email; slice to PNG.** Draft — not ship-ready until a designer signs off. |
 
 **Selection rules for designed blocks:**
 - They are *content blocks*, not replacements for `header`/`footer` — keep the standard `header` first and `footer` last.
@@ -293,6 +321,24 @@ button text to `#000000`. Layout levers: `caption-bar-hero` `IMG_HEIGHT` =
 `600` (square) or `440` (editorial 3:2); `designed-product-card` `BADGE_TEXT` =
 lowercase ribbon text or `""` to hide.
 
+**Composition levers (locked enums — a third variation axis).** Several designed
+blocks (`editorial-hero`, `story`, `polaroid-collage`, `designed-product-card`, and the
+draft `editorial-collage` / `annotated-product`) expose composition levers in addition to
+palette — set them from the locked enum values only (never free hex/px), copying from
+`manifest.json → components.<block>.levers` or the template comment:
+
+| Lever | Values | Blocks |
+|---|---|---|
+| `TYPE_SCALE` | `regular` \| `oversized` | `editorial-hero`, `story`, `designed-product-card` |
+| `ROTATION` | `flat` \| `subtle` \| `jaunty` | `editorial-hero`, `story`, `polaroid-collage`, `designed-product-card`, `editorial-collage`, `annotated-product` |
+| `DENSITY` | `tight` \| `regular` \| `airy` | `polaroid-collage` |
+| `ACCENT_ILLO` | `on` \| `off` | `editorial-hero`, `story`, `polaroid-collage`, `designed-product-card` |
+
+Default to the restrained values (`ROTATION=subtle`, `TYPE_SCALE=regular`,
+`DENSITY=regular`, `ACCENT_ILLO=off`); reach for `oversized` / `jaunty` / `airy` / `on` as
+a deliberate, occasional accent — restraint over loudness. These are also the levers the
+Step 6 visual-QA loop **regenerates** when a rendered block fails the rubric.
+
 ### Variation & rotation scheme (don't ship same-y sends)
 
 The corpus mine (`references/research/freq.json`,
@@ -307,7 +353,9 @@ CLOSE   → upsell-noir | promo-code | designed-product-card
 
 Rotation rules (see `manifest.json → components.variation_rules`):
 - Track the previous send's `(open_block, palette)` pair and pick a **different**
-  combination for the next send in the series.
+  combination for the next send in the series. Also vary the composition levers —
+  don't repeat the same `(ROTATION, TYPE_SCALE)` pair on the OPEN block in consecutive
+  sends.
 - Editorial / newsletter sends (the corpus's largest bucket, 25.5%) lean on
   `caption-bar-hero` + `story`; promo sends lean on `editorial-hero` +
   `designed-product-card`.
@@ -586,6 +634,34 @@ If a card has broken images:
 - [ ] Cervanttis headlines (hero, upsell-noir, opt-out) are lowercase in token values
 - [ ] Lust headlines (body-copy, section-headline, product cards) are sentence case
 - [ ] `REVIEW_STARS` uses `★` Unicode characters
+
+**Visual QA loop — render-and-critique (mandatory for every designed `blocks/*`):**
+
+A designed block can validate cleanly (tokens filled, no broken images) and still *look*
+wrong — unbalanced, low-contrast, off-brand. After `POST /api/render` (or
+`POST /api/render-slices`), **the agent must actually view the returned PNG** for each
+designed block and score it against this short rubric before accepting it:
+
+| Criterion | Pass looks like |
+|---|---|
+| **Composition balance** | Weight is distributed; nothing crammed or stranded; tilt/overlap reads intentional, not accidental. |
+| **Type contrast** | Clear hierarchy — Lust display vs NeuzeitGro body vs Cervanttis accent are distinct; the headline leads. |
+| **Focal clarity** | One obvious focal point (the product / the photo / the quote); the eye knows where to land and where the CTA is. |
+| **Brand restraint** | Locked Noir/Clay/White palette only, monochrome type, square black button — no off-brand colour/type, no clearance-y loudness. |
+
+If a block **fails** any criterion, **regenerate its levers** — adjust `ROTATION`,
+`TYPE_SCALE`, `DENSITY`, `ACCENT_ILLO`, or the `palette` preset (locked enum values only —
+never hand-edit the PNG or invent hex/px) — re-render, and re-score. Loop until it passes.
+This is a composition tune, not a redesign; a block that can't pass within the locked
+levers is a template issue → flag for design review (and for the DRAFT blocks
+`editorial-collage` / `annotated-product`, expect to flag rather than ship).
+
+**Gate inbound imagery through `creative-ugc-photo-review` first.** Any customer/UGC or
+externally-supplied photo destined for a block (`HERO_IMAGE_URL`, `PHOTO_*_URL`,
+`FRAME_*_URL`, `PORTRAIT_IMAGE_URL`, `PRODUCT_IMAGE_URL`) must clear the
+`creative-ugc-photo-review` skill's standard (`resources/fig-and-bloom-rubric.md`) **before**
+it is placed in a token — reuse that rubric so the photo meets brand visual standards;
+don't let unreviewed imagery enter a render.
 
 **Above-the-fold pre-flight check (mandatory):**
 
