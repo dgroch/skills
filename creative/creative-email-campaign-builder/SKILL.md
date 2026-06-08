@@ -923,3 +923,20 @@ The `references/` directory contains `package.json` with `minimist`, `puppeteer`
 - Override any locked style in a template
 
 If a campaign need cannot be met with the existing templates, escalate for template development. Do not improvise HTML.
+
+---
+
+## Companion: `fig-bloom-email-generator`
+
+> A new companion skill — **`creative/fig-bloom-email-generator`** — packages the brand + persona + lens-routing + schema context into a single LLM call, so a brief (from the email-builder "Create Campaign" button or an agent conversation) produces a complete, validated campaign JSON in one shot.
+
+**Workflow:**
+1. Brief comes in (button click → textarea, or agent → user message).
+2. Host loads the **system prompt** (`fig-bloom-email-generator/references/system-prompt.md`) — bakes in brand POV, the 8 personas, the Sales Legends lens system, component strategy, token rules, the output schema, and the 13-point QA bar.
+3. Host fills the **user template** (`fig-bloom-email-generator/references/user-prompt-template.md`) with the brief + audience.
+4. LLM returns campaign JSON. Host validates via `POST /api/validate` and saves via `POST /api/designs`.
+5. From here, this skill's workflow takes over: assemble → render → save (already done) → optional Klaviyo draft.
+
+**When to use the generator:** any time a free-form brief needs to become a campaign JSON. The generator handles the *content* (strategy, components, copy, tokens, persona routing). This skill handles the *workflow* (validate, render, save, Klaviyo, slicing).
+
+**See:** `creative/fig-bloom-email-generator/SKILL.md` for the full skill.
