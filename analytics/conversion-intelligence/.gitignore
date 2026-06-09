@@ -1,0 +1,17 @@
+# Local secrets — never commit. Copy runtime/config/.env.example to
+# runtime/config/.env and fill in real values; .env is gitignored.
+runtime/config/.env
+
+# Service-account / credential JSON (GA4, etc.) — never commit anywhere.
+**/*service-account*.json
+**/*credentials*.json
+secrets/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.pytest_cache/
+.cache/
