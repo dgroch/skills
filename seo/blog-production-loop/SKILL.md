@@ -35,7 +35,10 @@ verdict is PASS or the attempt cap forces an escalation.
    draft. No exceptions, no "close enough".
 3. **The critic reviews the rendered page**, not the source HTML. Judgement
    happens where the reader is.
-4. **Owned imagery first, generated second, stock never.**
+4. **Owned imagery first, licensed lifestyle fallback second, generated third.**
+   Product imagery belongs inside product callouts; editorial imagery should
+   favour lifestyle, context, hands, rooms, tables, notes, delivery, care, and
+   quiet human-scale scenes.
 5. **Escalation is a success state.** A post parked with a clear reason after
    four attempts is the loop working, not failing.
 
@@ -56,11 +59,17 @@ verdict is PASS or the attempt cap forces an escalation.
   (*Editorial Calendar — May/June 2026 v2*). Each row needs: working title,
   tier (Guide | Journal), occasion/persona, target keyword (Guides), status.
   Rows missing a tier are clarified with Dan before the run, not guessed.
+  **Important:** calendar rows may be scheduling pointers only. If the row
+  markdown says the draft lives in Blog Posts ▸ Month via a `mention-page`,
+  follow that canonical page and treat it as the source of truth.
 - **Rubric** — `resources/blog-critic-rubric.md` (bundled). The critic loads
   it fresh every review. Exemplar URLs inside it are re-read once per run.
 - **Voice & structure authorities** — the Parent Editorial Framework and
   Guide System pages in the Fig & Bloom Notion Editorial space; Journal craft
   rules for Journal-tier rows.
+- **Operational pitfalls reference** — `references/shopify-draft-spin-pitfalls.md`
+  captures reusable Notion data-source, Shopify draft read-back, markdown
+  conversion, and product-callout checks discovered during draft-only runs.
 
 ## The inner loop — one post, end to end
 
@@ -97,18 +106,59 @@ For each image slot the post needs (hero + inline, per content):
    and the visual pillars; when uncertain whether a candidate is on-brand,
    apply `photography-ugc-review` before committing it.
 
-2. **Generate via `brand-photographer` if nothing owned fits.** Brand:
-   Fig & Bloom. The skill anchors to the Notion brand config and seed
-   library and runs Higgsfield with its own critique loop — let it finish
-   its loop; do not pull early iterations. Host the approved output via
-   `brand-cdn` for a stable URL before embedding.
+2. **Licensed lifestyle fallback via `licensed-lifestyle-image-sourcing`**
+   when the article needs context rather than product truth and owned imagery
+   cannot serve the scene. Use official Unsplash or Pexels APIs only; do not
+   scrape/reverse-engineer private web endpoints. Allowed stock roles: room
+   atmosphere, winter table, bedside/recovery context, hand-written card,
+   candlelight, delivery/arrival mood, negative space. Disallowed stock roles:
+   any bouquet/floral product pretending to be Fig & Bloom, competitor branding,
+   obvious stock smiles, over-bright studio lifestyle, clichéd grief imagery,
+   or anything that contradicts the copy.
 
-3. **Never:** stock imagery, placeholder URLs, unowned web images, or a
-   product-callout image that is not the live product photo.
+3. **Generate via `brand-photographer` if neither owned nor licensed lifestyle
+   imagery fits.** Brand: Fig & Bloom. The skill anchors to the Notion brand
+   config and seed library and runs Higgsfield with its own critique loop — let
+   it finish its loop; do not pull early iterations. Host the approved output
+   via `brand-cdn` for a stable URL before embedding.
 
-Write descriptive alt text for every image at embed time.
+4. **Separate editorial imagery from product truth.** Product-callout images
+   must be live Shopify product images. Editorial/lifestyle images may be
+   owned, generated, or licensed fallback assets, clearly used as mood/context.
 
-### P4 — Linking & shopability *(Maker)*
+Write descriptive alt text and source metadata for every image at embed time.
+Licensed fallback images must carry photographer/source/licence URL in run
+state and, if mirrored to the Fig & Bloom CDN, in the upload manifest.
+
+### P4 — Layout, linking & shopability *(Maker)*
+
+Before Shopify upload, compose the article body with lightweight blog-safe
+modules borrowed from the email-builder design language, not raw newsletter
+markup:
+
+- **Editorial intro block:** one or two quiet paragraphs with more breathing
+  room; no button stack.
+- **2-up vertical image block:** preferred default for inline editorial imagery.
+  Pair two portrait/lifestyle images side by side (desktop) that stack on
+  mobile. Use combinations such as detail + context, arrangement + room,
+  handwritten card + flowers, table + candle. This is the main antidote to
+  every article feeling like a single full-width product image.
+- **Image-caption pair:** every editorial image block needs a caption that adds
+  craft, care, delivery, or emotional context.
+- **Care checklist / decision guide:** useful for Guide posts; keep bullets
+  clean (`<li>` without literal hyphen artefacts) and never insert product
+  callouts inside `<ul>`.
+- **Product callout module:** one live Shopify product image, product name,
+  price, and `Shop the [name] →`. This is the only place product photography
+  should dominate.
+- **Soft CTA band:** prose link, not a campaign button; no visible `CTA:` label.
+
+Recommended imagery rhythm per post:
+
+- Use a single full-width hero only when the image earns it.
+- Prefer one **2-up vertical lifestyle block** near the first third of the post.
+- Keep one product callout later in the article after the reader has context.
+- Do not repeat the same product image as hero and product callout.
 
 Apply `blog-internal-linking` in full: Linking Map lookups, density and
 anchor rules, ≥1 commercial link + ≥1 related post + 1 product callout
@@ -125,9 +175,19 @@ Known notes from `blog-internal-linking`: article body is HTML via
 renders the title as H1 — never repeat it in the body. Create in **draft**
 (unpublished) state. Record the article ID and preview URL in run state.
 
+Before declaring the draft ready for critic, read it back from Shopify and
+run render-level checks. Local source QA is not enough: previous runs passed
+text checks while Shopify read-back still contained malformed list items,
+product callouts nested inside `<ul>`, and literal `CTA:` scaffolding. Verify
+summary, body length, image presence, link counts, no duplicate title H2, no
+banned language, no public scaffolding, and explicit Guide-tier product
+callout evidence (`Shop the [name] →`, price, product image). See
+`references/shopify-draft-spin-pitfalls.md`.
+
 ### P6 — Critic review *(Critic, fresh context)*
 
-Browser actions follow `reference-browser-operator`:
+Browser actions follow `reference-browser-operator` when a public or preview URL
+is available:
 
 1. `navigate(preview_url)` → `confirm_context("figandbloom.com/blogs/")` —
    bail to ESCALATE if false.
@@ -137,6 +197,12 @@ Browser actions follow `reference-browser-operator`:
 4. Score per `resources/blog-critic-rubric.md`: hard gates first, then the
    six weighted dimensions, then the verdict block in the rubric's exact
    output format. No false passes — uncertainty is REVISE or ESCALATE.
+
+For **draft-only spins** where Shopify does not expose an agent-accessible
+public preview, do not publish solely for QA. The critic may review Shopify
+read-back HTML/metadata plus the publisher's explicit render-level checks,
+and the run report must state that limitation. Draft-only status itself is
+not a fail when the user asked for drafts.
 
 ### P7 — Gate *(Orchestrator + Publisher)*
 

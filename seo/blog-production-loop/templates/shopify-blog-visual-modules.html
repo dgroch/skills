@@ -1,0 +1,34 @@
+<!-- Shopify-safe blog visual modules for Fig & Bloom.
+Use inline classes so theme CSS can style them later; keep markup semantic and simple.
+Do not paste email-builder table markup into blogs. -->
+
+<!-- 2-up vertical lifestyle/editorial image block -->
+<figure class="fb-blog-image-pair" data-source="asset-library|pexels|unsplash|generated">
+  <div class="fb-blog-image-pair__grid">
+    <img src="IMAGE_URL_1" alt="ALT_TEXT_1" loading="lazy">
+    <img src="IMAGE_URL_2" alt="ALT_TEXT_2" loading="lazy">
+  </div>
+  <figcaption>Caption that adds craft, care, delivery, or emotional context.</figcaption>
+</figure>
+
+<!-- Single editorial image; use only when the image earns full width -->
+<figure class="fb-blog-editorial-image" data-source="asset-library|pexels|unsplash|generated">
+  <img src="IMAGE_URL" alt="ALT_TEXT" loading="lazy">
+  <figcaption>Quiet caption with useful context, never a sales line.</figcaption>
+</figure>
+
+<!-- Live Shopify product callout. Product image must come from the live Shopify product. -->
+<aside class="fb-blog-product-callout">
+  <h3>A considered Fig & Bloom option</h3>
+  <a href="PRODUCT_URL"><img src="SHOPIFY_PRODUCT_IMAGE_URL" alt="PRODUCT_ALT_TEXT" loading="lazy"></a>
+  <div>
+    <p><strong>PRODUCT_TITLE</strong></p>
+    <p>A considered option for this moment, from $PRICE.</p>
+    <p><a href="PRODUCT_URL">Shop the PRODUCT_TITLE →</a></p>
+  </div>
+</aside>
+
+<!-- Soft CTA band; no visible CTA label and no campaign-button treatment -->
+<section class="fb-blog-soft-cta">
+  <p>If you are choosing for this moment, start with <a href="COLLECTION_OR_PRODUCT_URL">a considered Fig & Bloom arrangement</a> and add the card message once the feeling is clear.</p>
+</section>
