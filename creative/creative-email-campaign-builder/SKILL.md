@@ -299,6 +299,28 @@ Designed blocks live in `references/templates/blocks/` and are listed under `com
 - Treat each as a single sliced unit: fill tokens, render, upload, link. No per-element editing.
 - Token case follows the same font rules: any Cervanttis token (`ACCENT_SCRIPT`, `*_CAPTION`, `QUOTE_ACCENT`, `CAPTION`, `SIGNATURE`, `BADGE_TEXT`) is **lowercase**; Lust tokens (`HEADLINE`, `PULL_QUOTE`, `PRODUCT_NAME`, `PRODUCT_PRICE`) are sentence case.
 
+### `blocks/journal-tile` — live-HTML "From the Journal" row (the exception)
+
+Unlike every other `blocks/*` entry above, `journal-tile` is **not sliced to PNG** — it
+ships as **live HTML** (it is listed in `manifest.json → assembly.html_only_components`).
+That is deliberate: each tile is its own `<a href>`, so all 2–3 article links work in the
+Klaviyo push (a single sliced PNG could only carry one link).
+
+- **When to use:** linking **2–3 blog posts** (e.g. "More from Kellie", "From the
+  Journal"). An editorial "more reading" beat — place it **after products, before
+  `upsell-noir`**. Best for `editorial_digest` / `lifecycle` / `social_proof`; avoid for
+  `discount_offer` / `occasion_gifting`.
+- **Why not product cards:** `journal-tile` has **no price field** and carries **article
+  semantics**; `products/card-*` imply a buyable SKU. Use `journal-tile` (not a repurposed
+  `products/card-horizontal`) whenever the row links blog posts rather than products.
+- **Lean tokens (no `PANEL_*` palette):** per tile — `TILE_n_IMAGE_URL`, `TILE_n_EYEBROW`,
+  `TILE_n_TITLE` (**sentence case**), `TILE_n_TEASER`, `TILE_n_LINK_URL`; plus section-level
+  `SECTION_LABEL` and `SECTION_HEADLINE`. **Tile 3 is optional** — set
+  `TILE_3_IMAGE_URL=""` (and the other `TILE_3_*` to `""`) to render a 2-up row.
+- **Caveat — fonts:** because it is live HTML, the inbox uses **web-safe fonts** (title
+  falls back to **Georgia**, eyebrow/teaser to Gill Sans). Don't expect Lust rendering as
+  you would on a sliced block — it's a secondary "more reading" module, not a hero.
+
 ### Parametrised palette (designed blocks)
 
 `caption-bar-hero`, `story`, `designed-product-card`, `offer-panel`,

@@ -18,7 +18,8 @@
       "footer",
       "body-copy-plain",
       "divider-line",
-      "divider-whitespace"
+      "divider-whitespace",
+      "journal-tile"
     ],
     "slice_components": [
       "header",
@@ -50,7 +51,8 @@
       "promo-code": "After testimonial, before upsell.",
       "upsell-noir": "Near bottom \u2014 closing beat. After promo-code.",
       "delivery-cutoffs": "After upsell, before trust-bar.",
-      "three-column-steps-*": "After body-copy or after products. Use when a step-by-step partner flow (e.g. card creation) needs explaining. Max one per email. Choose variant by background: -beige (warm off-white), -50clay (50% clay, token clay_50, #EBE5DF), -clay (brand clay), or -white (silk white)."
+      "three-column-steps-*": "After body-copy or after products. Use when a step-by-step partner flow (e.g. card creation) needs explaining. Max one per email. Choose variant by background: -beige (warm off-white), -50clay (50% clay, token clay_50, #EBE5DF), -clay (brand clay), or -white (silk white).",
+      "journal-tile": "After products, before upsell — a 'From the Journal' row of 2–3 linked posts."
     }
   },
   "components": {
@@ -662,6 +664,37 @@
           "TYPE_SCALE",
           "ROTATION",
           "ACCENT_ILLO"
+        ]
+      },
+      "journal-tile": {
+        "file": "templates/blocks/journal-tile.html",
+        "classification": "html",
+        "description": "LIVE-HTML 'From the Journal' row of 2–3 linked article tiles: a centred NeuzeitGro section label + Lust section headline, then white tile cards (4:5 photo, NeuzeitGro caps eyebrow, sentence-case title, Light teaser, 'Read the piece →') on the #2c2825 body. Each tile is its own <a href> so every link works in the Klaviyo push. Editorial 'more reading' beat — no price field.",
+        "when_to_use": "Linking 2–3 blog posts (e.g. 'More from Kellie', 'From the Journal'). After products, before upsell. Editorial / lifecycle / social-proof sends. Use INSTEAD of product cards when linking articles — journal-tile carries article semantics and has no price; product cards imply a buyable SKU. Avoid for discount/offer or occasion-gifting sends.",
+        "assets_needed": "One 4:5 photo per tile (~200×250 display). 2 tiles minimum; tile 3 optional — set TILE_3_IMAGE_URL=\"\" to render a 2-up row.",
+        "parametrised": {
+          "tiles": "2-up or 3-up — tile 3 is wrapped in {{#TILE_3_IMAGE_URL}}…{{/TILE_3_IMAGE_URL}} and dropped by the conditional-section pass when the URL is empty",
+          "fonts": "live HTML → web-safe only: title falls back to Georgia, eyebrow/teaser to Gill Sans. Brand fonts show in preview, not in inbox.",
+          "palette": "none — no PANEL_* tokens; white cards on #2c2825 body, kept lean"
+        },
+        "tokens": [
+          "SECTION_LABEL",
+          "SECTION_HEADLINE",
+          "TILE_1_IMAGE_URL",
+          "TILE_1_EYEBROW",
+          "TILE_1_TITLE",
+          "TILE_1_TEASER",
+          "TILE_1_LINK_URL",
+          "TILE_2_IMAGE_URL",
+          "TILE_2_EYEBROW",
+          "TILE_2_TITLE",
+          "TILE_2_TEASER",
+          "TILE_2_LINK_URL",
+          "TILE_3_IMAGE_URL",
+          "TILE_3_EYEBROW",
+          "TILE_3_TITLE",
+          "TILE_3_TEASER",
+          "TILE_3_LINK_URL"
         ]
       },
       "offer-panel": {
