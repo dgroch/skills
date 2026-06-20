@@ -50,6 +50,17 @@ The schema carries per-component `bestFor`, `avoidFor`, `visualRole`, `tone`. Us
 - `blocks/editorial-collage` *(DRAFT — pending design review)* — Layered editorial opener.
 - `blocks/annotated-product` *(DRAFT — pending design review)* — One product, 2–3 Cervanttis callouts.
 
+### Editorial live-HTML block (`blocks/journal-tile`) — NOT rasterised
+`blocks/journal-tile` is the exception to the rule above: it ships as **live HTML** (it is in `assembly.html_only_components`), **not** a sliced PNG, so each tile keeps its own `<a href>` and all 2–3 article links work in the Klaviyo push.
+
+- **What it is** — a "From the Journal" row of **2–3 linked article tiles** (4:5 photo, caps eyebrow, sentence-case title, teaser, "Read the piece →"). Editorial "more reading" beat — place **after products, before `sections/upsell-noir`**. **Best for** `editorial_digest` / `lifecycle` / `social_proof`; **avoid for** `discount_offer` / `occasion_gifting`.
+- **Use instead of product cards when linking blog posts** — it has **no price field** and carries article semantics; `products/card-*` imply a buyable SKU.
+- **Section tokens:** `SECTION_LABEL` (NeuzeitGro caps micro-label), `SECTION_HEADLINE` (Lust, **Sentence case**).
+- **Per-tile tokens** (`n` = `1`, `2`, `3`): `TILE_n_IMAGE_URL` (4:5 photo, ~200×250), `TILE_n_EYEBROW` (caps micro-label), `TILE_n_TITLE` (Lust, **Sentence case**, ~6 words), `TILE_n_TEASER` (~12 words), `TILE_n_LINK_URL` (post URL).
+- **2–3-tile rule:** tiles 1 and 2 are **required**; **tile 3 is optional** — set `TILE_3_IMAGE_URL=""` (and the rest of the `TILE_3_*` tokens to `""`) to render a **2-up** row. With all three filled the tiles size to 1/3 each.
+- **No palette tokens** (no `PANEL_*`) — white cards on the `#2c2825` body, kept lean.
+- **Fonts:** live HTML → **web-safe fonts in the inbox** (title falls back to **Georgia**, eyebrow/teaser to Gill Sans). Don't expect Lust rendering — it's a secondary module, not a hero.
+
 ### Dividers (`dividers/*`)
 - `dividers/divider-line` — Hairline rule.
 - `dividers/divider-illo-clay` — Decorative clay illustration divider. **Max 1 non-line divider per email.**
@@ -63,7 +74,7 @@ The schema carries per-component `bestFor`, `avoidFor`, `visualRole`, `tone`. Us
 | Font | Components | Casing | Example |
 |---|---|---|---|
 | **Cervanttis** (script) | `heroes/*`, `sections/upsell-noir`, `sections/opt-out`, `ACCENT_SCRIPT`, `*_CAPTION`, `QUOTE_ACCENT`, `CAPTION`, `SIGNATURE`, `BADGE_TEXT` | **lowercase** | `"a fond farewell"` |
-| **Lust** (display serif) | `sections/body-copy-plain` `HEADLINE`, `sections/section-headline` `HEADLINE`, `products/*` `PRODUCT_NAME`, `PULL_QUOTE`, `PRODUCT_PRICE` | **Sentence case** | `"Some gestures speak before words do."` |
+| **Lust** (display serif) | `sections/body-copy-plain` `HEADLINE`, `sections/section-headline` `HEADLINE`, `products/*` `PRODUCT_NAME`, `PULL_QUOTE`, `PRODUCT_PRICE`, `blocks/journal-tile` `SECTION_HEADLINE` + `TILE_n_TITLE` | **Sentence case** | `"Some gestures speak before words do."` |
 | **Neuzeit Grotesk** (body sans) | `BODY_P1`, `BODY_P2`, body UI, supers, captions | Sentence case | `"Each one is still hand-tied..."` |
 
 ## Palette presets
