@@ -39,6 +39,7 @@ The schema carries per-component `bestFor`, `avoidFor`, `visualRole`, `tone`. Us
 - `products/card-single-testimonial` — One product with a strong review.
 
 ### Designed blocks (`blocks/*`) — always rasterised to PNG
+> **Optional CTA button:** leave `CTA_TEXT` empty to hide the button; if `CTA_URL` is set the whole (sliced) component still links to it (the block is sliced to PNG on publish and the slice is linked via `deriveLink` / `CTA_URL`). Applies to every component with a `CTA_TEXT` button.
 - `blocks/caption-bar-hero` — Photo-led opener. Most common opener. CTA in the caption bar.
 - `blocks/editorial-hero` — Lust headline + Cervanttis accent + square button on a plate that overlaps the photo. **One per email.**
 - `blocks/feature-list` — 2–4 reasons-to-believe beside a polaroid. **One per email.**

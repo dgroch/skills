@@ -811,6 +811,7 @@ Assemble the final email HTML using Klaviyo CDN slice URLs (replacing local file
 **Production assembly rules:**
 - All slice `<img>` tags: `src` = Klaviyo CDN URL, `width="600"`, `style="display:block;width:600px;"`
 - All CTAs: slice `<img>` wrapped in `<a href="{{CTA_URL}}">`
+- Optional button: every button is wrapped in `{{#CTA_TEXT}}…{{/CTA_TEXT}}` — leave `CTA_TEXT` empty to hide the button; if `CTA_URL` is set the whole (sliced) component still links to it (designed blocks are sliced to PNG on publish and the slice is linked via `deriveLink` / `CTA_URL`)
 - Decorative slices: empty `alt=""`
 - Hero/product slices: descriptive `alt="{{HEADLINE}}"` or `alt="{{PRODUCT_NAME}}"`
 - Text components: inserted as raw HTML (no shell wrapper needed — inline styles only)
