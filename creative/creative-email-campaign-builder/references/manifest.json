@@ -19,7 +19,8 @@
       "body-copy-plain",
       "divider-line",
       "divider-whitespace",
-      "journal-tile"
+      "journal-tile",
+      "full-width-image"
     ],
     "slice_components": [
       "header",
@@ -455,6 +456,21 @@
           "PADDING_TOP": "48px",
           "PADDING_BOTTOM": "48px"
         }
+      },
+      "full-width-image": {
+        "file": "templates/sections/full-width-image.html",
+        "classification": "html-safe",
+        "description": "A single full-width 600px image, edge to edge, with an OPTIONAL link. LIVE HTML (html_only) — NOT sliced — so the image keeps its own click-through link and an animated GIF keeps animating. Listed in assembly.html_only_components. Any aspect ratio: the image's natural height is kept.",
+        "when_to_use": "When one full-bleed image should carry a beat on its own — a range/lookbook frame, an editorial pause, or a linked banner — and it must stay live (its own href and/or an animated GIF). For a fixed 4:5 photo hero use heroes/hero-image-only; for a short 180px lifestyle pause use dividers/divider-image.",
+        "assets_needed": "One 600px-wide image (any height — the image's natural ratio is kept). Klaviyo/R2 hosted. Optional href to wrap it.",
+        "parametrised": {
+          "link": "LINK_URL optional — wrapped in {{#LINK_URL}}…{{/LINK_URL}} and dropped by the conditional-section pass when empty"
+        },
+        "tokens": [
+          "IMAGE_URL",
+          "ALT_TEXT",
+          "LINK_URL"
+        ]
       }
     },
     "dividers": {
@@ -848,6 +864,32 @@
           "PANEL_SUB",
           "PANEL_BORDER"
         ]
+      },
+      "image-text": {
+        "file": "templates/blocks/image-text.html",
+        "classification": "slice",
+        "description": "2/3-width image (400px) + 1/3 text column (super-label, Lust headline, NeuzeitGro body, square button). The IMG_SIDE lever flips which side the image sits (left | right) via CSS direction on the rasterised block. Palette-parametrised.",
+        "when_to_use": "A product/range beat that pairs one strong image with a short headline + body + button — a spotlight, a range launch, a value prop or an occasion-gifting moment. Alternate IMG_SIDE across a series for rhythm. Avoid for discount-led sends. 600px wide; one per email.",
+        "assets_needed": "One lifestyle/product photo (400×500 display, 800×1000px source min).",
+        "parametrised": {
+          "palette": "white | clay | 50clay | noir (PANEL_* tokens — copy a preset row verbatim)"
+        },
+        "levers": {
+          "IMG_SIDE": "left | right — which side the image sits"
+        },
+        "tokens": [
+          "IMAGE_URL",
+          "IMG_SIDE",
+          "SUPER_LABEL",
+          "HEADLINE",
+          "BODY",
+          "CTA_TEXT",
+          "CTA_URL",
+          "PANEL_BG",
+          "PANEL_TEXT",
+          "PANEL_SUB",
+          "PANEL_BORDER"
+        ]
       }
     },
     "block_palette_presets": {
@@ -871,7 +913,8 @@
           "TYPE_SCALE": "regular | oversized — headline / name scale",
           "ROTATION": "flat | subtle | jaunty — tilt of plates, polaroids, badges, frames, chips",
           "DENSITY": "tight | regular | airy — collage spacing (polaroid-collage)",
-          "ACCENT_ILLO": "on | off — faint brand-illustration accent"
+          "ACCENT_ILLO": "on | off — faint brand-illustration accent",
+          "IMG_SIDE": "left | right — which side the image sits (blocks/image-text)"
         },
         "rotation": "Across a series, vary the composition levers — not just the palette — so consecutive sends feel distinct. Track the last send's (open_block, palette, TYPE_SCALE, ROTATION) and pick a different combination. Default to ROTATION='subtle', TYPE_SCALE='regular', DENSITY='regular', ACCENT_ILLO='off'; reach for 'oversized' / 'jaunty' / 'airy' / 'on' as the deliberate, occasional accent — restraint over loudness."
       },

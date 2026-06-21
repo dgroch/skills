@@ -31,6 +31,7 @@ The schema carries per-component `bestFor`, `avoidFor`, `visualRole`, `tone`. Us
 - `sections/testimonial` — Single-testimonial beat.
 - `sections/three-column-steps-*` — Compact 3-step horizontal flow (care / how-to).
 - `sections/delivery-cutoffs` — Hard-deadline delivery module. Use sparingly; avoid panic language.
+- `sections/full-width-image` — A single full-width 600px image with an **optional** link (`LINK_URL`). **Live HTML** (in `assembly.html_only_components`) — **not** sliced — so it keeps its own click-through and an animated GIF keeps animating. Any aspect ratio (natural height). Tokens: `IMAGE_URL`, `ALT_TEXT`, `LINK_URL`.
 
 ### Products (`products/*`)
 - `products/card-horizontal` / `card-horizontal-reversed` — Equal-weight product card, alternating.
@@ -47,6 +48,7 @@ The schema carries per-component `bestFor`, `avoidFor`, `visualRole`, `tone`. Us
 - `blocks/offer-panel` — Promo / giveaway. `PROMO_CODE=""` for giveaway mode. **Avoid for farewell, sympathy.**
 - `blocks/howto-steps` — Vertical 3-step care / how-to. Exactly three steps. **One per email.**
 - `blocks/comparison-vs` — Us-vs-them / before-after. **One per email.**
+- `blocks/image-text` — 2/3-width image (400px) + 1/3 text column + button. `IMG_SIDE` lever (`left` | `right`) flips which side the image sits. Palette-parametrised. **One per email.**
 - `blocks/editorial-collage` *(DRAFT — pending design review)* — Layered editorial opener.
 - `blocks/annotated-product` *(DRAFT — pending design review)* — One product, 2–3 Cervanttis callouts.
 

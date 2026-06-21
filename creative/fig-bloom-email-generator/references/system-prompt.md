@@ -199,6 +199,7 @@ When a block is one of the designed set (every `blocks/*` component is rasterise
 | `blocks/editorial-collage` | `PHOTO_1_URL`, `PHOTO_2_URL`, `PHOTO_3_URL` |
 | `blocks/annotated-product` | `PRODUCT_IMAGE_URL` |
 | `blocks/comparison-vs` | `BEFORE_IMAGE_URL`, `AFTER_IMAGE_URL` |
+| `blocks/image-text` | `IMAGE_URL` |
 
 Pick the image whose `description` best matches the campaign's emotional beat. For a sympathy send, prefer a "quiet, white, restrained" image. For a celebration, prefer a "vibrant, joyful recipient" image. Read the descriptions — they're written so you can evaluate fit at a glance. If a needed image isn't in the live context, flag in `notes`; do NOT invent a URL.
 
