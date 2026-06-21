@@ -31,6 +31,8 @@ Each skill is self-contained and includes a `SKILL.md` file (plus optional `scri
 ### Creative
 
 - `creative/add-creative-builder` (`ad-creative-builder`): Build production-ready static and carousel ad creatives from existing photography, copy, and brand assets.
+- `creative/creative-ad-brief-architect` (`creative-ad-brief-architect`): Build a prospecting-video ad brief on the Winning Ads Framework (Pattern Interrupt → Proof) — avatar, lens routing, offer, named design, five-step beat sheet, and an Ads Database row.
+- `creative/creative-ad-scriptwriter` (`creative-ad-scriptwriter`): Write the prospecting-video ad script from the brief — recognition-shape hook, the five beats, message-back proof + risk reversal, single Shop Now CTA.
 - `creative/asset-adapter` (`asset-adapter`): Reformat a hero creative into platform-specific variants using deterministic crop/safe-zone rules.
 - `creative/brand-guidelines-manager` (`brand-guidelines-manager`): Enforce and maintain Fig & Bloom brand rules for visual and tonal consistency.
 - `creative/creative-communications-calendar-planner` (`creative-communications-calendar-planner`): Plan integrated Fig & Bloom email, social, and blog calendars with blog-to-email link maps and Paperclip issue breakdowns.
