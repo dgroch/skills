@@ -94,31 +94,31 @@ this is where opens are won, so treat them as deliverable copy, not an afterthou
 ### `range_launch` — launch / tease
 **Goal:** create anticipation and signal design progress.
 
-**Use:** `blocks/editorial-hero` · `blocks/caption-bar-hero` · `blocks/story` · `blocks/feature-list` · `blocks/polaroid-collage` (if strong visual material).
+**Use:** `blocks/editorial-hero` · `blocks/caption-bar-hero` · `blocks/story` · `blocks/feature-list` · `blocks/polaroid-collage` (if strong visual material) · `blocks/image-text` (2/3 image + text, `IMG_SIDE` left/right) · `sections/full-width-image` (a single live full-bleed frame, optional link).
 **Avoid:** heavy product grids before the reveal; discount-led modules.
 
 ### `product_spotlight`
 **Goal:** make one hero product irresistible without a full grid.
 
-**Use:** `blocks/designed-product-card` (badge + serif name/price) **or** `products/card-lifestyle-studio` (lifestyle+studio stack, one per email) · `blocks/feature-list` for reasons-to-believe · `sections/testimonial` to close.
+**Use:** `blocks/designed-product-card` (badge + serif name/price) **or** `products/card-lifestyle-studio` (lifestyle+studio stack, one per email) · `blocks/image-text` (2/3 image + text & button, `IMG_SIDE` left/right) · `blocks/feature-list` for reasons-to-believe · `sections/full-width-image` (a single live full-bleed frame, optional link) · `sections/testimonial` to close.
 **Avoid:** more than one spotlight treatment; dense competing grids.
 
 ### `occasion_gifting` — emotional occasion
 **Goal:** help the reader express a feeling or mark a moment.
 
-**Use:** `blocks/story` · a softer `blocks/editorial-hero` · `sections/body-copy-plain` · `blocks/polaroid-collage` · `sections/opt-out` early (after hero) for sensitive occasions (Mother's/Father's Day, Valentine's, pregnancy/baby, memorial — see brand-voice sensitivity rules).
+**Use:** `blocks/story` · a softer `blocks/editorial-hero` · `blocks/image-text` (2/3 image + text, `IMG_SIDE` left/right) · `sections/body-copy-plain` · `sections/full-width-image` (a single live full-bleed frame, optional link) · `blocks/polaroid-collage` · `sections/opt-out` early (after hero) for sensitive occasions (Mother's/Father's Day, Valentine's, pregnancy/baby, memorial — see brand-voice sensitivity rules).
 **Avoid:** hard urgency; discount framing near sensitive occasions.
 
 ### `discount_offer`
 **Goal:** make the value clear without damaging the premium feel.
 
 **Use:** `blocks/offer-panel` (the designed offer hero) · `blocks/comparison-vs` · `blocks/feature-list` · `blocks/howto-steps`. For a giveaway, `blocks/offer-panel` in GIVEAWAY MODE (`PROMO_CODE=""`).
-**Avoid:** heavily emotional story modules when the objective is rational/value-led; stacking `offer-panel` *and* `sections/promo-code` (pick one).
+**Avoid:** heavily emotional story modules when the objective is rational/value-led; stacking `offer-panel` *and* `sections/promo-code` (pick one); `blocks/image-text` and `sections/full-width-image` (editorial/spotlight modules — not built to carry a price/offer).
 
 ### `value_prop`
 **Goal:** rational reasons to choose Fig & Bloom.
 
-**Use:** `blocks/feature-list` · `blocks/comparison-vs` · `sections/trust-bar` · `sections/three-column-steps-*`.
+**Use:** `blocks/feature-list` · `blocks/comparison-vs` · `blocks/image-text` (2/3 image + text & button, `IMG_SIDE` left/right) · `sections/trust-bar` · `sections/three-column-steps-*`.
 **Avoid:** emotion-led openers that bury the argument.
 
 ### `education_howto`
@@ -166,6 +166,16 @@ is editorial, not promotional. No discount-leading and no manufactured deadlines
 > `occasion_gifting`. A "From the Journal" row of 2–3 linked article tiles. Live HTML
 > (per-tile links). Editorial only — no price field. Use instead of product cards when linking
 > blog posts.
+
+> **`blocks/image-text` intent** (mirrors `COMPONENT_INTENT` / live-schema `bestFor`+`avoidFor`)
+> — bestFor: `product_spotlight`, `range_launch`, `value_prop`, `occasion_gifting`; avoidFor:
+> `discount_offer`. requiresImage: true; imageRatio: `400x500 (4:5)`. role: 2/3 image + text &
+> button, `IMG_SIDE` flips the image left/right. Designed block — sliced to PNG. One per email.
+
+> **`sections/full-width-image` intent** (mirrors `COMPONENT_INTENT` / live-schema `bestFor`+`avoidFor`)
+> — bestFor: `range_launch`, `product_spotlight`, `editorial_digest`, `occasion_gifting`; avoidFor:
+> `discount_offer`. requiresImage: true; imageRatio: `any (600 wide, natural height)`. role: single
+> full-width image, live HTML, optional link. NOT sliced — keeps its own click-through and animated GIF.
 
 **Recurring-edition naming convention:** name each edition
 `EDM | {YYYY-MM} {Edition Name}` (e.g. `EDM | 2026-06 In Bloom`) so a series sorts

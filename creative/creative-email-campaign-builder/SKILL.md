@@ -54,9 +54,9 @@ Pick the send's `subjectLine` from that objective's `subjectPatterns` and persis
 `/api/assemble` resolves `component` to `design-system/templates/<component>.html`, so the value **must include the group folder**:
 
 - Heroes → `heroes/hero-a`, `heroes/hero-d-clay`, `heroes/hero-image-only`
-- Sections → `sections/body-copy-plain`, `sections/section-headline`, `sections/upsell-noir`, `sections/trust-bar`
+- Sections → `sections/body-copy-plain`, `sections/section-headline`, `sections/upsell-noir`, `sections/trust-bar`, `sections/full-width-image`
 - Products → `products/card-horizontal`, `products/card-lifestyle-studio`
-- Designed blocks → `blocks/caption-bar-hero`, `blocks/editorial-hero`, `blocks/offer-panel`
+- Designed blocks → `blocks/caption-bar-hero`, `blocks/editorial-hero`, `blocks/offer-panel`, `blocks/image-text`
 - Dividers → `dividers/divider-line`, `dividers/divider-illo-clay`
 - **Top-level (no prefix):** `header`, `footer`
 
@@ -290,6 +290,7 @@ Designed blocks live in `references/templates/blocks/` and are listed under `com
 | `offer-panel` | Promo / sale / flash / Black Friday / free-shipping / rewards — and **giveaways** (GIVEAWAY MODE). Open or strong-close beat for promo sends. | Huge Lust offer value + dashed promo-code box + rotated Cervanttis sticker + button. Parametrised palette (+ seasonal accent allowed). `PROMO_CODE=""` for giveaways. The designed hero version of `sections/promo-code`. Max one per email. |
 | `howto-steps` | Care guides / how-to / "make them last" sequences — a **vertical** numbered 3-step flow with a photo per step. Mid-email affirm beat. | Big Lust step numerals + NeuzeitGro caps titles + tilted framed step photos (alternating left/right). Parametrised palette. Exactly three steps. Use `sections/three-column-steps-*` for a compact horizontal partner-flow instead. Max one per email. |
 | `comparison-vs` | Us-vs-them / bought-vs-got / before-after side-by-side. Mid-email affirm beat for differentiation moments. | Two square photos (left greyscaled "before/others", right bordered "after/us") + central circular Cervanttis "vs" badge straddling the columns. Parametrised palette. Max one per email. |
+| `image-text` | A product/range spotlight pairing one strong image with a short headline + body + button (spotlight / range launch / value prop / occasion gifting). Mid-email beat. | 2/3-width image (400px) + 1/3 text column (NeuzeitGro super-label, Lust headline, NeuzeitGro body, square button). `IMG_SIDE` lever flips the image `left`/`right`. Parametrised palette. Max one per email. |
 | `editorial-collage` **(DRAFT — pending design review)** | A more art-directed editorial/newsletter opener or affirm beat wanting a layered, gallery-wall feel beyond `polaroid-collage`. | Three overlapping tilted photo frames + NeuzeitGro label + Cervanttis accent + Lust pull-quote + button. Parametrised palette; `ROTATION` lever. **Max one per email; slice to PNG.** Draft — not ship-ready until a designer signs off. |
 | `annotated-product` **(DRAFT — pending design review)** | A single hero product whose 2–3 reasons-to-believe read best as hand-written callouts pinned on the photo — a playful alternative to `designed-product-card`. Mid-email. | Product photo + three rotated, overlapping Cervanttis callout chips + Lust name/price + button. Parametrised palette; `ROTATION` lever. **Max one per email; slice to PNG.** Draft — not ship-ready until a designer signs off. |
 
@@ -355,6 +356,7 @@ palette — set them from the locked enum values only (never free hex/px), copyi
 | `ROTATION` | `flat` \| `subtle` \| `jaunty` | `editorial-hero`, `story`, `polaroid-collage`, `designed-product-card`, `editorial-collage`, `annotated-product` |
 | `DENSITY` | `tight` \| `regular` \| `airy` | `polaroid-collage` |
 | `ACCENT_ILLO` | `on` \| `off` | `editorial-hero`, `story`, `polaroid-collage`, `designed-product-card` |
+| `IMG_SIDE` | `left` \| `right` | `image-text` (which side the image sits) |
 
 Default to the restrained values (`ROTATION=subtle`, `TYPE_SCALE=regular`,
 `DENSITY=regular`, `ACCENT_ILLO=off`); reach for `oversized` / `jaunty` / `airy` / `on` as
@@ -411,13 +413,14 @@ This step fills tokens into templates and renders visual components as PNG slice
 Divide the selected component list into two groups:
 
 **Slice to PNG** (visual — render via Puppeteer `slice.js`):
-- header, all hero variants, all product cards, **all designed blocks (`blocks/*` — editorial-hero, feature-list, polaroid-collage, caption-bar-hero, story, designed-product-card, offer-panel, howto-steps, comparison-vs)**, body-copy (illustrated variant), testimonial, upsell-noir, trust-bar, divider-illo-*
+- header, all hero variants, all product cards, **all designed blocks (`blocks/*` — editorial-hero, feature-list, polaroid-collage, caption-bar-hero, story, designed-product-card, offer-panel, howto-steps, comparison-vs, image-text)**, body-copy (illustrated variant), testimonial, upsell-noir, trust-bar, divider-illo-*
 
 **Slice to animated GIF** (animated hero — render via `slice-gif.js`, Step 5e):
 - A `caption-bar-hero` / `editorial-hero` / `hero-image-only` whose hero is animated. ~31% of the corpus ships an animated GIF hero — treat it as a first-class output, not an afterthought.
 
-**Keep as HTML** (text-only — safe in all email clients, stays selectable/responsive):
+**Keep as HTML** (safe in all email clients, stays selectable/responsive):
 - opt-out, section-headline, delivery-cutoffs, footer, body-copy-plain, divider-line, divider-whitespace
+- **Live-HTML image components (NOT sliced):** `journal-tile` (per-tile links) and `full-width-image` (a single 600px image kept live so it keeps its own click-through link and an animated GIF keeps animating). Both are listed in `manifest.json → assembly.html_only_components`.
 
 **Body-copy variant selection:**
 - `body-copy` (sliced) — includes the HandRose accent illustration (bottom-right, 10% opacity). Use when you want the illustration.
