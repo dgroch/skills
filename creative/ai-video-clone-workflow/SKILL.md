@@ -1,13 +1,13 @@
 ---
 name: ai-video-clone-workflow
-description: "Clone/replicate an existing video (competitor ad or your own winner) using AI actors. Multi-scene, native audio, captions, and brand product integration. Higgsfield pipeline."
-version: 2.2.0
+description: "Clone/replicate an existing video (competitor ad or your own winner) using AI actors. Multi-scene, native audio, captions, brand product integration. Reference-seed prompting, camera/hands + capture-realism hard-fail gates, a per-clip motion critic, and a Brand Profile + MCP/CLI adapter for multi-brand, multi-runtime use."
+version: 3.0.0
 author: Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
 metadata:
   hermes:
-    tags: [creative, ai-video, ugc, seedance, higgsfield, ad-cloning, video-production, audio, captions, multi-scene]
+    tags: [creative, ai-video, ugc, seedance, higgsfield, ad-cloning, video-production, audio, captions, multi-scene, brand-profile, mcp]
 ---
 
 # AI Video Clone Workflow
@@ -19,6 +19,77 @@ End-to-end process for cloning/replicating an existing video (competitor ad, win
 - Rip competitor winning ads and recreate them with your own AI UGC actor
 - Create variations of your own winning ads for different customer avatars
 - Clone a viral format but swap in Fig & Bloom product and branding
+
+> **Brand- and runtime-agnostic.** This skill reads a **Brand Profile** (see "Brand Profile" near the end) instead of hardcoding Fig & Bloom, and speaks **named operations** mapped to either the Hermes `higgsfield` CLI or Cowork MCP tools (see "Runtime Adapter"). Every Fig & Bloom value below is the **shipped example profile**, not a hard dependency.
+
+## 🎯 Prompting Rules (R1–R8) — read this first
+
+These eight rules are the real IP of this skill. They exist because a full production run
+spent ~7 review cycles fixing the *same class* of problems by hand: the model **drifted
+from references we supplied**, **degraded the image to fake "realism,"** and **broke
+physical/camera logic** a human notices instantly. Bake them into every GENERATE prompt and
+critic gate so the first pass is already right. Each step and template references these by ID.
+
+Two framing principles carry through everything:
+
+1. **If you gave the model a reference, don't describe what's in it — name it ("this exact X") and let the reference carry it.** Describing a seeded element is what makes the model re-invent it.
+2. **Real phone footage is a crystal-clear, perfectly-captured image of an *imperfect world* — not an imperfect (grainy/soft) image.** Put the imperfection in the scene and the moment, never in the image quality.
+
+**R1 — Reference-seed prompting.** When a reference image is supplied for an element, **do
+not describe that element's appearance in words** — name it: *"a woman holding **this exact
+bouquet** (reference image 2) — reproduce the bouquet, its wrapping, printed wordmark and
+ribbon exactly as shown; do not redraw, recolour or restyle."* Describe only what is NOT in a
+reference (pose, scene, light, action). Pick a **clean, true-colour reference** — a warm/pink-cast
+reference is what pushed a white wrap to dusty pink; prefer a neutral/dark-background product
+shot and sanity-check its colour first. Keep negative constraints (e.g. "no glass vase") —
+negatives still help; it's positive *re-description* of a seeded element that hurts.
+
+**R2 — Realism = a perfect image of an imperfect world.** Prompt for a **crystal-clear,
+razor-sharp, well-exposed, true-colour** modern-flagship-phone capture (including good
+low-light clarity). **Ban these words** from realism prompts: grain, grainy, sensor noise,
+soft focus, hazy, blurry, faded, lo-fi, vintage, "blown highlights," degraded. Put realism in
+the **world**: candid unposed moment; a genuinely lived-in/messy room in sharp detail; natural
+un-retouched skin texture (sharp, well-lit); authentic arm-extended selfie geometry. Tagline:
+*"a crystal-clear, perfectly-captured phone selfie of a real, imperfect, lived-in moment."* The
+only acceptable blur is the natural motion blur of genuine fast movement (e.g. a spin).
+
+**R3 — Handheld motion.** Animation must read as a real handheld phone: subtle natural shake,
+micro-jitter, slight sway/drift, small unstabilised reframing. **Match camera energy to the
+beat** (more on a laugh/peak, minimal on a quiet hold). **Avoid:** smooth gimbal, stabilised,
+tripod, cinematic dolly, slow-motion glide.
+
+**R4 — Camera & hands logic (HARD).** In a selfie/handheld piece the **phone occupies one hand
+at all times**, and for a selfie the **extended arm should be visible in frame**. Therefore
+**no action may require a hand that is holding the phone** (no "touching the flowers" with the
+second hand while already holding the bouquet → both hands busy → no one is filming). A **true
+selfie spin** = the phone travels *with* the body: the extended arm stays in frame, the face
+stays framed, the room sweeps behind. **If a full 360 can't keep the arm believable, fall back
+to a ¾ or ½ turn** rather than ship the break.
+
+**R5 — Model routing + bake-off.** For **branded products with printed text/wordmarks**, route
+to **text-strong** image models. Bake-off winner: **GPT Image 2 (`gpt_image_2`)**, with GPT
+Image 1.5 (`gpt_image`) close; `nano_banana_2` and `flux_kontext` lost on the wordmark. When
+fidelity matters and you're unsure, **run a one-keyframe bake-off across 2–4 models and pick
+the winner before committing the set.** Naming gotcha: request **`nano_banana_pro`** to get the
+strong nano_banana_2 engine — requesting `nano_banana_2` by name can silently downgrade to
+`nano_banana_flash`; verify the engine in the job record. A printed wordmark may be **very
+close, not pixel-perfect**; for a hero still that must be exact, **composite the real product
+image in post** rather than burning more generations.
+
+**R6 — Brand voice & assets (parameterised).** Pull voice rules, banned words, palette, logo
+lockup, talent reference, product source and music source from the **Brand Profile**, not
+hardcoded. (Fig & Bloom example: AU English; no exclamation marks; no em-dashes; banned words
+luxury/elevate/curate/curated/stunning/gorgeous and "blooms" as a noun; the free card is a
+"gold-foiled greeting card," never "handwritten"; palette Clay `#D8CCBE`; "For Moment Makers"
+stacked-logo close.)
+
+**R7 — Caption = original, in-spirit.** Reproduce the source caption's **format and function**
+(placement, style, the *kind* of hook), but **write original caption copy in the source's
+spirit, in the brand's voice.** Only reproduce verbatim text that is the user's own — lifting a
+competitor's literal caption is an originality/IP risk and usually off-brand.
+
+**R8 — Licensed music only for the final.** Use a licensed source (Epidemic Sound) for final
+brand audio, never cheap AI music (`sonilo_music`). Make the music **source** a Brand-Profile input.
 
 ## ⚡ Loop Engineering Layer (run this AROUND the whole pipeline)
 
@@ -37,8 +108,9 @@ End-to-end process for cloning/replicating an existing video (competitor ad, win
                  STOP and escalate to the user with the failing dimensions + candidates
 ```
 
-**Two critic checkpoints are mandatory** (cheap to run, save credits):
-- **Keyframe critic** (after Step 8, before animating): score each keyframe against its scene spec. Never animate a keyframe that fails — animation multiplies the error and burns credits.
+**Three critic checkpoints are mandatory** (cheap to run, save credits):
+- **Keyframe critic** (after Step 8, before animating): score each keyframe against its scene spec and rubric Dims 1–10 + 12. Never animate a keyframe that fails — animation multiplies the error and burns credits. **Dims 9 (camera/hands) and 10 (capture realism) are hard-fail — a both-hands-busy or degraded-"realism" frame is never surfaced to the user.**
+- **Motion critic** (Step 9.5, between animate and concat): sample frames across each clip and score Dims 9 & 11 on **multi-frame evidence** — the worst breaks (a selfie arm vanishing mid-spin) appear only in motion. See Step 9.5.
 - **Final critic** (after Step 12): score the assembled video against the full rubric before delivery.
 
 ### The Rubric
@@ -55,6 +127,12 @@ Score each dimension **0–5**. **Pass threshold = 4** on every dimension. Any d
 | 6 | **Audio** | Has audio bed; voiceover accent correct; music on-brand (or intentionally `-an` for handoff) | Silent clone when source had audio (unless handoff) |
 | 7 | **Brand polish** | Editorial, premium, on-brand; no cheap/gimmicky elements | `sonilo_music`-style cheap audio shipped as final |
 | 8 | **Technical** | Correct 9:16, resolution consistent, clean concat, no artifacts/seams | Resolution mismatch, visible concat seams, corruption |
+| 9 | **Camera/hands logic (R4)** ⛔ *hard-fail* | Phone plausibly in one hand throughout every shot AND motion; selfie arm visible; no action frees/occupies both hands | Any frame where nobody could be holding the camera (both hands busy; selfie arm vanished mid-move) |
+| 10 | **Capture realism (R2)** ⛔ *hard-fail* | Sharp, clean, well-exposed, true colour; imperfection lives in the world/subject | Image grainy/soft/degraded to fake "realism" |
+| 11 | **Motion authenticity (R3)** | Reads as real handheld; energy matches the beat | Gimbal-smooth/cinematic glide; or warped background in a spin |
+| 12 | **Source essence (Step 0)** | The clone reproduces the hook mechanism + emotional arc, not just surface shots | Generic generation that ignores *why* the source worked |
+
+**Dims 9 & 10 are hard-fail (auto-0): a frame that fails either is regenerated before a human sees it.** Dims 9 and 11 must be scored on **multi-frame evidence** by the Motion Critic (Step 9.5), not a single still. Dim 4 (Product fidelity) now requires the **reference-seed method (R1)** and a **clean reference** — see `references/clone-rubric.md`.
 
 The critic must **cite evidence** for each score (the vision_analyze observation or ffprobe value), not just assert a number. A score without evidence is invalid — re-run the critique.
 
@@ -65,13 +143,18 @@ When a dimension fails, write a revision note the next GENERATE pass can act on 
 ```
 [FAIL] Dimension 4 (Product fidelity) — score 2/5
 Evidence: vision_analyze reports bouquet in a clear glass vase with water.
-Fix: regenerate keyframe with gpt_image_2, add negative constraint "no glass vase,
-     no water container", describe white tissue wrap + cream satin ribbon.
+Fix: regenerate keyframe with gpt_image_2, pass the clean product photo as the reference,
+     prompt "this exact bouquet (reference image N), reproduce exactly as shown", keep the
+     negative "no glass vase, no water container" — do NOT describe the wrap/ribbon (R1).
 ```
 
 Vague notes ("make it better") are not allowed — they don't converge. See `references/clone-rubric.md` for the full critic prompt that enforces this.
 
 ## 🎭 Casting / Identity Matrix (Fig & Bloom shopper demographics)
+
+> This matrix is the **example profile's** `talent.mode: casting_matrix` config (see Brand
+> Profile). Another brand supplies its own demographics or a `fixed_reference` spokesmodel.
+> **"Flaws required" is global** regardless of profile.
 
 When casting the AI talent, choose an identity that fits Fig & Bloom's shopper demographics. **Rotate across these groups** for a diverse content library — don't default to the same identity every time. Match the identity to the campaign/occasion where relevant.
 
@@ -116,18 +199,26 @@ The original video likely has text overlays (captions, quotes, CTA text). These 
 ### Pitfall #4: Silent Videos
 The original video likely has audio — voiceover dialogue, face-to-camera speech, background music, or ambient sound. A silent clone is immediately noticeable. Generate audio WITH the video where possible (Kling 3.0 `--sound on`, Seedance 2.0 `--generate_audio true`, Veo 3.1 Lite `--generate_audio true`), and add voiceover/music in post-production where needed. See the Audio Generation section.
 
-### Pitfall #5: Product Fidelity — soul_cinematic Loses Brand Detail
-`soul_cinematic` generates beautiful keyframes but does NOT faithfully reproduce branded products. A Fig & Bloom bouquet generated with soul_cinematic will look generic — wrong wrapping, wrong ribbon, approximate flowers. The user will immediately notice the bouquet doesn't match the real product.
+### Pitfall #5: Product Fidelity — wrong model AND describing a seeded reference
+Two distinct mistakes wreck branded-product fidelity, and the run hit both:
 
-**Fix: Use GPT Image 2 (`gpt_image_2`) with `--image <product_uuid>` to reference the real product photo.** Upload the product image to Higgsfield, then pass it as `--image`:
+1. **Wrong model.** `soul_cinematic` generates beautiful keyframes but does NOT faithfully
+   reproduce branded products or printed wordmarks. Route branded product to a **text-strong**
+   model — **GPT Image 2 (`gpt_image_2`)** won the bake-off (R5).
+2. **Describing a seeded reference (R1).** Even with the real photo attached, *describing* the
+   wrap ("white tissue with botanical illustrations", "blush-pink") makes the model re-invent
+   it — wrong pattern, drifted colour, garbled wordmark. **Name it, don't describe it.**
+
+**Fix: GPT Image 2 with the product photo as `--image`, and "this exact bouquet" prompting —
+no wrap description.** Pick a clean, true-colour reference (R1):
 
 ```bash
-# Upload the real product photo
+# Upload a CLEAN, true-colour product photo (neutral/dark bg — not a warm/pink-cast shot)
 PRODUCT_UUID=$(HOME=/opt/data/home higgsfield upload create /tmp/fab_products/osaka.jpg)
 
-# Generate keyframe WITH product reference
+# Generate keyframe WITH the product reference — name it, do NOT describe the wrap
 HOME=/opt/data/home higgsfield generate create gpt_image_2 \
-  --prompt "<scene description, include 'THE BOUQUET MUST EXACTLY MATCH the reference product image'>" \
+  --prompt "<pose/scene/light only>. She holds this exact bouquet (reference image) — reproduce it, its wrapping, printed wordmark and ribbon exactly as shown; do not redraw, recolour or restyle. Wrapped bouquet only, no glass vase, no water container." \
   --image "$PRODUCT_UUID" \
   --aspect_ratio 9:16 \
   --quality high \
@@ -137,7 +228,13 @@ HOME=/opt/data/home higgsfield generate create gpt_image_2 \
 
 **⚠️ GPT Image 2 `--medias` requires an array, not a string.** Passing `--medias "uuid"` fails with "Invalid types: medias should be array, got string". Use `--image <uuid>` (singular) instead — the CLI auto-wraps it correctly.
 
-Nano Banana Pro (`nano_banana_2`) is an alternative with `--input_images` (array) and `--resolution` up to 4k.
+**Bake off when unsure (R5).** When wordmark fidelity matters, generate one keyframe across
+2–4 candidates and pick the winner before committing the set. **Naming gotcha:** request
+**`nano_banana_pro`** to actually get the strong nano_banana_2 engine — requesting
+`nano_banana_2` by name can silently downgrade to `nano_banana_flash`; verify the engine in the
+job record. `flux_kontext` lost on wordmarks (use it only to harmonise/edit an existing frame).
+A wordmark may be near-exact, not pixel-perfect — **composite the real product** for an exact
+hero still.
 
 ## Step-by-Step Process
 
@@ -172,6 +269,18 @@ Find the video you want to copy — a competitor's winning ad or one of your own
 Each row contains the video title, category, creator handle, Local ID (TikTok video ID), views, likes, and adaptation notes. Construct the TikTok URL as `https://www.tiktok.com/@{handle}/video/{local_id}`.
 
 **Alternative — work from concept metadata when the video isn't downloadable:** If the source video is behind an auth wall (TikTok login, Google Drive sign-in) or you already have a structured deconstruction, you can skip the Gemini video upload. The Fig & Bloom Paperclip routine populates a Notion "Ad Concepts" database (`data_source_id: cee45a98-19c8-4f46-98ae-97e4ab7dbe51`) with fields that map directly to the deconstruction output: Pattern Interrupt, Proof, Visual Direction, CTA, Format, Lens, Audience, and Occasion. Each row is a ready-made scene deconstruction — use it as the Gemini output and jump to Step 5 (Claude JSON). Steps 3-4 (first-frame screenshot + actor swap) become specification exercises rather than Gemini interactions: describe the first frame in detail from the Visual Direction field, and define the AI actor with flaws from imagination.
+
+### Step 0: Source Essence Analysis (run before deconstruction — feeds everything)
+
+Before deconstructing shots, write a short analysis of **why the video works as a whole** —
+this is what should drive every creative choice. The shot-by-shot deconstruction (Step 2)
+becomes the *execution* of this essence, not a substitute for it. Produce:
+
+- **Hook** — what it is and *why* it earns the next few seconds (a framing? a question? a pattern interrupt?).
+- **Emotional arc** — the beat-to-beat curve and where the **peak** is.
+- **Pacing & structure**, **sound design**, **how the product is integrated** (presented vs lived-with), and the **close/CTA logic**.
+
+> **🚦 GATE — do not generate keyframes until the hook mechanism and the emotional peak are explicitly named in writing.** This is the difference between a true clone and a generic generation. It is scored as **Dimension 12 (Source essence)** of the rubric. The keyframe on the peak beat carries the emotional payload — note which beat that is.
 
 ### Step 2: Deconstruct ALL Scenes (Gemini or frame-stepping)
 
@@ -256,13 +365,36 @@ Download product images:
 curl -sL "<shopify_cdn_url>" -o /tmp/fab_products/<product>.jpg
 ```
 
-Use these as visual reference when crafting keyframe generation prompts — describe the Fig & Bloom packaging (white tissue wrap with botanical illustrations, branded satin ribbon, the specific flower varieties in the bouquet) so the generated image matches the real product.
+Pass these as the **product reference image** on the keyframe generation call — and **do not
+describe the packaging in words (R1).** Describing a seeded element (the wrap pattern, the
+ribbon colour, the wordmark) is what makes the model **re-invent** it: in production, writing
+"blush-pink tissue with botanical illustrations" drove a white wrap to dusty pink and garbled
+the wordmark across three passes, *even with the real photo attached.* Instead, **name it**:
 
-**⚠️ CRITICAL — Product must be WRAPPED, not in a glass vase.** Fig & Bloom bouquets are delivered as hand-tied wrapped bouquets — white tissue paper with botanical line-art illustrations, cream satin ribbon with logo, flat stable base. They are NOT in glass vases on the website. Image generation models default to putting flowers in a glass vase unless EXPLICITLY told otherwise. Always include in the keyframe prompt:
+> a woman holding **this exact bouquet** (reference image N) — reproduce the bouquet, its
+> wrapping, printed wordmark and ribbon **exactly as shown**; do not redraw, recolour or
+> restyle. The bouquet is **wrapped, not in a glass vase** — no water container.
 
-> The bouquet is WRAPPED IN PAPER — no glass vase, no water container. It is a hand-tied wrapped bouquet with white tissue paper featuring black botanical line-art illustrations and Fig & Bloom branding, tied with a cream satin ribbon printed with the Fig & Bloom logo, standing on a flat wrapped base.
+Describe only what is NOT in the reference: pose, scene, light, action. See
+`references/prompt-templates.md` for the ready-to-paste product-keyframe template.
 
-Without this explicit instruction, even GPT Image 2 with the product photo as `--image` reference will produce a glass vase. The model needs the negative constraint ("no glass vase, no water container") alongside the positive description of the wrapping.
+**Pick a clean, true-colour reference (R1).** A reference shot with a warm/pink cast is what
+pushed the white wrap to pink — prefer a neutral or dark-background product shot and
+**sanity-check the reference's colour before using it.** Verify the keyframe against the *real*
+product, not against the prompt.
+
+**⚠️ Keep the WRAPPED negative — it still helps.** Image models default to putting flowers in a
+glass vase unless told otherwise. The negative constraint stays:
+
+> wrapped bouquet only — **no glass vase, no water container.**
+
+It is positive *re-description* of the seeded wrap that hurts; the negative constraint does not.
+So: **reference + "this exact bouquet" + the no-vase negative**, and nothing describing the
+wrap, ribbon, or wordmark appearance.
+
+**Wordmark realism (R5):** route branded-product keyframes to a **text-strong** model
+(`gpt_image_2`); a printed wordmark may land **near-exact, not pixel-perfect**, which passes —
+if a hero still must be exact, **composite the real product image in post**.
 
 ### Step 8: Generate Keyframe PER SCENE
 
@@ -272,10 +404,27 @@ Generate a keyframe image for **each scene** in the deconstruction, not just sce
 
 | Model | Best For | Product Reference | Key Flag |
 |---|---|---|---|
-| `gpt_image_2` | Branded product keyframes (Fig & Bloom bouquets) | YES — pass product photo as `--image <uuid>` | `--image`, `--quality high`, `--resolution 2k` |
+| `gpt_image_2` | **Primary** — branded product / printed wordmark (bake-off winner, R5) | YES — pass product photo as `--image <uuid>` | `--image`, `--quality high`, `--resolution 2k` |
+| `gpt_image` (GPT Image 1.5) | Close second for branded product text | YES — `--image <uuid>` | `--image` |
+| `nano_banana_pro` | Strong general 4K / character | YES — `--input_images` (array) | **request `nano_banana_pro`, NOT `nano_banana_2`** (silent downgrade to `nano_banana_flash`); verify engine in job record |
+| `flux_kontext` | Harmonise / edit an existing frame only | n/a | **Lost on wordmarks — never for hero product text** |
 | `soul_cinematic` | Composition-only (no branded product) | NO | `--aspect_ratio` |
 | `text2image_soul_v2` | UGC/portrait style | NO | `--aspect_ratio` |
-| `nano_banana_2` | Alternative for product keyframes | YES — `--input_images` (array) | `--resolution` up to 4k |
+
+**Bake-off step (R5):** when product/branding fidelity matters and you're unsure, generate
+**one** keyframe across 2–4 candidate models, score Dim 4, and commit the winner before
+generating the rest of the set. Cheap insurance against a whole bad set.
+
+> **🎞️ Realism callout (R2) — a perfect image of an imperfect world.** Every keyframe prompt
+> must ask for a **crystal-clear, razor-sharp, well-exposed, true-colour** modern-flagship-phone
+> capture (good low-light clarity included). The client rejected keyframes that chased "realism"
+> by **degrading the image**. Put the imperfection in the **world**, not the pixels.
+> - **Ban these words from the prompt:** grain, grainy, sensor noise, soft focus, hazy, blurry,
+>   faded, lo-fi, vintage, "blown highlights," degraded.
+> - **Realism lives in:** a candid unposed moment; a genuinely lived-in/messy room in sharp
+>   detail; natural un-retouched skin texture (sharp, well-lit); authentic arm-extended selfie
+>   geometry. Drop-in: *"a crystal-clear, perfectly-captured phone selfie of a real, imperfect,
+>   lived-in moment."* This is scored as **Dim 10 (Capture realism) — a hard-fail.**
 
 **For product-faithful keyframes (USE THIS FOR FIG & BLOOM):**
 
@@ -307,9 +456,28 @@ Download and **verify each keyframe** with `vision_analyze` before proceeding:
 
 Only animate once ALL keyframes are confirmed to match their respective scenes.
 
+### Motion & Camera Logic (R3 + R4) — apply to every animation prompt
+
+Two of the costliest review breaks were *motion* errors a single keyframe can't reveal. Wire
+these into every animate prompt (templates in `references/prompt-templates.md`):
+
+- **R3 — Handheld feel.** Direct the motion as a real handheld phone: subtle natural shake,
+  micro-jitter, slight sway/drift, small unstabilised reframing, with **energy matched to the
+  beat** (more on a laugh/peak, minimal on a quiet hold). **Avoid:** smooth gimbal, stabilised,
+  tripod, cinematic dolly, slow-motion glide. Floaty/cinematic motion fails **Dim 11**.
+- **R4 — Camera & hands logic (HARD).** The phone occupies **one hand at all times**; for a
+  selfie the **extended arm is visible in frame**. **No action may require the hand holding the
+  phone.** The two classic breaks: (a) "touching the flowers" with the second hand while already
+  holding the bouquet — both hands busy, no one's filming; (b) a full pirouette where the selfie
+  arm disappears — reads as an external camera. A **true selfie spin** = the phone travels *with*
+  the body (arm stays in frame, face stays framed, room sweeps behind). **If a full 360 can't
+  keep the arm believable, fall back to a ¾ or ½ turn.** This is **Dim 9 — a hard-fail**, and the
+  Motion Critic (Step 9.5) verifies it across *every* sampled frame, not just the keyframe.
+
 ### Step 9: Animate Each Scene (With Audio)
 
-For each scene, upload the keyframe and generate video. **Choose your audio strategy:**
+For each scene, upload the keyframe and generate video. Put **R3 + R4** (above) in every motion
+prompt, then **choose your audio strategy:**
 
 #### Audio Strategy A: Native Audio Generation (preferred for ambient + speech from prompt)
 
@@ -390,6 +558,27 @@ curl -X POST "https://api.higgsfield.ai/v1/generate" \
   -d '{"job_set_type":"voice_change","params":{"input_video":{"media_id":"'"$VIDEO_UUID"'","type":"media_input"},"voice_id":"aEO01A4wXwd1O8GPgGlF","voice_type":"preset"}}'
 ```
 
+### Step 9.5: Motion Critic (per clip, between animate and concat) — MANDATORY
+
+The keyframe critic and final critic miss errors that appear **only in motion** — the worst
+break (a pirouette where the selfie arm vanished) lives *between* keyframes. After each clip is
+animated, **sample frames across the whole clip and critique the motion before assembly.**
+
+1. **Sample frames** every ~0.5–1 s with the helper:
+   ```bash
+   scripts/sample_clip_frames.sh /tmp/scene1_video.mp4 0.5 /tmp/motion_frames/scene1
+   ```
+2. **Score with multi-frame evidence** (cite specific frames — never a single still):
+   - **Camera/hands logic (R4 / Dim 9):** the selfie arm is present and plausible in **every**
+     sampled frame; no frame leaves both hands busy or the camera unheld.
+   - **No background warping (Dim 11):** critical for spins generated from a single keyframe.
+   - **Continuity:** same person / outfit / product / room across the clip.
+3. **Gate:** if it fails, **regenerate the motion (or fall back to a smaller move — ¾/½ turn)
+   before assembly.** Do not concat a clip with a Dim 9 break. The Motion Critic scores
+   **Dimensions 9 and 11**; feed its revision notes straight into the re-animate prompt.
+
+This is the third mandatory critic checkpoint (keyframe → **motion** → final).
+
 ### Step 10: Generate Background Music (when needed)
 
 **⚠️ Pitfall: `sonilo_music` produces cheap-sounding music for premium brands.** AI-generated music from Higgsfield's `sonilo_music` model sounds generic, boppy, and not on-brand for editorial brands like Fig & Bloom. Daniel explicitly rejected it as "cheap and gimmicky." Use licensed music from **Epidemic Sound** instead when brand quality matters.
@@ -465,6 +654,14 @@ Volume levels (tuned from production):
 Use `duration=first` (not `shortest`) so the output matches the video length even if music is shorter.
 
 #### Caption Burning — Three Approved Styles
+
+> **✍️ Caption copy = original, in-spirit (R7) — decide the words before the mechanics.**
+> Reproduce the source caption's **format and function** (placement, style, the *kind* of hook),
+> but **write original copy in the brand's voice** (Brand Profile, R6). Only reproduce verbatim
+> text that is the **user's own**. Copying a *competitor's* literal on-screen caption is an
+> originality/IP risk and usually off-brand — and the brand's banned-words/voice rules still
+> apply to whatever you write. This is scored under **Dimension 5 (Captions)** and **Dimension 8
+> (Brand polish)**. The styles below are only the *rendering*; the copy is yours.
 
 **⚠️ CRITICAL: Caption design is NOT optional.** Captions that are too large, left-aligned, or positioned without margin awareness will run off-screen and look amateurish. The `creative-design-discipline` skill governs this — apply its grid, margin, and safe-zone principles to video captions, not just static layouts.
 
@@ -577,23 +774,28 @@ ffmpeg -y -i /tmp/clone_mixed.mp4 \
 ```
 Source Video
     ↓
-Gemini / frame-stepping (deconstruct ALL scenes)
+STEP 0: Source Essence Analysis (hook + emotional peak) ──[GATE]──
     ↓
-Cast identity from Casting Matrix (relevance + rotation)
+Gemini / frame-stepping (deconstruct ALL scenes — executes the essence)
+    ↓
+Cast identity from Casting Matrix / Brand Profile talent (relevance + rotation)
     ↓
 Claude (JSON descriptions of every scene, including audio + text overlays)
     ↓
-Source Fig & Bloom product images (Shopify CDN)
+Source product images (Brand Profile) → pick a CLEAN, true-colour reference (R1)
     ↓
-Per-Scene: Generate keyframe → [KEYFRAME CRITIC vs rubric] → verify → animate (with native audio)
+Per-Scene: Generate keyframe (R1 reference-seed, R2 realism, R5 model/bake-off)
+    → [KEYFRAME CRITIC vs rubric Dims 1–10,12; Dims 9&10 hard-fail] → verify → animate (R3,R4)
     ↓
-Audio: ElevenLabs voiceover (Australian accent) + Epidemic Sound / sonilo_music (background)
+STEP 9.5: [MOTION CRITIC] sample frames, score Dims 9 & 11 ──[GATE]── pass? → concat : re-animate
     ↓
-ffmpeg: Concatenate all scenes FIRST → then mix audio + burn captions ONCE
+Audio: ElevenLabs voiceover (accent) + Epidemic Sound (licensed, R8) — never sonilo for final
     ↓
-[FINAL CRITIC vs rubric] → pass? deliver : revise & loop (cap 3, then escalate)
+ffmpeg: Concatenate all scenes FIRST → then mix audio + burn captions ONCE (original copy, R7)
     ↓
-Final clone video
+[FINAL CRITIC vs full rubric] → pass? deliver public URL : revise & loop (cap 3, then escalate)
+    ↓
+Final clone video → host as a shareable URL / attach the file (never a widget reference)
 ```
 
 ## Higgsfield Video Model Comparison
@@ -622,7 +824,7 @@ Final clone video
 
 - **Character flaws = realism.** Always create the AI actor with imperfections. Smooth plastic-looking actors are the #1 giveaway.
 - **Multi-scene is non-negotiable.** If the source has 4 scenes, generate 4 keyframes, 4 video segments, and concatenate. A single-scene clone of a multi-scene video is a failed clone.
-- **Capture text overlays during deconstruction.** Read ALL text exactly with `vision_analyze` during frame extraction. The clone must reproduce captions.
+- **Capture text overlays during deconstruction — but rewrite the copy (R7).** Read ALL text exactly with `vision_analyze` so you can reproduce the caption's **format and function** (placement, style, hook type). Then **write original copy in the brand voice** — only reproduce verbatim text that is the user's own; never lift a competitor's literal caption.
 - **Audio principle (user preference):** Generate audio WITH the video wherever possible — native audio is better than post-stitched. Always use `--sound on` (Kling) or `--generate_audio true` (Seedance/Veo) to get ambient sound in the raw video. Then layer scripted voiceover on top via ffmpeg for dialogue that needs accent control.
 - **Kling `sound: on` reality check:** In production, Kling's native audio produces ambient sound (room tone, movement) and possibly speech from the prompt — but accent is NOT controlled and dialogue may be muddled. For scripted dialogue with a specific accent, always use ElevenLabs + ffmpeg mix. The native audio is still valuable as ambient bed — don't discard it.
 - **Concat-first post-production:** Concatenate all raw scene videos FIRST, then mix audio and burn captions ONCE on the full video. Simpler than per-scene processing — 3 ffmpeg passes total instead of 3×N. See Steps 11-12.
@@ -630,7 +832,7 @@ Final clone video
 - **Script-wrapper pattern for long generations:** Higgsfield video generation (Kling 3.0, Seedance 2.0) takes 2-3 minutes and exceeds the terminal's 60s default timeout. Write each generation command to a bash script, then run it. For multiple scenes, start each script with `background=true` + `notify_on_complete=true` — this generates all scenes in parallel (~3min total instead of N×3min).
 - **ElevenLabs key retrieval:** The key in `/opt/data/.env` may have quotes or trailing spaces. Clean it: `ELEVEN_KEY=$(grep "^ELEVENLABS_API_KEY=" /opt/data/.env | cut -d= -f2- | sed 's/^"//' | sed 's/"$//' | tr -d "'")`.
 - **Seedance 2.0 `generate_audio` defaults to True** — you may already be getting audio without realising it. Check with `ffprobe -show_streams`.
-- **Fig & Bloom product imagery** — source real product photos from the Shopify CDN (`figandbloom.com/products.json`), download them, and describe the packaging/flowers in the keyframe prompt so the generated actor holds authentic Fig & Bloom product.
+- **Brand product imagery (R1)** — source real product photos from the brand's product source (Fig & Bloom example: Shopify CDN `figandbloom.com/products.json`), pick a **clean, true-colour** shot, and pass it as the keyframe **reference image**. **Name it ("this exact bouquet"), do NOT describe the packaging/flowers** — describing a seeded element makes the model re-invent it. Keep only the "no glass vase" negative.
 - **Keyframe verification before animation** — call `vision_analyze` on every keyframe before spending generation credits on video.
 
 ## Execution Commands
@@ -783,6 +985,84 @@ curl -s "https://api.elevenlabs.io/v1/voices" -H "xi-api-key: $ELEVEN_KEY"
 HF_TOKEN=$(HOME=/opt/data/home higgsfield auth token)
 ```
 
+## Brand Profile (multi-user — de-hardcode the brand)
+
+This skill reads a **Brand Profile** instead of hardcoding any brand. **Every Fig & Bloom value
+in this skill is the shipped example profile** (`references/brand-profile.example.md`), not a
+hard dependency — swap the profile and the pipeline runs unchanged for another brand.
+
+**Required minimum to run:** a source video URL/handle + a product/asset reference source + a
+logo + voice rules. Everything else has defaults.
+
+```yaml
+brand:
+  name: "Fig & Bloom"            # example profile ships as references/brand-profile.example.md
+  voice:
+    language: en-AU
+    banned_words: [luxury, elevate, curate, curated, stunning, gorgeous, "blooms(noun)"]
+    rules: ["no exclamation marks", "no em-dashes"]
+    tone: "warm, considered, plain"
+  product_reference:
+    source: "shopify_products_json | url | asset_library | uploaded_files"
+    pick_rule: "choose a clean, true-colour shot that shows packaging/branding clearly (R1)"
+  talent:
+    mode: "casting_matrix | fixed_reference"
+    fixed_reference_id: "<optional Soul/model ref>"   # e.g. brand spokesmodel
+    flaws_required: true          # global: actor flaws ON, image degradation OFF (R2)
+  visual_identity:
+    palette: ["#14110F", "#FFFFFF", "#D8CCBE"]
+    logo_lockup: "<asset path/url>"
+    end_card: "restrained logo, brand tan, no hard sell"
+  caption:
+    default_style: "B"            # A/B/C as today
+    original_copy_required: true  # R7
+  music:
+    source: "epidemic_sound_mcp"  # licensed only; never cheap AI music for final (R8)
+  format:
+    aspect: "9:16"
+    beat_durations: "match source pacing"
+    total_target_s: 15
+  delivery:
+    host: "public_url"            # MCP media_upload or brand CDN
+    variants: ["captioned", "clean_no_caption", "1:1", "4:5"]
+  run:
+    one_shot: false               # true skips the human storyboard checkpoint if gates pass
+```
+
+The **Casting / Identity Matrix** is the `talent.mode: casting_matrix` config — a brand can
+supply its own demographics or a `fixed_reference` spokesmodel. **"Flaws required" stays
+global** (actor flaws on; image degradation off, R2).
+
+**Storyboard checkpoint (cut iterations).** Before the expensive animation step, present **a
+keyframe for every beat as one set** for sign-off — single-frame approvals waste cycles; one
+approval covers the look, product fidelity and casting. The checkpoint is **configurable**: on
+by default; `run.one_shot: true` skips straight through **if the automated gates pass.**
+
+## Runtime Adapter (portability — CLI today, MCP elsewhere)
+
+This skill was written for the **Hermes CLI** (`HOME=/opt/data/home higgsfield ...`,
+`/opt/data/.env`, ElevenLabs via curl). In **Cowork** and for most users those capabilities are
+**MCP tools** with no `higgsfield` CLI and no `/opt/data`. Speak **named operations**, then bind
+them to whichever runtime you're on (like `reference-browser-operator` does for browsers):
+
+| Operation | Hermes CLI (today) | Cowork MCP (add) |
+|---|---|---|
+| Import a reference image | `higgsfield upload create` | `media_import_url` → media id |
+| Generate keyframe | `higgsfield generate create gpt_image_2 --image ...` | `generate_image(model, aspect_ratio, medias:[ids])` |
+| Pick the best model | (model table + bake-off) | `models_explore(action:recommend)` + one-frame bake-off |
+| Animate | `higgsfield generate create kling3_0 --start-image` | `generate_video(model, medias:[{value, role:"start_image"}], duration, aspect)` |
+| Inspect / repull a result | `--wait` URL | `show_generations` / `job_display` (rawUrl on CloudFront) |
+| Music | ElevenLabs/curl + sonilo | **Epidemic Sound MCP** (licensed) |
+| Assembly | ffmpeg | ffmpeg in workspace bash; **PIL** for rounded caption PNGs |
+| Host final for the user | CloudFront | `media_upload` → public CloudFront URL (or brand CDN) |
+
+**Adapter notes (learned this run):** the assembled file lives in the session sandbox — host it
+via `media_upload` to hand the user a **public URL**. The user may be on a **remote client that
+can't see desktop widgets**, so **always return a shareable URL / attach the file**, never a
+widget reference. All ffmpeg recipes (concat-first, `amix` levels, `+faststart`, comma-escaping,
+PIL rounded captions) are correct and runtime-agnostic — keep them. The concrete Hermes CLI
+surface lives in `references/higgsfield-execution-commands.md`.
+
 ## Source
 - Original tutorial: @ericdoesecom Instagram reel (`/reel/DaA5_8ngiZ9/`)
 - Hashtags from source: #ecommerce #dropshipping #aiugc #metaads #seedance
@@ -791,4 +1071,5 @@ HF_TOKEN=$(HOME=/opt/data/home higgsfield auth token)
 - Real-world execution: ShotSavant TikTok "Flower Wingman" video (7626622272823971086), sourced from Notion Creative Research database
 - v2.0.0: Extended with multi-scene support, native audio generation (Kling/Seedance/Veo), ElevenLabs Australian voice pipeline, sonilo_music, ffmpeg caption burning + audio mixing + concatenation, Fig & Bloom product integration
 - v2.1.0: Caption design discipline (28px centered, not 48px left-aligned). Product must be WRAPPED not in glass vase (explicit negative constraint in keyframe prompt). Script-to-caption conversion via enable=between(t,start,end). Nano Banana Pro uses --image flag.
+- v3.0.0: Hardening + multi-user refactor distilled from the ~7-cycle "first time receiving flowers" run. Added Prompting Rules R1–R8 (reference-seed prompting, realism = perfect image of an imperfect world, handheld motion, camera/hands logic, model routing + bake-off, brand voice/assets, original captions, licensed music). Added Step 0 Source Essence Analysis (hook + peak gate) and Step 9.5 Motion Critic (multi-frame, between animate and concat). Rubric extended to 12 dimensions — Dim 9 (camera/hands) and Dim 10 (capture realism) are hard-fail; Dim 4 now requires reference-seed + a clean reference. Rewrote Step 7 / Pitfall #5 to stop describing seeded references. Added Brand Profile (de-hardcode Fig & Bloom) and a runtime adapter (Hermes CLI ↔ Cowork MCP). New references: prompt-templates.md, brand-profile.example.md; new script: sample_clip_frames.sh.
 - v2.2.0: **Loop engineering layer** — generate→critique→revise loop wrapping the whole pipeline with an 8-dimension rubric (pass threshold 4/5), mandatory keyframe + final critic checkpoints, evidence-cited scoring, and a 3-iteration cap before escalating to the user. Full rubric + critic prompt in `references/clone-rubric.md`. **Casting / identity matrix** — approved Fig & Bloom shopper demographics (Caucasian blonde/brunette, Asian, sub-continental, African Sudanese/Somali/Nigerian but NOT African-American), with relevance-first casting + library rotation, wired into Step 4 and rubric Dimension 3. Opaque rounded-corner caption boxes in lower third; Epidemic Sound preferred over cheap sonilo_music for final brand audio.
