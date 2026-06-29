@@ -57,6 +57,8 @@ described one:
 *(Fig & Bloom anchor for the example profile: white tissue + black botanical line-art + cream
 satin ribbon with logo — but never type that into the prompt; seed it from the reference (R1).)*
 
+**Source flower ≠ F&B SKU — the substitution decision.** When the source video features a flower Fig & Bloom doesn't actually sell (e.g. a giant pink **peony** bouquet, June 2026), do NOT generate the literal source flower — that hard-fails Dimension 4 (generic, non-shoppable). Instead, **substitute the closest real F&B SKU and surface the trade-off to the user with a single clear question** before generating. The closest-match call is made by pulling `figandbloom.com/products.json` and filtering on tags like `Pretty & Pink` / `Romantic`, then vision-checking candidates. The peony case resolved to the **Osaka** range (blush-pink roses + cream chrysanths + snapdragons reads as "lush pink bouquet" — the emotional beat is identical, the flower species swap is invisible to ~99% of viewers). **Use the largest size variant** for "wow"/reveal shots — Osaka's largest is the **Statement** ($255); there is no "Osaka Wow" SKU despite the user's phrasing, so confirm the actual variant name from `products.json` rather than trusting a colloquial size name. Seed the keyframe with the real product photo via `gpt_image_2 --image <uuid>`. A faithful substitution scores 4 (brand-faithful, shoppable); the literal source flower scores 0.
+
 ### 5. Captions
 - **5** — Present, exact correct text, centered, lower-third (~72%), approved style, fully inside the safe zone.
 - **4** — Present and correct; minor position/size nit.

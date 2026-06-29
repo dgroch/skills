@@ -1,7 +1,7 @@
 ---
 name: ai-video-clone-workflow
 description: "Clone/replicate an existing video (competitor ad or your own winner) using AI actors. Multi-scene, native audio, captions, brand product integration. Reference-seed prompting, camera/hands + capture-realism hard-fail gates, a per-clip motion critic, and a Brand Profile + MCP/CLI adapter for multi-brand, multi-runtime use."
-version: 3.0.0
+version: 3.1.0
 author: Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -235,6 +235,56 @@ HOME=/opt/data/home higgsfield generate create gpt_image_2 \
 job record. `flux_kontext` lost on wordmarks (use it only to harmonise/edit an existing frame).
 A wordmark may be near-exact, not pixel-perfect — **composite the real product** for an exact
 hero still.
+
+### Pitfall #5.5: Logo / Brand Mark on Non-Product Props (Aprons, Signage) — Seed, Don't Describe
+
+**When the brand mark is on an apron, a wall sign, packaging, or any non-product prop,
+the same "name it, don't describe it" rule applies — but you must seed with a real photo
+of that specific branded item.** Describing the logo in text (even with "Fig & Bloom"
+in the prompt) always produces a wrong font, wrong layout, or garbled letters.
+
+**Fix: upload a real photo where the logo is large and clear, pass as `--image`, and say
+"this exact logo."**
+
+```bash
+# Upload a real photo that clearly shows the apron logo
+LOGO_UUID=$(HOME=/opt/data/home higgsfield upload create /tmp/fab_logo_seeds/apron_closeup.jpg)
+
+higgsfield generate create gpt_image_2 \
+  --prompt "...THE APRON LOGO MUST EXACTLY MATCH the logo shown in the reference image — this exact logo, same layout, same font, same style..." \
+  --image "$LOGO_UUID" ...
+```
+
+Key rules:
+- **Never describe the logo** (font, layout, colour, text content) — the model will render your description instead of copying the reference.
+- **Do say "this exact logo"** — this instructs the model to copy the reference image's logo.
+- **Pick a seed image where the logo is large and clear.** Search the Asset Library for close-up apron shots. A distant shot where the logo is a blurry white blob won't reproduce.
+- **Logo seed vs environment seed:** if one photo captures both the logo and the environment, use it alone. If not, generate the keyframe with the logo seed as `--image` (logo fidelity is harder to fix in post than environment), then pass the keyframe itself as `--start-image` for animation.
+
+### Pitfall #5.6: Action Mechanics — Read the Source Motion, Don't Assume
+
+**The #1 action-fidelity failure: assuming the motion is a straight lift when it's actually
+a prying/rocking motion.** Observed on the "Florists will understand this pain" reel (June 2026):
+the source shows a florist separating two nested buckets stuck by vacuum seal. The natural
+assumption is "she's lifting a heavy bucket." The actual motion is **prying** — the inner
+bucket is tilted 10-15° off vertical, her hands are at **different heights** (one high, one
+low) creating leverage, and she's **rocking the bucket sideways** to break the seal, not
+straight-lifting.
+
+**How to catch it:** when deconstructing the source, explicitly ask vision_analyze across
+multiple frames: *"Is the object tilted or straight? Are the hands at different heights? Is
+the motion prying/rocking or straight-lifting?"* The angle and hand-height differential are
+visible in every frame but easy to miss if you only ask "what is she doing?"
+
+**How to prompt it:** include the specific mechanics in both the keyframe prompt and the
+animation prompt:
+- "inner bucket TILTED AT A 15-DEGREE ANGLE — not straight vertical"
+- "hands at DIFFERENT HEIGHTS on the rim — one hand high, one hand low — creating PRYING LEVERAGE"
+- "ROCKING and TWISTING the bucket sideways to break the vacuum seal, not a straight lift"
+- "pry one side up, then the other"
+
+Generic motion language ("straining," "lifting," "pulling") produces a generic straight-lift.
+Mechanics-specific language produces the correct motion.
 
 ## Step-by-Step Process
 
@@ -950,6 +1000,39 @@ Key products (as of June 2026): Osaka ($129), Marseille ($145), Broome ($127), L
 
 Product photography style: clean studio shots, light blue-grey background, white surface, flowers in branded white tissue wrap with botanical line-art illustration, cream satin ribbon with "Fig & Bloom" logo.
 
+### Brand-World Cloning via Semantic Search (Non-Product Scenes)
+
+When the clone calls for **your real shop, staff, or workspace** — not a product — Shopify
+product images won't help. Use the **Fig & Bloom Asset Library semantic search API** to find
+real Manifest-backed photos of your workshop, staff in aprons, buckets, interiors, and
+behind-the-scenes shots, then pass them as `--image` seeds to `gpt_image_2`. This grounds the
+clone in your actual visual world instead of a generic studio.
+
+**Asset Library API:**
+- Base URL: `https://asset-library-u70t.onrender.com`
+- Endpoint: `GET /api/search?q=<natural-language-query>&cursor=<offset>`
+- Returns: `{ "results": [{ "id", "title", "url", "description", "mediaType", "driveLink" }], "nextCursor": ... }`
+- Image URLs are Brand CDN (`brand-cdn.figandbloom.workers.dev`) — download with a browser User-Agent.
+- Use concrete visual queries: "florist staff apron working", "workshop interior Sydney", "florist bucket black plastic flowers". Prefer `mediaType=image` with valid CDN `url`.
+
+```bash
+# Search the asset library
+curl -sL "https://asset-library-u70t.onrender.com/api/search?q=florist+staff+apron+working" | python3 -m json.tool | head -20
+
+# Download a seed image
+curl -sL -H "User-Agent: Mozilla/5.0" "<cdn_url>" -o /tmp/fab_seeds/apron_closeup.jpg
+
+# Upload to Higgsfield and use as --image seed
+SEED_UUID=$(HOME=/opt/data/home higgsfield upload create /tmp/fab_seeds/apron_closeup.jpg)
+higgsfield generate create gpt_image_2 --image "$SEED_UUID" ...
+```
+
+**When to use this vs Shopify products:** use Shopify `products.json` for bouquets and
+wrapping (product fidelity). Use the Asset Library for workshop spaces, staff in aprons,
+buckets, shelves, and behind-the-scenes context (environment fidelity). For a clone that
+needs both, generate the keyframe with the logo/brand seed as `--image` (hardest to fix in
+post), then use the keyframe itself as `--start-image` for animation.
+
 ### Clone Package Output Pattern
 
 When generation tools are blocked (auth expired, API key not configured), produce a **clone package markdown file** containing:
@@ -1072,4 +1155,5 @@ surface lives in `references/higgsfield-execution-commands.md`.
 - v2.0.0: Extended with multi-scene support, native audio generation (Kling/Seedance/Veo), ElevenLabs Australian voice pipeline, sonilo_music, ffmpeg caption burning + audio mixing + concatenation, Fig & Bloom product integration
 - v2.1.0: Caption design discipline (28px centered, not 48px left-aligned). Product must be WRAPPED not in glass vase (explicit negative constraint in keyframe prompt). Script-to-caption conversion via enable=between(t,start,end). Nano Banana Pro uses --image flag.
 - v3.0.0: Hardening + multi-user refactor distilled from the ~7-cycle "first time receiving flowers" run. Added Prompting Rules R1–R8 (reference-seed prompting, realism = perfect image of an imperfect world, handheld motion, camera/hands logic, model routing + bake-off, brand voice/assets, original captions, licensed music). Added Step 0 Source Essence Analysis (hook + peak gate) and Step 9.5 Motion Critic (multi-frame, between animate and concat). Rubric extended to 12 dimensions — Dim 9 (camera/hands) and Dim 10 (capture realism) are hard-fail; Dim 4 now requires reference-seed + a clean reference. Rewrote Step 7 / Pitfall #5 to stop describing seeded references. Added Brand Profile (de-hardcode Fig & Bloom) and a runtime adapter (Hermes CLI ↔ Cowork MCP). New references: prompt-templates.md, brand-profile.example.md; new script: sample_clip_frames.sh.
+- v3.1.0: **Pitfall #5.5** — logo/brand mark on non-product props (aprons, signage): never describe, always seed with a real photo + "this exact logo." **Pitfall #5.6** — action mechanics: read the source motion (tilt angle, hand-height differential, prying vs lifting); don't assume "straight lift." Observed on the florist bucket-separation reel: prying/rocking motion, not vertical lift. **Brand-world cloning via semantic search** — use the Asset Library API (`asset-library-u70t.onrender.com`) to find real Manifest-backed photos of the Sydney workshop, staff in aprons, and buckets, then pass as `--image` seeds to ground clones in the real Fig & Bloom visual world.
 - v2.2.0: **Loop engineering layer** — generate→critique→revise loop wrapping the whole pipeline with an 8-dimension rubric (pass threshold 4/5), mandatory keyframe + final critic checkpoints, evidence-cited scoring, and a 3-iteration cap before escalating to the user. Full rubric + critic prompt in `references/clone-rubric.md`. **Casting / identity matrix** — approved Fig & Bloom shopper demographics (Caucasian blonde/brunette, Asian, sub-continental, African Sudanese/Somali/Nigerian but NOT African-American), with relevance-first casting + library rotation, wired into Step 4 and rubric Dimension 3. Opaque rounded-corner caption boxes in lower third; Epidemic Sound preferred over cheap sonilo_music for final brand audio.

@@ -198,6 +198,43 @@ curl -X POST "https://api.higgsfield.ai/v1/generate" \
 curl -sL "<cloudfront_url_from_output>" -o /tmp/clone_final.mp4
 ```
 
+## Brand-World Seed Sourcing (Asset Library Semantic Search)
+
+When the clone needs your real shop, staff, aprons, buckets, or workspace (not a product), use the Fig & Bloom Asset Library semantic search API to find real Manifest-backed photos, then pass them as `--image` seeds to `gpt_image_2`.
+
+**Search API:**
+```bash
+# Natural-language query → Brand CDN image URLs
+curl -sL "https://asset-library-u70t.onrender.com/api/search?q=florist+staff+apron+working&cursor=0"
+# Returns: { "results": [{ "id", "title", "url", "description", "mediaType", "driveLink" }], "nextCursor": ... }
+```
+
+**Download from Brand CDN (needs User-Agent header):**
+```bash
+curl -sL -H "User-Agent: Mozilla/5.0" "<brand_cdn_url>" -o /tmp/fab_seeds/staff_apron.jpg
+```
+
+**Upload to Higgsfield and use as `--image` seed:**
+```bash
+SEED_UUID=$(HOME=/opt/data/home higgsfield upload create /tmp/fab_seeds/staff_apron.jpg 2>&1 | grep -oP '[0-9a-f-]{36}' | head -1)
+
+HOME=/opt/data/home higgsfield generate create gpt_image_2 \
+  --prompt "<scene description with 'THE APRON, BUCKETS, AND WORKSPACE MUST EXACTLY MATCH the reference image'>" \
+  --image "$SEED_UUID" \
+  --aspect_ratio 9:16 \
+  --quality high \
+  --resolution 2k \
+  --wait --wait-timeout 180s
+```
+
+**Effective search queries** (use concrete visual terms):
+- `florist staff apron working` → staff in charcoal aprons with Fig & Bloom logo
+- `Fig Bloom workshop staff working` → workshop interiors, shelves, buckets
+- `florist bucket black plastic flowers` → real black florist buckets
+- `behind the scenes Sydney studio florist` → back-of-house workspace
+
+**When to use:** brand-world cloning (shop, staff, workspace, behind-the-scenes). Complementary to Shopify product images (Step 7 in SKILL.md) for product-hero shots — use both in the same keyframe if needed.
+
 ## Sending Videos to the User
 
 ```
@@ -227,6 +264,8 @@ chmod +x /tmp/higgs_auth.sh
 ## Pitfalls
 
 - **`soul_cinematic` does NOT accept `--resolution`** — only `aspect_ratio`, `prompt`, `quality`, `custom_reference_id`, `medias`.
+- **`soul_cinematic` `--quality` takes resolution values, NOT labels** — use `--quality 2k` or `--quality 1.5k`. Passing `--quality high` fails: `Invalid values: quality=high (allowed: 1.5k,2k)`. In contrast, `gpt_image_2` accepts `--quality high` AND `--resolution 2k` together.
+- **`gpt_image_2` output is NOT exact 9:16** — it returns ~2:3 (e.g. 1520×2688) regardless of `--aspect_ratio 9:16`. Crop to exact 9:16 before uploading as `--start-image`, or the video model distorts/rejects it. Use: `ffmpeg -y -i keyframe.png -vf "crop=<W>:<H>:<LEFT>:0,scale=720:1280" -frames:v 1 -update 1 keyframe_916.png` (note: `-update 1` is required to write a single image from `-frames:v 1` without error).
 - **NSFW filter on medical/hospital imagery** — Veo 3.1 Lite and Seedance 2.0 both trigger NSFW on "hospital", "IV", "patient in bed". Rephrase to neutral language.
 - **`--medias` flag does not work** — use `--start-image <uuid>` for image-to-video.
 - **Kling 3.0 `medias` only accepts IMAGE roles** — `--audio` flag is rejected. Use `--sound on` to generate audio from the prompt, or mix separately with ffmpeg.
