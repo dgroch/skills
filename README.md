@@ -30,6 +30,7 @@ Each skill is self-contained and includes a `SKILL.md` file (plus optional `scri
 
 ### Creative
 
+- `creative/ai-video-clone-workflow` (`ai-video-clone-workflow`): Clone a short-form video (competitor ad or your own winner) using AI actors — multi-scene, native audio, captions, brand product integration. Reference-seed prompting, camera/hands + capture-realism hard-fail gates, a per-clip motion critic, and a Brand Profile + MCP/CLI adapter for multi-brand, multi-runtime use.
 - `creative/add-creative-builder` (`ad-creative-builder`): Build production-ready static and carousel ad creatives from existing photography, copy, and brand assets.
 - `creative/asset-adapter` (`asset-adapter`): Reformat a hero creative into platform-specific variants using deterministic crop/safe-zone rules.
 - `creative/brand-guidelines-manager` (`brand-guidelines-manager`): Enforce and maintain Fig & Bloom brand rules for visual and tonal consistency.
