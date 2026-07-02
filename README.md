@@ -40,6 +40,7 @@ Each skill is self-contained and includes a `SKILL.md` file (plus optional `scri
 - `creative/email-template-builder` (`email-template-builder`): Create, build, and deploy Klaviyo email campaigns and automated flows from a modular component library.
 - `creative/blog-post-builder` (`blog-post-builder`): Build and publish a Fig & Bloom Shopify blog post end-to-end from a Notion editorial brief — brand voice + Thought-Leader Lens drafting, integrated internal linking + product merchandising (single callout or shoppable banner), and Shopify publish.
 - `creative/editorial-carousel-craft` (`editorial-carousel-craft`): Editorial standard + critic for Fig & Bloom social carousels and statics — sets and scores the bar a multi-slide editorial carousel must clear (publisher benchmark, seven-axis critique rubric incl. honesty, editorial arc + pacing). Does not render; targets the my-social-builder lanes and returns critique through the campaign loop.
+- `creative/fig-bloom-charcoal-photography` (`fig-bloom-charcoal-photography`): Run charcoal-look AI product photoshoots for Fig & Bloom catalogue products — PDP sets, campaign sets, and single-format shots generated from real Shopify product photos via Higgsfield nano_banana_2, with a full art-direction framework (anchor library, prompt system, failure modes).
 
 ### Human Resources
 
