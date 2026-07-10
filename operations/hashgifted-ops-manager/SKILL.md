@@ -20,6 +20,8 @@ Use this as the operating brain for Hashgifted influencer campaigns. It coordina
 - Read `references/build-state.md` before resuming the Fig & Bloom Hashgifted workflow build.
 - Read `references/cron-automation.md` before registering or modifying recurring Hashgifted cron jobs.
 - Read `references/notion-creator-crm.md` before designing or running creator lifecycle persistence, applicant review sync, or cross-campaign creator queries.
+- Read `references/ranked-applicant-pool.md` before ranking, parking, contacting, or releasing applicants in throttled/intake-closed campaigns.
+- Read `references/trello-ugc-board.md` before any Hashgifted workflow that touches creator lifecycle state; Trello is the human-facing UGC kanban and must be reconciled after Hashgifted/Notion changes.
 
 ## Architecture
 
@@ -81,6 +83,12 @@ Hashgifted campaigns are deliverable only to Melbourne, Sydney, and Brisbane met
 ## Notion Creator CRM
 
 Use the Notion Creators DB as the persistent lifecycle memory for creators. Store status, campaign relation, location inference/confirmation, metrics, and visual-feed properties there so future campaign applications can reuse prior work and the business can query creator history. See `references/notion-creator-crm.md`.
+
+## Trello UGC Kanban
+
+Use the `🤖 User Generated Content` Trello board as the operational kanban for Hashgifted creators. For every touched creator/campaign row, upsert or move the matching Trello card according to `references/trello-ugc-board.md`, then verify readback. Hashgifted remains source of truth for platform status and Notion remains source of truth for CRM/brief/assets; Trello mirrors the workflow state for Daniel and operators.
+
+If Trello credentials/board access are unavailable, continue safe Hashgifted/Notion actions and report `trello_unavailable`; do not pretend the kanban was moved.
 
 ## Build Order
 

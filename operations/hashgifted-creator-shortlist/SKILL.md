@@ -27,6 +27,8 @@ This skill only handles `Applied -> Shortlisted` qualification and pre-selection
 - Read `hashgifted-browser-adapter-map/references/gift-view-observations.md` before operating on a live campaign page.
 - Read `hashgifted-ops-manager/references/brand-aesthetic-rubric.md` for shared Fig & Bloom creator fit rules.
 - Read `hashgifted-ops-manager/references/audit-log.md` before live runs.
+- Read `hashgifted-ops-manager/references/trello-ugc-board.md` before moving any applicant; the UGC Trello board mirrors creator lifecycle state for Daniel.
+- Read `hashgifted-ops-manager/references/ranked-applicant-pool.md` before reviewing or moving applicants in a throttled/intake-closed campaign.
 - Read `references/qualification-framework.md` before making creator decisions.
 
 ## Required Inputs
@@ -63,6 +65,7 @@ In `auto`, process every currently live applicant in the requested open campaign
 - Stop if there are no applicants or the requested run limit has already been reached.
 - Start an audit record with campaign, mode, runtime, and initial screenshot.
 - For unattended cron runs, also read `hashgifted-ops-manager/references/cron-automation.md` and honour its Applied-candidate policy: auto-shortlist high-confidence fits; leave maybe/low-confidence rows Applied/manual-review; do not message Applied candidates; do not auto-decline unless explicitly enabled for hard blockers.
+- Verify Trello access to the `🤖 User Generated Content` board (`zDpcpS3V`) before Trello writes. If unavailable, continue safe Hashgifted/Notion work and report `trello_unavailable`.
 
 ## Per-Applicant Loop
 
@@ -76,12 +79,20 @@ Repeat until an exit condition is met.
 6. Close social tabs and return to the campaign context with `switch_tab` or `close_tab`.
 7. Apply `references/qualification-framework.md` and produce `{recommendation, reason, confidence}`.
 8. Upsert the creator into the Notion Creators DB using `hashgifted-ops-manager/references/notion-creator-crm.md`. Store lifecycle state, location inference/eligibility evidence, metrics, visual feed properties, fit/risk signals, and campaign relation before or immediately after any Hashgifted mutation.
-9. In `plan` or `dry_run`, record the proposed action and continue without clicking.
-10. In `assist`, ask for approval before clicking Shortlist or Decline.
-11. For strong fits, click `click_action("Shortlist creator")` and then `wait_for_change("next applicant loaded")`.
-12. For hard gate failures or clear brand-safety mismatches, click `click_action("Decline creator")` only after approval, then `wait_for_change("next applicant loaded")`.
-13. For incomplete evidence, ambiguous fit, or UI uncertainty, leave the creator in Applied and add a manual review warning.
-14. Append action status, evidence, warnings, and Notion page ID to the audit record.
+9. Upsert or move the matching Trello card using `hashgifted-ops-manager/references/trello-ugc-board.md` and the ranked-pool policy:
+   - outside the current 15-position campaign horizon → `Parked Applicant Pool`,
+   - near-term Applied applicant → `Triage / Brand Fit`,
+   - shortlisted → `Shortlisted`,
+   - fully qualified within the horizon while cadence is full → `Approved Reserve`,
+   - only commercial/policy exceptions, material delivery problems, or genuine brand-safety ambiguity → `Needs Daniel`,
+   - approved decline or hard blocker → `Lapsed / Declined / Do Not Use`.
+   Unknown location, outside-metro status, ordinary rank uncertainty, and an intake-closed campaign are not Daniel decisions. Keep these applicants ranked but ineligible. Include Hashgifted row UID, campaign, creator handle, Notion creator link, score breakdown, pool position, eligibility state, visual fit summary, and decision reason in the card. Verify card URL and final list by readback.
+10. In `plan` or `dry_run`, record the proposed action and Trello target list, then continue without clicking or writing.
+11. In `assist`, ask for approval before clicking Shortlist or Decline.
+12. For strong fits, click `click_action("Shortlist creator")` and then `wait_for_change("next applicant loaded")`; after live Hashgifted readback confirms `Shortlisted`, move Trello to `Shortlisted`.
+13. For hard gate failures or clear brand-safety mismatches, click `click_action("Decline creator")` only after approval, then `wait_for_change("next applicant loaded")`; after live readback, move Trello to `Lapsed / Declined / Do Not Use`.
+14. For incomplete routine evidence, uncertain location, or ordinary fit/rank uncertainty, keep the creator ranked and ineligible rather than escalating. Use `Needs Daniel` only for a commercial/policy exception or genuine brand-safety ambiguity. When a creator reaches 70/100 overall with at least 28/40 brand fit, shortlist if needed and dispatch `hashgifted-creator-select` to send the approved waiting-pool eligibility message.
+15. Append action status, evidence, warnings, Notion page ID, and Trello card URL/final list to the audit record.
 
 For large multi-campaign runs, batch Instagram/profile capture separately from mutation. Save per-batch artifacts and a progress/decision file before applying any shortlist actions. If background capture is used, make runners self-load the active Hermes env file (for example `/opt/data/.env`) so `BROWSERBASE_API_KEY`, `HASHGIFTED_EMAIL`, and `HASHGIFTED_PASSWORD` are present in foreground, background, and cron contexts.
 
@@ -132,6 +143,7 @@ Return a concise summary:
 - Shortlisted: count and names.
 - Declined: count grouped by reason.
 - Manual review: count and why.
+- Trello cards created/updated/moved by list, with any `trello_unavailable` or `trello_schema_changed` warnings.
 - Run progress.
 - Warnings and manual review items.
 - Audit log location or inline audit record.
