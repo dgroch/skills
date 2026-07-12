@@ -3,6 +3,19 @@ name: hashgifted-creator-monitor
 description: Sweep active Hashgifted campaigns, read each creator's current lifecycle state from Hashgifted and Notion, and produce a prioritised dispatch plan that names which lifecycle skill should run next per creator. Read-only orchestrator. Use when asked to monitor Hashgifted campaigns, run a morning sweep, identify which creators need action, surface story-capture or content-capture work, or check ghost timing. Does not click Select, Decline, Send, Mark complete, or Exclude; per-step skills handle those.
 ---
 
+## Conversation Backlog Triage Mode
+
+When Daniel says the Hashgifted routines have been paused, content has continued to roll in, or he needs **simple questions to answer so conversations can be wrapped up**, run a read-only chat triage instead of resuming any older selection/reply sweep script.
+
+Rules for this mode:
+
+- Do not screen new applicants, shortlist, select, decline, or send messages.
+- Do not run legacy automation that can send initial outreach, nudges, missing-gate questions, order acknowledgements, or reject/decline actions.
+- Read campaign wave rows and thread details only, using `markAsSeen=false` where the API supports it.
+- Group output into batch decisions rather than hundreds of per-creator questions, e.g. old shortlisted replies, accepted creators with posted content, delivery/support issues, review requests, and no-action acknowledgements.
+- Treat stale order-acknowledgement flags carefully: if content is already posted, prefer a posted-content warm receipt/capture path over sending an old pre-content order acknowledgement.
+- Keep selection-paused creators on hold until new campaigns are launched; do not ask missing gates merely to progress candidate selection unless Daniel explicitly reopens screening.
+
 # Hashgifted Creator Monitor
 
 Sweep all live Hashgifted campaigns (`Open for Applicants`, `Active`, `Wrapping`), identify per-creator state across Hashgifted and Notion, and return a prioritised dispatch plan. This is the orchestrator for the Hashgifted lifecycle. It never performs write actions; it routes work to the per-step skills.
@@ -14,6 +27,7 @@ Reads only. The monitor:
 - Lists live campaigns from the Notion Campaigns DB (`Open for Applicants`, `Active`, `Wrapping`).
 - Reads campaign and creator state from Hashgifted (applicants, shortlist, selected, threads, completed gallery).
 - Reads creator timing fields from the Notion Creators DB (`Last Contacted`, scores, manual flags).
+- Reads matching Trello UGC card/list when available and flags stale cards for downstream reconciliation.
 - Applies the state machine in `hashgifted-ops-manager/references/lifecycle.md`.
 - Emits one dispatch item per creator naming the next skill, with priority and evidence.
 - Stops. Per-step skills are invoked separately.
@@ -28,6 +42,7 @@ The monitor never clicks Select, Decline, Send, Mark complete, Exclude, or Chang
 - Read `hashgifted-ops-manager/references/lifecycle.md` to apply the creator state machine.
 - Read `hashgifted-ops-manager/references/audit-log.md` before live runs.
 - Read `hashgifted-ops-manager/references/story-capture.md` to recognise story-capture dispatch.
+- Read `hashgifted-ops-manager/references/trello-ugc-board.md` to compare observed lifecycle state with the UGC Trello card/list. The monitor is read-only, so it reports needed Trello reconciliations but does not move cards.
 - Read `references/dispatch-output-schema.md` for the dispatch plan structure.
 
 ## Required Inputs
@@ -86,7 +101,8 @@ Repeat for each campaign in the sweep list. Stop early if the creator cap is hit
    - `Wrapping`: Selected, Threads, Completed gallery (Applied is closed for new entries).
 5. For every candidate creator, build one dispatch item. Use the first matching state in `lifecycle.md`. Stop at the first match per creator.
 6. Record evidence: campaign-context screenshot, optional creator-card screenshot, redacted thread excerpt for ghost timing claims.
-7. Append the dispatch item to the run plan. Increment the creator counter.
+7. Locate the matching Trello card by Hashgifted UID, exact `[HG] @handle — Campaign` title, or creator handle + campaign. Add current Trello list/card URL to evidence. If the card is missing or in a list that conflicts with the observed lifecycle state, add a `trello_reconcile_needed` warning and the expected target list from `hashgifted-ops-manager/references/trello-ugc-board.md`.
+8. Append the dispatch item to the run plan. Increment the creator counter.
 
 ## Dispatch Priority
 
@@ -156,6 +172,7 @@ Return a concise summary plus the dispatch plan:
 - Dispatch items by skill: counts grouped by `dispatch`.
 - Highest-priority items first, with creator handle, campaign, and matched rule.
 - Manual review items.
+- Trello status: missing cards, stale cards, and recommended target lists for downstream skills to move.
 - Warnings.
 - Audit log location or inline audit record.
 

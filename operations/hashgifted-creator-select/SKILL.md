@@ -36,6 +36,7 @@ It does not:
 - Read `hashgifted-browser-adapter-map/references/gift-view-observations.md` before operating on a live campaign page.
 - Read `hashgifted-ops-manager/references/lifecycle.md` for the creator state machine and nudge timing.
 - Read `hashgifted-ops-manager/references/audit-log.md` before live runs.
+- Read `hashgifted-ops-manager/references/trello-ugc-board.md` before sending, qualifying, selecting, reserving, declining, or acknowledging a creator; Trello mirrors the creator lifecycle for Daniel.
 - Read `references/selection-message-template.md` before composing any outbound.
 - Read `references/reply-classification.md` before acting on an inbound reply.
 
@@ -69,14 +70,29 @@ Structural safeguards apply in every mode that writes (see Pre-Flight, Per-Creat
 - Confirm the runtime adapter exposes `Message composer`, `Send message`, `message sent`, `Select creator`, `Accept this creator`, and the thread reading intents.
 - Resolve campaign-to-brief mapping before outbound messages. Use Notion `Brief.Public Link` values, not private workspace URLs. If the public link is missing, stop with `brief_public_link_missing` rather than sending an internal link.
 - Resolve the selection cadence before any `Select creator` action. Treat cadence as a parameter of this selection lifecycle entry, not a hardcoded skill default.
+- Verify Trello access to the `🤖 User Generated Content` board (`zDpcpS3V`) and read required list IDs before Trello writes. If unavailable, continue safe Hashgifted/Notion actions and report `trello_unavailable`.
 - Start an audit record with run id, mode, runtime, campaign, scope, send cap, and start screenshot.
 - For unattended cron runs, also read `hashgifted-ops-manager/references/cron-automation.md`; use conservative auto rules, verify every external send with exact thread readback, verify every selection with live row status re-fetch, and report manual-review items instead of asking questions.
+
+## Hybrid Conversation Classification for Unattended Runs
+
+For recurring `auto` selection/reply sweeps, do not let keyword or last-message rules make creator decisions. Use the maintained hybrid pipeline:
+
+- Collector: `/opt/data/profiles/creative/scripts/hashgifted_hybrid_pipeline.py collect` reads complete ordered Hashgifted threads plus pending Trello commands without writing.
+- Reasoner: GPT-5.6 Sol reads `/opt/data/profiles/creative/scripts/hashgifted_hybrid_classifier_prompt.md` and returns exactly one strict JSON decision per candidate, with explicit facts and exact supporting quotes.
+- Validator: `hashgifted_hybrid_pipeline.py validate` rejects missing/duplicate decisions, invented quotes, unsafe messages, unsupported actions, low-confidence automatic actions, ignored human commands, and selections lacking all qualification gates.
+- Actioner: `hashgifted_hybrid_pipeline.py apply` re-fetches each live thread, blocks if its SHA-256 changed since reasoning, enforces the Monday Australia/Melbourne release window and two selections per campaign per week, executes only validated actions, and verifies external writes by live readback.
+
+The LLM interprets conversational meaning; deterministic code owns policy and side effects. Generic biography/application/capability text saying a creator makes Reels is not a campaign-specific Reel commitment. Ordinary styling language such as “vase” is not a product exception unless the full conversation establishes an actual request. A clear earlier answer remains valid when followed by concept detail. A Daniel/Fig & Bloom-approved alternative output format may satisfy the deliverable gate only when the approval is explicit in the live Hashgifted transcript; record the exact brand approval as evidence and do not keep asking the creator for a Reel.
+
+Never run the legacy deterministic classifier as a second decision-maker after the hybrid actioner. Explicit Trello `SEND TO CREATOR`, `APPROVE CREATOR`, and `REJECT CREATOR` commands remain deterministic inputs and must be acknowledged by source comment ID. A standalone/manual creator message must preserve the card's current lifecycle list (especially `Approved Reserve` or `Needs Daniel`) unless the validated decision explicitly names a new target list; sending a message is not itself a lifecycle downgrade.
 
 ## Per-Creator Loop
 
 Repeat for each creator in scope until the per-run send cap is reached, the creator list is exhausted, or a stop rule fires.
 
 1. Resolve the creator: handle, name, Notion id, last `Last Contacted` timestamp.
+   - Upsert or locate the matching Trello card (`[HG] @handle — Campaign Name`) using `hashgifted-ops-manager/references/trello-ugc-board.md`.
 2. Open the thread: `click_action("Open creator thread")` or `navigate(thread_url)`.
 3. `read_thread()` and determine the actual current state:
    - No outbound from us yet → `selection_initial`.
@@ -86,15 +102,30 @@ Repeat for each creator in scope until the per-run send cap is reached, the crea
 4. Reconcile against the dispatch hint. If the actual state differs from the hint, log `state_mismatch`, follow the actual state, and continue.
 5. Re-confirm creator identity from the thread header before any write. Stop and flag `creator_identity_ambiguous` if uncertain.
 6. Act on the resolved state:
-   - **`selection_initial`**: compose using `references/selection-message-template.md` skeleton + 2-3 personalised hooks pulled from the shortlist signals or thread context. Include the Notion brief link(s), ask which brief they prefer where multiple briefs are available, and ask them to confirm all qualification gates: Melbourne/Sydney/Brisbane metro, happy to produce an IG Reel, and comfortable with the brief direction. `compose_message(text)`, screenshot draft, then in `assist` pause for approval before `send_message()`; in `auto`, send and `wait_for_change("message sent")`. Update Notion `Last Contacted` after confirmed send only.
-   - **`nudge_3d` / `nudge_7d`**: use the matching nudge variant in the template reference. Same draft/send sequence and Notion update.
-   - **Inbound = positive/partial**: classify which qualification gates are explicitly confirmed. If city, Reel acceptance, brief preference, or brief understanding/agreement is missing, ask only for the missing item(s). Do not click Select on a soft yes that has not confirmed all gates.
-   - **Inbound = fully qualified**: re-confirm the picked brief is one of the approved campaign brief options and that all gates are explicit in the thread. Rank the creator against other qualified creators in the campaign and current week. If cadence slots are already full, leave them qualified/reserve and report `cadence_full`. If a slot is available, in `assist` surface the creator + chosen brief + gate evidence + rank + remaining weekly slots and pause for a single approval before proceeding; in `auto`, proceed without prompting only when evidence and cadence are unambiguous. Click `Select creator`, screenshot, `wait_for_change` to detect the Accept modal, click `Accept this creator`, screenshot, wait for state change. Write Notion `Status = Selected`, record the chosen brief, qualification gates, and cadence week.
-   - **Inbound = answerable question**: use `references/reply-classification.md` and `references/selection-message-template.md` Q&A answer bank to draft a reply. In `assist`, pause for Daniel approval before sending; in `auto`, send only if the answer class is high-confidence and not escalated.
-   - **Inbound = escalated question or soft yes**: log `manual_review` with the question. Do not auto-respond.
-   - **Inbound = negative**: in `assist`, surface the inbound and pause for approval before writing; in `auto`, proceed. Write Notion `Status = Declined` with reason `creator declined post-shortlist`. Do not send further messages.
-   - **Inbound = ambiguous**: log `manual_review`.
-7. Audit: append send/Select event with creator id, intent, screenshot before/after, and any warnings.
+   - **`selection_initial`**: compose using `references/selection-message-template.md` skeleton + 2-3 personalised hooks pulled from the shortlist signals or thread context. Include the Notion brief link(s), ask which brief they prefer where multiple briefs are available, and ask them to confirm all qualification gates: Melbourne/Sydney/Brisbane metro, happy to produce an IG Reel, and comfortable with the brief direction. `compose_message(text)`, screenshot draft, then in `assist` pause for approval before `send_message()`; in `auto`, send and `wait_for_change("message sent")`. Update Notion `Last Contacted` after confirmed send only. Keep/move Trello to `Shortlisted` and comment `selection_initial_sent` with the message timestamp.
+   - **`nudge_3d` / `nudge_7d`**: use the matching nudge variant in the template reference. Same draft/send sequence and Notion update. Keep/move Trello to `Shortlisted` and add a nudge comment after send readback.
+   - **Inbound = positive/partial**: classify which qualification gates are explicitly confirmed. If city, Reel acceptance, brief preference, or brief understanding/agreement is missing, ask only for the missing item(s). Do not click Select on a soft yes that has not confirmed all gates. Keep/move Trello to `Shortlisted`; routine missing evidence or ambiguity is not a Daniel decision.
+   - **Inbound = fully qualified**: re-confirm the picked brief is one of the approved campaign brief options and that all gates are explicit in the thread. Rank the creator against other qualified creators in the campaign and current week. If cadence slots are already full, leave them qualified/reserve and report `cadence_full`; move Trello to `Approved Reserve` and comment the gate evidence + next cadence window. If a slot is available, in `assist` surface the creator + chosen brief + gate evidence + rank + remaining weekly slots and pause for a single approval before proceeding; in `auto`, proceed without prompting only when evidence and cadence are unambiguous. Click `Select creator`, screenshot, `wait_for_change` to detect the Accept modal, click `Accept this creator`, screenshot, wait for state change. Write Notion `Status = Selected`, record the chosen brief, qualification gates, and cadence week. After live row readback verifies selected/accepted, move Trello to `Selected / Brief Sent`.
+   - **Inbound = answerable question**: use `references/reply-classification.md` and `references/selection-message-template.md` Q&A answer bank to draft a reply. In `assist`, pause for Daniel approval before sending; in `auto`, send only if the answer class is high-confidence and not escalated. Move Trello to `Shortlisted` for pre-selection Q&A or `Active Q&A / Awaiting Content` for post-selection Q&A.
+   - **Inbound = escalated question or soft yes**: ask only for routine missing gates. Move to `Needs Daniel` only when the conversation establishes a commercial/policy exception, material delivery problem, genuine brand-safety ambiguity, or direct owner-level question; include the smallest decision question and do not auto-respond to that exception.
+   - **Inbound = negative**: in `assist`, surface the inbound and pause for approval before writing; in `auto`, proceed. Write Notion `Status = Declined` with reason `creator declined post-shortlist`. Move Trello to `Lapsed / Declined / Do Not Use`. Do not send further messages.
+   - **Inbound = ambiguous**: leave the creator ranked in `Shortlisted` and gather the smallest missing fact. Escalate to `Needs Daniel` only if the ambiguity falls into one of the narrow exception categories above.
+   - **Selected/accepted creator has booked/placed order and acknowledgement sent**: move/update Trello to `Active Q&A / Awaiting Content` after exact message readback.
+   - **Selected/accepted creator sends a post-selection support/Q&A message after the latest brand reply**: do not silently ignore it. Classify delivery/damage/booking/content questions; send only safe acknowledgements or standard content answers; upsert/move the Trello card to `Active Q&A / Awaiting Content` for active support/Q&A. Use `Needs Daniel` only for a commercial/policy exception, material delivery problem, genuine brand-safety ambiguity, or direct owner-level question, with the exact creator message in the card/comment.
+   - Conversation log sync: mirror every Hashgifted thread message read by the workflow into Trello comments using `RECEIVED MESSAGE` for creator/influencer messages and `SENT MESSAGE` for brand/Hermes messages. Include a deterministic `Message sync id` derived from Hashgifted row UID, sender type, timestamp, and message text; never create duplicate Trello comments for the same message on later sweeps. The Trello card description must also include `Hashgifted campaign URL`, `Hashgifted conversation link` (campaign URL plus the exact wave UID), the row UID, gate values, and a full latest thread transcript so Daniel can review the actual chat from the card without guessing from summary comments. When the live thread proves a Melbourne/Sydney/Brisbane/rest-of-Australia location gate, set the corresponding Trello `Location: ...` label so Daniel can see location gating at a glance.
+   - **Daniel leaves a Trello comment beginning with `SEND TO CREATOR`**: treat it as an explicit manual instruction to pass the message to the mapped Hashgifted creator, after verifying the Trello card maps to one Hashgifted row/campaign and the message passes safety checks. Required format:
+
+     ```text
+     SEND TO CREATOR
+
+     Message:
+     <exact message to send>
+     ```
+
+     Optional `Mode: draft only` prevents sending; optional `Mode: send` is the default. Reject/block comments that ask for detailed street address details, promise payment/discounts/exclusivity/future work, include private Notion links, or cannot be mapped unambiguously. After sending, verify exact Hashgifted thread readback and comment `SENT TO CREATOR` on the Trello card with the source Trello comment id.
+   - **Daniel leaves a Trello comment containing exactly `APPROVE CREATOR` on its own line**: treat it as explicit approval to proceed with that creator. Re-read the Hashgifted thread first; only select if metro/Reel/brief gates are still true and the campaign weekly cap has room. If the cap is full, move/keep the card in `Approved Reserve` and do not click Select. Confirm back on Trello with `CREATOR DECISION ACTIONED` or `CREATOR DECISION BLOCKED` and the source comment id.
+   - **Daniel leaves a Trello comment containing exactly `REJECT CREATOR` on its own line**: treat it as explicit instruction to decline/reject the creator in Hashgifted. Optional `Reason:` may be included. Verify live status after rejection, move the card to `Lapsed / Declined / Do Not Use` when verified, and confirm on Trello with `CREATOR DECISION ACTIONED` or `CREATOR DECISION BLOCKED` and the source comment id.
+7. Audit: append send/Select/Trello event with creator id, intent, screenshot before/after, Trello card URL/final list, and any warnings.
 8. Decrement the send cap (sends only; `Select` clicks do not count against the cap). Continue or exit.
 
 ## Stop Rules
@@ -127,6 +158,7 @@ Return a concise summary plus the audit:
 - Sends by intent: count of `selection_initial`, `nudge_3d`, `nudge_7d`, `brief_options`.
 - Selected: count and creator handles.
 - Declined post-shortlist: count and creator handles.
-- Manual review: count and reasons.
+- Manual review: count, reasons, and the Trello card URL for each creator escalated to `Needs Daniel` or manual review. Do not report a manual-review item without a Trello link unless Trello is unavailable. If a Trello `APPROVE CREATOR` / `REJECT CREATOR` decision has already been actioned for that card in the same run, reconcile the audit before reporting/syncing so the creator is not also listed as manual review or moved back to `Needs Daniel`.
+- Trello cards created/updated/moved by list, including `Approved Reserve`, `Selected / Brief Sent`, `Needs Daniel`, and `Active Q&A / Awaiting Content` counts.
 - Stop reason: `cap_reached`, `scope_exhausted`, `target_selected_reached`, `auth_required`, `adapter_gap`.
 - Audit log location.

@@ -41,6 +41,8 @@ Apply in order; first match wins.
 
 ## Definitions
 
+- `Intake Closed` means the campaign is temporarily closed to new applicants while its existing ranked pool continues through weekly gifting. It is not `Completed`. For the Reflexed Rose queue, release two gifts per campaign together at the start of each week; close intake above six weeks of eligible/near-eligible capacity and reopen below four weeks.
+- `Ranked Applicant Pool` retains every existing applicant and follows `references/ranked-applicant-pool.md`; only commercial/policy exceptions, material delivery problems, and genuine brand-safety ambiguity belong in `Needs Daniel`.
 - `Posted` means the post or reel appears in Hashgifted's completed gallery. Thread claims are useful signals but not proof.
 - `Last Contacted` in Notion is the source of truth for nudge timing.
 - `Applied` means the creator has applied in Hashgifted and has not been qualified.
@@ -51,6 +53,31 @@ Apply in order; first match wins.
 - `Delivery eligible` for the current bouquet round means the creator confirms Melbourne/Sydney/Brisbane metro, Geelong, Bannockburn, Sunshine Coast, or Gold Coast. Edge-region flowers ship by overnight courier in a large box. A creator “30km out of Brisbane” qualifies as Brisbane metro for profile-inference purposes; apply the same 30km-radius rule to Melbourne/Sydney/Brisbane unless the campaign says otherwise. Continue escalating new/other out-of-range delivery questions rather than auto-declining because delivery business logic is still evolving.
 - `Captured` means asset is downloaded, organised, synced to public CDN if required, and embedded or logged in Notion.
 - `Declined` is available any time before completion, but should be used with clear reason and audit evidence.
+
+## Trello UGC Board Sync
+
+Every workflow that touches a creator lifecycle state must also reconcile the matching card on the `🤖 User Generated Content` Trello board. Use `references/trello-ugc-board.md` for board ID, list names, idempotent card matching, labels, and verification rules.
+
+Minimum mapping:
+
+- `Applied` / new SUBMITTED row → `Inbox / Applied`.
+- Under profile/feed review or routine uncertainty → `Triage / Brand Fit`.
+- Ranked applicant outside the current 15-position operational horizon → `Parked Applicant Pool`.
+- Commercial/policy exception, material delivery problem, or genuine brand-safety ambiguity → `Needs Daniel`.
+- Unknown location, outside-metro status, ordinary fit/rank uncertainty, weak routine evidence, and intake-closed status remain ranked/ineligible and never go to `Needs Daniel` by themselves.
+- Hashgifted `Shortlisted` → `Shortlisted`.
+- Fully qualified but weekly/campaign cadence full → `Approved Reserve`.
+- Hashgifted `Selected` / `Accepted` after verified Select/Accept → `Selected / Brief Sent`.
+- Selected creator has active Q&A, booked/placed order, or is awaiting content → `Active Q&A / Awaiting Content`.
+- Story/post/reel/content signal detected but not captured/indexed → `Content Received`.
+- Asset saved and indexed to Notion/Drive/CDN → `Ingested / Indexed`.
+- Media-buyer/social handoff ready → `Ready to Schedule`.
+- Scheduled in Later/social tool → `Scheduled in Later`.
+- Verified social post live → `Posted / Live`.
+- Deliverables complete, thank-you sent, Hashgifted/Notion complete, creator scored → `Completed / Scored`.
+- Declined, lapsed, ghosted, excluded, or do-not-use → `Lapsed / Declined / Do Not Use`.
+
+Hashgifted remains the source of truth. If Hashgifted, Notion, and Trello disagree, reconcile Trello to the live Hashgifted lifecycle state and mention the correction in the audit.
 
 ## Creator CRM Requirement
 
