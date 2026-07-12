@@ -16,6 +16,8 @@ Each skill is self-contained and includes a `SKILL.md` file (plus optional `scri
 
 ### Operations
 
+- `operations/campaign-setup` (`campaign-setup`): Create Fig & Bloom advertising campaign structure in Notion with CDN-hosted creatives and a shared performance-tracking Ads database.
+- `operations/fig-bloom-public-relations-operations` (`fig-bloom-public-relations-operations`): Operate Medianet campaigns, journalist enquiries, verified pickups, Notion coverage history, approval-gated replies and calibrated thank-you outreach.
 - `operations/hashgifted-browser-adapter-map` (`hashgifted-browser-adapter-map`): Concrete Hashgifted browser intent mapping for portable browser operator runtimes.
 - `operations/hashgifted-campaign-init` (`hashgifted-campaign-init`): Create Notion campaign and brief records before opening applicants.
 - `operations/hashgifted-creator-shortlist` (`hashgifted-creator-shortlist`): Qualify Hashgifted applicants for a campaign shortlist before creator communication.
