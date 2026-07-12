@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "mode": "external_dir",
+  "repository": "..",
+  "remote": "origin/main",
+  "profiles": [
+    {
+      "name": "creative",
+      "skills_root": "/opt/data/profiles/creative/skills",
+      "config": "/opt/data/profiles/creative/config.yaml"
+    }
+  ]
+}

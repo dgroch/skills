@@ -12,6 +12,20 @@ Skills are grouped by domain:
 
 Each skill is self-contained and includes a `SKILL.md` file (plus optional `scripts/`, `references/`, and templates).
 
+## Canonical source and drift protection
+
+Hermes profiles load this repository directly through `skills.external_dirs`. Repository-owned skills must be edited here; profile-local directories must not duplicate their frontmatter names.
+
+```bash
+# Required before editing; silent means healthy
+python3 tools/skill_repo_guard.py preflight --fetch
+
+# Daily/read-only audit; silent means healthy
+python3 tools/skill_repo_guard.py audit --fetch
+```
+
+Topology is declared in `tools/skill-repo-manifest.json`. Full operating rules are in `AGENTS.md`.
+
 ## Skills
 
 ### Operations
