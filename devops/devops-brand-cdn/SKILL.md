@@ -105,6 +105,33 @@ The brand prefix in the key matches the bucket name — that's redundant in the 
 
 ## Common workflows
 
+### Embedding images in Notion pages (MANDATORY)
+
+**Notion cannot render Google Drive URLs as external images.** Drive URLs like `drive.google.com/uc?export=view&id=...` are blocked by Notion's external image rendering — the image shows a broken placeholder.
+
+**Always upload to the brand CDN first, then embed the CDN URL:**
+
+```bash
+# Upload campaign creative to CDN
+KEY="campaigns/oops-vs-wow/figandbloom-oopsvswow-anniversary-1x1.png"
+CDN_URL=$(bash scripts/upload.sh figandbloom "$KEY" /path/to/image.png 2>&1 | tail -1)
+# CDN_URL: https://brand-cdn.figandbloom.workers.dev/figandbloom/campaigns/oops-vs-wow/...
+
+# Embed in Notion page body
+curl -s -X PATCH "https://api.notion.com/v1/blocks/{page_id}/children" \
+  -H "Authorization: Bearer $NOTION_API_KEY" \
+  -H "Notion-Version: 2025-09-03" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "children": [{
+      "type": "image",
+      "image": {"type": "external", "external": {"url": "'$CDN_URL'"}}
+    }]
+  }'
+```
+
+Key naming for campaigns: `<brand>/campaigns/<campaign-name>/<slug>.<ext>`
+
 ### Hosting a Higgsfield generation
 
 After a Higgsfield job completes and returns a URL, push it to R2 so the public URL is stable and Notion-safe (Higgsfield URLs are subject to their CDN policies).
@@ -149,8 +176,10 @@ Reference copy of the deployed Worker code is in `worker-source.js` for diff'ing
 ## When in doubt
 
 - Smoke test fails? → Read the response. `host_not_allowed` is allowlist; `401` is bad token; `404` from a GET is just "key doesn't exist yet"; anything else, surface to the user.
+- Verifying a public CDN asset: prefer a small ranged `GET` (for example `Range: bytes=0-31`) and check `status == 200`, `content-type` starts with `image/` or the expected MIME type, and the first bytes match the file signature. Some hosts/middleware may reject `HEAD` or ranged `GET` even when normal image `GET` works, so retry a normal `GET` that reads only the first few bytes before declaring the CDN URL broken. Don't treat a `HEAD 403` or ranged `GET 403` alone as proof the Notion embed is broken.
 - User pasted a token? → Write it straight to the appropriate `.env`, don't echo it back.
 - Bucket doesn't exist? → Create it via Cloudflare MCP, add the binding, redeploy. Don't silently fall back to a different bucket.
 - A different agent session is asking? → Same skill, same Worker. The skill is brand-agnostic; the bucket name is the per-brand part.
 
 See `references/setup.md` for first-time setup on a new device or after credential rotation.
+See `references/media-library-preview-backfill.md` for the Render-env + Google-token pattern used to run Asset Library preview backfills safely without printing secrets.

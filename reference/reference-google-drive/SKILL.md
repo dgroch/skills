@@ -123,14 +123,85 @@ MIME types:
 - Sheet: `application/vnd.google-apps.spreadsheet`
 - Slides: `application/vnd.google-apps.presentation`
 
+## Synology Photos Shared Drive
+
+Brand assets, product photography, UGC, and ad campaign materials live on a **separate** shared drive:
+
+- **Drive ID:** `0AFJ_DrnFD4bbUk9PVA` — Paperclip (company docs)
+- **Drive ID:** `0AOMVrKhhWKIwUk9PVA` — Synology Photos (brand assets, photos, video)
+
+See `references/synology-photos-classification.md` for the full folder map and classification taxonomy.
+
+## Batch File Operations with `gws` CLI
+
+### Moving files on shared drives
+
+**Critical:** Shared drives require atomic parent swaps — you must `removeParents` and `addParents` in the **same** PATCH request. Separate calls fail with `teamDrivesParentLimit`.
+
+```bash
+# Move a file (atomic parent swap)
+gws drive files update --params '{
+  "fileId": "<FILE_ID>",
+  "addParents": "<NEW_PARENT_FOLDER_ID>",
+  "removeParents": "<OLD_PARENT_FOLDER_ID>",
+  "supportsAllDrives": true,
+  "fields": "id,name,parents"
+}'
+```
+
+### Scanning a drive for inventory
+
+```bash
+# Full recursive scan — outputs NDJSON (one JSON page per line)
+gws drive files list --params '{
+  "pageSize": 1000,
+  "fields": "nextPageToken,files(id,name,mimeType,parents)",
+  "supportsAllDrives": true,
+  "includeItemsFromAllDrives": true,
+  "corpora": "drive",
+  "driveId": "<DRIVE_ID>"
+}' --page-all --page-limit 50 --page-delay 300 > /tmp/drive_scan.txt
+```
+
+### Creating folders
+
+```bash
+gws drive files create \
+  --json '{"name": "Folder Name", "mimeType": "application/vnd.google-apps.folder", "parents": ["<PARENT_ID>"]}' \
+  --params '{"fields": "id,name", "supportsAllDrives": true}'
+```
+
+### Rate limiting
+
+- **2.5s between file moves** (~24 files/min) — avoids quota errors on shared drives
+- **0.5s between folder creates** — less restrictive but still polite
+- A full scan of ~15,000 items takes ~85s with `--page-delay 300`
+
+### Resumable batch organize script
+
+`scripts/organize_assets.py` is a working, resumable script that:
+1. Reads a drive scan NDJSON file
+2. Classifies files by root folder → target category
+3. Creates target folders if missing
+4. Moves files with atomic parent swaps and rate limiting
+5. Saves progress to `/tmp/organize_progress_v2.json` — safe to interrupt and resume
+
+### Pitfalls
+
+- **Apostrophes in filenames:** Shell quoting breaks. Use `gws --params` with JSON strings (the CLI handles escaping) rather than building shell command strings.
+- **`--page-all` output format:** NDJSON (newline-delimited JSON), one page per line. Parse with `json.loads()` per line, not as a single document.
+- **`gws drive files list` without `corpora`/`driveId`:** Lists personal Drive, not shared drives. Always pass `"corpora": "drive", "driveId": "<ID>"` for shared drives.
+- **Permission denied on gws:** Ensure `GOOGLE_WORKSPACE_CLI_CONFIG_DIR` and `GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND=file` are set, and credentials are extracted from `/opt/data/workspace/gws_creds.tar`.
+
 ## Rules
 
-1. Always use the Paperclip shared drive, never My Drive.
-2. Store files in your department folder or the most specific sub-folder.
-3. Use `09 - Shared Resources` for cross-team deliverables.
-4. Do not change sharing/permission settings on individual files.
-5. Archive old project folders with an `ARCHIVE -` prefix rather than deleting.
-6. Do not leave files in the drive root.
+1. Always use the Paperclip shared drive for company docs, never My Drive.
+2. Use Synology Photos shared drive for brand assets, photos, and video.
+3. Store files in your department folder or the most specific sub-folder.
+4. Use `09 - Shared Resources` for cross-team deliverables.
+5. Do not change sharing/permission settings on individual files.
+6. Archive old project folders with an `ARCHIVE -` prefix rather than deleting.
+7. Do not leave files in the drive root.
 
 ## Full Documentation
 

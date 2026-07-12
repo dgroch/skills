@@ -293,6 +293,47 @@ Common errors and fixes are documented in `references/INSTALL.md`.
 
 ---
 
+## Playwright Alternative (Preferred for Constrained Environments)
+
+When Puppeteer can't be installed (missing system `unzip`, no root access, read-only Puppeteer cache), use **Playwright** instead. Playwright bundles its own extraction and handles environments without system-level archive tools.
+
+### When to prefer Playwright
+- Environment has no `unzip` and you can't install it (no root)
+- Puppeteer's bundled Chrome download/extraction fails
+- You need a smaller install footprint (Playwright downloads only Chromium by default)
+
+### Installation
+```bash
+npm install playwright
+# Browser path may default to a read-only location — set explicitly:
+PLAYWRIGHT_BROWSERS_PATH=/opt/data/.cache/playwright npx playwright install chromium
+```
+
+### Critical: `PLAYWRIGHT_BROWSERS_PATH` must be set unconditionally
+
+The shell often has `PLAYWRIGHT_BROWSERS_PATH` pre-set to a read-only path (e.g. `/opt/hermes/.playwright`). Using `process.env.PLAYWRIGHT_BROWSERS_PATH || '/desired/path'` will silently use the shell's value. **Always overwrite unconditionally:**
+
+```js
+// CORRECT — always works
+process.env.PLAYWRIGHT_BROWSERS_PATH = '/opt/data/.cache/playwright';
+
+// WRONG — silently uses pre-existing shell value if set
+process.env.PLAYWRIGHT_BROWSERS_PATH = process.env.PLAYWRIGHT_BROWSERS_PATH || '/opt/data/.cache/playwright';
+```
+
+Set this **before** `require('playwright')` — Playwright reads the env var at module load time.
+
+### API differences from Puppeteer (screenshot/PDF)
+- `page.setContent(html, { waitUntil: 'networkidle' })` — Playwright uses `'networkidle'` not `'networkidle0'`
+- `page.screenshot({ path, fullPage, type: 'png' })` — same API
+- `page.pdf({ path, width: '600px', printBackground: true })` — same API
+- `browser.newPage({ viewport: { width, height } })` — viewport is an option on newPage, not setViewport()
+- Launch: `playwright.chromium.launch({ headless: true, args: [...] })` — same args pattern
+
+See `references/playwright-alternative.md` for the full render.js implementation.
+
+---
+
 ## Troubleshooting
 
 ### `Cannot find module 'minimist'`
@@ -342,3 +383,11 @@ If missing, install via: `apt-get install -y chromium`
 **Cause:** Fonts loaded from `file://` paths only work when the page is navigated via `page.goto('file:///...')`. Using `page.setContent()` (about:blank context) silently blocks `file://` font loads.
 
 **Fix:** Always use `page.goto()` with a `file://` path and include `--allow-file-access-from-files` in Chromium launch args (already set in `slice.js` defaults).
+
+### `'height' in 'clip' must be positive` from `CdpPage.screenshot` on Render
+
+**Symptom:** The builder's `/api/render` endpoint (and any Puppeteer screenshot call inside the Render container) returns `Error: 'height' in 'clip' must be positive. at CdpPage.screenshot (puppeteer-core/lib/cjs/puppeteer/api/Page.js:1045:31)`. Passing `renderOptions: {height: 2400}` in the request body does **not** bypass it. The error happens before the request body is consulted.
+
+**Cause:** The Puppeteer `clip` option is being computed from a 0 or negative value somewhere in the render path — likely a stale `pageHeight` from a previous render or a `boundingBox` of an element that hasn't laid out yet. Puppeteer version vs. Chromium version drift on Render. Not a per-campaign issue (it fires for campaigns that worked before).
+
+**Fix:** Open the campaign in the email-builder UI (the in-browser render path doesn't go through Puppeteer the same way). Or run the render locally with `puppeteer-core` against a local Chromium binary. Don't try to patch the campaign JSON; the issue is environmental.

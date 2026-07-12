@@ -18,6 +18,18 @@ Paperclip path mapping:
 
 Plan, prioritise, and manage the content pipeline. Produce content briefs for the Copywriter agent. Monitor published content performance. Seasonal calendar and segment context from `config/client.yaml`.
 
+## Fig & Bloom blog-post workflow
+
+When creating, rewriting, briefing, or publishing Fig & Bloom blog posts, load and follow `references/fig-bloom-blog-thought-leader-workflow.md` before drafting. It operationalises the approved thought-leader lens stack:
+
+- Chet Holmes for education-first editorial strategy
+- Eugene Schwartz for reader-awareness matching
+- Seth Godin for Moment Maker identity
+- Zig Ziglar for warmth and sincerity
+- David Ogilvy for specificity and brand-image discipline
+
+Use the lenses as editorial machinery, not visible named references in the copy. Use real Fig & Bloom products/source content; do not invent editorial facts.
+
 ## Tools Required
 
 - Ahrefs (content gap, competitor content)
