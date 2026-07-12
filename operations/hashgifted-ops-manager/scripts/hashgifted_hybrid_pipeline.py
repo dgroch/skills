@@ -15,9 +15,15 @@ ALLOWED_CLASSIFICATIONS={'initial_outreach','awaiting_creator','needs_gate_clari
 AUTO_ACTIONS={'send_message','approved_reserve','select_accept'}
 REQUIRED_FACTS=('delivery_eligible','brief_confirmed')
 LEGACY_PATH='/opt/data/tmp/hashgifted_reflexed_selection_sweep.py'
-PER_CAMPAIGN_WEEKLY_CAP=2
+PER_CAMPAIGN_WEEKLY_CAP=3
 CAMPAIGN_TIMEZONE=ZoneInfo('Australia/Melbourne')
 REFLEXED_CAMPAIGNS={'Reflexed Roses - Red','Reflexed Roses - White','Reflexed Roses - Pastel Pink'}
+RESERVE_NOTIFICATION_MARKERS=(
+    'approved in our queue',
+    'ranked waiting pool',
+    'limited number of gifts each week',
+    'weekly limit on creator gifts',
+)
 
 
 def load_legacy():
@@ -135,6 +141,14 @@ def validate_decision_bundle(collection, decisions):
                 exception_ok=facts.get('deliverable_exception_approved') is True and bool(str(evidence.get('deliverable_exception_approved') or '').strip())
                 if not (reel_ok or exception_ok):
                     derr.append('approved_deliverable_evidence_missing')
+                if action=='approved_reserve':
+                    already_notified=any(marker in transcript for marker in RESERVE_NOTIFICATION_MARKERS)
+                    reply=str(d.get('reply_text') or '').strip()
+                    if not already_notified and not reply:
+                        derr.append('reserve_notification_required')
+                    if reply:
+                        block=reply_block_reason(reply)
+                        if block: derr.append(f'reserve_reply_blocked:{block}')
         if derr: errors.append({'gift_id':key[0],'wave_uid':key[1],'errors':derr})
         else: valid.append(d)
     missing=[{'gift_id':k[0],'wave_uid':k[1],'errors':['decision_missing']} for k in candidates if k not in seen]

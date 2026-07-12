@@ -129,8 +129,25 @@ class HybridDecisionTests(unittest.TestCase):
         h=load_module()
         transcript='Creator: Sydney. Carousel plus Stories?\nFig & Bloom: Yes, carousel plus Stories works for this campaign.'
         collection={'run_id':'r5','candidates':[{'gift_id':'g5','wave_uid':'w5','candidate_type':'shortlisted_qualification','transcript':transcript,'thread_sha256':h.sha256_text(transcript),'pending_human_commands':[]}]}
-        decisions={'run_id':'r5','decisions':[{'gift_id':'g5','wave_uid':'w5','classification':'qualified_reserve','confidence':'high','reason':'Daniel approved the format exception','action':'approved_reserve','facts':{'delivery_eligible':True,'reel_confirmed':False,'brief_confirmed':True,'deliverable_exception_approved':True},'fact_evidence':{'delivery_eligible':'Sydney','brief_confirmed':'Carousel plus Stories?','deliverable_exception_approved':'Yes, carousel plus Stories works for this campaign.'}}]}
+        decisions={'run_id':'r5','decisions':[{'gift_id':'g5','wave_uid':'w5','classification':'qualified_reserve','confidence':'high','reason':'Daniel approved the format exception','action':'approved_reserve','facts':{'delivery_eligible':True,'reel_confirmed':False,'brief_confirmed':True,'deliverable_exception_approved':True},'fact_evidence':{'delivery_eligible':'Sydney','brief_confirmed':'Carousel plus Stories?','deliverable_exception_approved':'Yes, carousel plus Stories works for this campaign.'},'reply_text':'You are approved in our queue. No gifting date is confirmed yet; we will message when a weekly slot opens.'}]}
         result=h.validate_decision_bundle(collection,decisions)
+        self.assertTrue(result['ok'],result['errors'])
+
+    def test_new_reserve_requires_transparent_queue_notification(self):
+        h=load_module()
+        transcript='Creator: I am in Sydney, accept the brief, and will create a Reel.'
+        collection={'run_id':'r6','candidates':[{'gift_id':'g6','wave_uid':'w6','candidate_type':'shortlisted_qualification','transcript':transcript,'thread_sha256':h.sha256_text(transcript),'pending_human_commands':[]}]}
+        decision={'gift_id':'g6','wave_uid':'w6','classification':'qualified_reserve','confidence':'high','reason':'qualified while cadence is closed','action':'approved_reserve','facts':{'delivery_eligible':True,'reel_confirmed':True,'brief_confirmed':True},'fact_evidence':{'delivery_eligible':'I am in Sydney','reel_confirmed':'will create a Reel','brief_confirmed':'accept the brief'},'reply_text':None}
+        result=h.validate_decision_bundle(collection,{'run_id':'r6','decisions':[decision]})
+        self.assertFalse(result['ok'])
+        self.assertIn('reserve_notification_required',result['errors'][0]['errors'])
+
+    def test_existing_reserve_notification_is_not_repeated(self):
+        h=load_module()
+        transcript='Creator: Sydney, brief accepted, Reel confirmed.\nFig & Bloom: You are approved in our queue; we will message when a weekly slot opens.'
+        collection={'run_id':'r7','candidates':[{'gift_id':'g7','wave_uid':'w7','candidate_type':'shortlisted_qualification','transcript':transcript,'thread_sha256':h.sha256_text(transcript),'pending_human_commands':[]}]}
+        decision={'gift_id':'g7','wave_uid':'w7','classification':'qualified_reserve','confidence':'high','reason':'remain in reserve','action':'approved_reserve','facts':{'delivery_eligible':True,'reel_confirmed':True,'brief_confirmed':True},'fact_evidence':{'delivery_eligible':'Sydney','reel_confirmed':'Reel confirmed','brief_confirmed':'brief accepted'},'reply_text':None}
+        result=h.validate_decision_bundle(collection,{'run_id':'r7','decisions':[decision]})
         self.assertTrue(result['ok'],result['errors'])
 
 

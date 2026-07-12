@@ -33,6 +33,8 @@ Required sequence:
 - run ID and candidate count;
 - action counts (`no_action`, `send_message`, `approved_reserve`, `select_accept`, `manual_review`, `reject_human`);
 - exact creator messages sent and verified;
+- reserve notifications sent, already present, blocked, or still owed;
+- creator replies awaiting a Fig & Bloom response, explicitly distinguishing them from threads already ending with a brand/system message;
 - selections/rejections and verified statuses;
 - approved reserves;
 - manual-review items with creator, smallest exact decision, recommendation and Trello card URL;

@@ -25,6 +25,8 @@ New creators receive a neutral 10/20 reliability score when no evidence exists. 
 
 Outreach threshold: 70/100 overall and at least 28/40 brand fit. Once reached, immediately request broad delivery-region/eligibility confirmation and transparently state that the creator is in a ranked waiting pool with no guaranteed gifting date.
 
+When a creator first becomes `Approved Reserve`, send exactly one transparent queue-status message unless the complete Hashgifted transcript already contains one. It must say that qualification/approval does not confirm a gifting date, that weekly slots are limited, and that Fig & Bloom will message before anything is locked in. Verify exact thread readback and do not repeat the notification on later sweeps.
+
 ## Queue mechanics
 
 - Re-rank continuously when new evidence arrives.
