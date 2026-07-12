@@ -1,0 +1,48 @@
+{
+  "slug": "editorial-restrained",
+  "name": "Editorial Restrained",
+  "intent": "Maximum whitespace, typographic restraint. Used for care, sympathy, plain-text letter-style, and quiet editorial content. No illustration accents.",
+  "palette": {
+    "background_outer": "#FAF7EE",
+    "background_inner": "#FAF7EE",
+    "background_card": "#FFFFFF",
+    "foreground_primary": "#1A1A1A",
+    "foreground_secondary": "#7A756E",
+    "accent": "#1A1A1A",
+    "button_background": "#1A1A1A",
+    "button_foreground": "#FAF7EE",
+    "divider": "#E8E3DB"
+  },
+  "typography": {
+    "headline_font": "Lust Display",
+    "headline_case": "lowercase",
+    "headline_tracking_em": 0.02,
+    "subheadline_font": "Neuzeit Grotesk",
+    "body_font": "Neuzeit Grotesk",
+    "body_size_px": 16,
+    "body_line_height": 1.65,
+    "script_font": null,
+    "script_use": "none"
+  },
+  "photography": {
+    "treatment": "lifestyle-room",
+    "saturation_shift": -0.08,
+    "tint_overlay": "rgba(250, 247, 238, 0.06)",
+    "border_radius_px": 8
+  },
+  "illustration": {
+    "set": "none",
+    "stroke_colour": null,
+    "opacity": 0,
+    "placement_rules": "none"
+  },
+  "density": {
+    "section_spacing_px": 64,
+    "max_image_text_ratio": 0.45
+  },
+  "compatible_layouts": [
+    "editorial-blog",
+    "care-sympathy",
+    "plain-typographic"
+  ]
+}

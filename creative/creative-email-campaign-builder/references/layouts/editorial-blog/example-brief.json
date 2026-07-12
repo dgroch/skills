@@ -1,0 +1,53 @@
+{
+  "campaign_slug": "may-31-card-message-guide",
+  "campaign_name": "When the card is the hard part",
+  "layout": "editorial-blog",
+  "theme": "editorial-restrained",
+  "audience": {
+    "segments": ["engaged non-purchasers", "gift buyers", "repeat gifters"],
+    "suppressions": ["recent-7d-purchasers"]
+  },
+  "subject": "When the card is the hard part",
+  "preview_text": "A few words can make the whole gesture feel more like you.",
+  "tokens": {
+    "headline": "when the card is the hard part",
+    "hero_image_url": "",
+    "hero_cta_label": "FIND THE WORDS",
+    "hero_cta_url": "https://figandbloom.com/blogs/news/what-to-write-on-flower-card",
+    "body": {
+      "intro_p1": "A beautiful bunch says a great deal before the card is even opened. Still, the words on the card matter.",
+      "intro_p2": "If the message box is where you pause, start with something simple. What do you want them to feel when they read it?",
+      "intro_p3": "We put together a guide for birthday notes, thank-yous, sympathy, thinking-of-you, apologies, and the small just-because messages that often mean the most."
+    },
+    "primary_cta_label": "FIND THE WORDS",
+    "primary_cta_url": "https://figandbloom.com/blogs/news/what-to-write-on-flower-card",
+    "secondary_cta_label": "SEND WITH A NOTE",
+    "secondary_cta_url": "https://figandbloom.com/collections/all",
+    "tiles": [
+      {
+        "image_url": "",
+        "headline": "Start with the feeling",
+        "body": "Before you reach for words, picture how they will feel opening the door. That feeling is your first line."
+      },
+      {
+        "image_url": "",
+        "headline": "Keep it short and specific",
+        "body": "One line that sounds like you beats three that sound like a greeting card. Name the moment if you can."
+      },
+      {
+        "image_url": "",
+        "headline": "Let the flowers finish the sentence",
+        "body": "Your message starts the moment. The bouquet carries the rest. Together they say more than either could alone."
+      }
+    ]
+  },
+  "send_window": {
+    "scheduled_for": "2026-05-31T08:00:00+10:00",
+    "timezone": "Australia/Melbourne"
+  },
+  "product_tie_in": {
+    "primary_collection": "add-on card and message",
+    "secondary_collections": ["birthday flowers", "care bouquets"],
+    "blog_link": "/blogs/what-to-write-flower-card"
+  }
+}

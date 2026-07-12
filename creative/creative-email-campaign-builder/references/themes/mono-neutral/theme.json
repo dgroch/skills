@@ -1,0 +1,50 @@
+{
+  "slug": "mono-neutral",
+  "name": "Mono Neutral",
+  "intent": "Brand base theme. Cream background, black text, minimal accent. Default for welcome, winback, and general conversion emails.",
+  "palette": {
+    "background_outer": "#FAF7EE",
+    "background_inner": "#FFFFFF",
+    "background_card": "#FFFFFF",
+    "foreground_primary": "#1A1A1A",
+    "foreground_secondary": "#6B6560",
+    "accent": "#2C2825",
+    "button_background": "#2C2825",
+    "button_foreground": "#FAF7EE",
+    "divider": "#E8E3DB"
+  },
+  "typography": {
+    "headline_font": "Lust Display",
+    "headline_case": "sentence",
+    "headline_tracking_em": 0.01,
+    "subheadline_font": "Lust Display",
+    "body_font": "Neuzeit Grotesk",
+    "body_size_px": 16,
+    "body_line_height": 1.55,
+    "script_font": null,
+    "script_use": "none"
+  },
+  "photography": {
+    "treatment": "full-bleed",
+    "saturation_shift": 0,
+    "tint_overlay": null,
+    "border_radius_px": 0
+  },
+  "illustration": {
+    "set": "line-floral",
+    "stroke_colour": "#2C2825",
+    "opacity": 0.12,
+    "placement_rules": "corner-only"
+  },
+  "density": {
+    "section_spacing_px": 48,
+    "max_image_text_ratio": 0.5
+  },
+  "compatible_layouts": [
+    "welcome-standard",
+    "lifecycle-reminder",
+    "winback-empathetic",
+    "promo-urgency",
+    "editorial-blog"
+  ]
+}

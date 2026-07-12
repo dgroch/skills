@@ -1,0 +1,152 @@
+{
+  "fig-and-bloom": {
+    "name": "Fig & Bloom Standard",
+    "palette": {
+      "noir": "#000000",
+      "white": "#FFFFFF",
+      "clay": "#D8CCBE",
+      "clay50": "#EBE5DF",
+      "border": "#e8e2da",
+      "bodyBg": "#2c2825",
+      "textPrimary": "#000000",
+      "textSecondary": "#666666",
+      "textMuted": "#999999"
+    },
+    "typography": {
+      "display": "Lust, 'Times New Roman', serif",
+      "accent": "Cervanttis, 'Brush Script MT', cursive",
+      "body": "Neue Haas Grotesk, 'Helvetica Neue', Arial, sans-serif"
+    }
+  },
+  "spring": {
+    "name": "Spring",
+    "palette": {
+      "noir": "#000000",
+      "white": "#FFFFFF",
+      "accent": "#A8D5BA",
+      "accentLight": "#E8F5E9",
+      "accentDark": "#6BAF8D",
+      "clay": "#D8CCBE",
+      "clay50": "#EBE5DF",
+      "border": "#e8e2da",
+      "bodyBg": "#2c2825",
+      "textPrimary": "#000000",
+      "textSecondary": "#666666"
+    }
+  },
+  "summer": {
+    "name": "Summer",
+    "palette": {
+      "noir": "#000000",
+      "white": "#FFFFFF",
+      "accent": "#F08080",
+      "accentLight": "#FFE4E1",
+      "accentDark": "#CD5C5C",
+      "clay": "#D8CCBE",
+      "clay50": "#EBE5DF",
+      "border": "#e8e2da",
+      "bodyBg": "#2c2825",
+      "textPrimary": "#000000",
+      "textSecondary": "#666666"
+    }
+  },
+  "autumn": {
+    "name": "Autumn",
+    "palette": {
+      "noir": "#000000",
+      "white": "#FFFFFF",
+      "accent": "#D4A574",
+      "accentLight": "#F5E6D3",
+      "accentDark": "#C67A4B",
+      "clay": "#D8CCBE",
+      "clay50": "#EBE5DF",
+      "border": "#e8e2da",
+      "bodyBg": "#2c2825",
+      "textPrimary": "#000000",
+      "textSecondary": "#666666"
+    }
+  },
+  "winter": {
+    "name": "Winter",
+    "palette": {
+      "noir": "#000000",
+      "white": "#FFFFFF",
+      "accent": "#B0C4DE",
+      "accentLight": "#E8EEF5",
+      "accentDark": "#708090",
+      "clay": "#D8CCBE",
+      "clay50": "#EBE5DF",
+      "border": "#e8e2da",
+      "bodyBg": "#2c2825",
+      "textPrimary": "#000000",
+      "textSecondary": "#666666"
+    }
+  },
+  "christmas": {
+    "name": "Christmas",
+    "palette": {
+      "noir": "#000000",
+      "white": "#FFFFFF",
+      "accent": "#8B0000",
+      "accentLight": "#2D1F1F",
+      "accentDark": "#5C0000",
+      "gold": "#FFD700",
+      "green": "#228B22",
+      "clay": "#D8CCBE",
+      "clay50": "#EBE5DF",
+      "border": "#e8e2da",
+      "bodyBg": "#1a0a0a",
+      "textPrimary": "#000000",
+      "textSecondary": "#666666"
+    }
+  },
+  "valentines": {
+    "name": "Valentine's",
+    "palette": {
+      "noir": "#000000",
+      "white": "#FFFFFF",
+      "accent": "#FFB6C1",
+      "accentLight": "#FFF0F3",
+      "accentDark": "#800020",
+      "clay": "#D8CCBE",
+      "clay50": "#EBE5DF",
+      "border": "#e8e2da",
+      "bodyBg": "#2c2825",
+      "textPrimary": "#000000",
+      "textSecondary": "#666666"
+    }
+  },
+  "lunar": {
+    "name": "Lunar New Year",
+    "palette": {
+      "noir": "#000000",
+      "white": "#FFFFFF",
+      "accent": "#CC0000",
+      "accentLight": "#FFE5E5",
+      "accentDark": "#8B0000",
+      "gold": "#FFD700",
+      "clay": "#D8CCBE",
+      "clay50": "#EBE5DF",
+      "border": "#e8e2da",
+      "bodyBg": "#2c2825",
+      "textPrimary": "#000000",
+      "textSecondary": "#666666"
+    }
+  },
+  "mothers-day": {
+    "name": "Mother's Day",
+    "palette": {
+      "noir": "#000000",
+      "white": "#FFFFFF",
+      "accent": "#E6E6FA",
+      "accentLight": "#F5F0FF",
+      "accentDark": "#DB7093",
+      "clay": "#D8CCBE",
+      "clay50": "#EBE5DF",
+      "border": "#e8e2da",
+      "bodyBg": "#2c2825",
+      "textPrimary": "#000000",
+      "textSecondary": "#666666"
+    }
+  }
+}

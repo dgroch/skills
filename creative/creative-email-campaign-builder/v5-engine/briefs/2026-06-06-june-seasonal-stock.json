@@ -1,0 +1,84 @@
+{
+  "id": "2026-06-06-june-seasonal-stock",
+  "subject": "June's Must-Have Bloom: Stock",
+  "name": "2026-06-06-june-seasonal-stock",
+  "campaignType": "Product-Seasonal",
+  "campaignDate": "2026-06-06",
+  "layout": "editorial-blog",
+  "theme": "summer",
+  "preview": "Meet Stock, June's fragrant seasonal flower.",
+  "primaryCta": {
+    "text": "SHOP STOCK",
+    "href": "/collections/seasonal"
+  },
+  "slots": {
+    "header": {
+      "primitive": "header"
+    },
+    "hero": {
+      "primitive": "hero-b-white",
+      "superLabel": "SEASONAL FLOWER",
+      "headline": "june's most fragrant bloom",
+      "subheadline": "Stock — the season's most romantic flower",
+      "ctaText": "SHOP STOCK",
+      "ctaUrl": "/collections/seasonal",
+      "heroImage": "https://brand-cdn.figandbloom.workers.dev/figandbloom/marketing/right-hook-email-corpus/EMAIL-06-06-Seasonal-Flower-June/194b17be-4281-4a2a-b916-cd9d7a15f1e3__6.6%20Seasonal%20Flower%20June%20(1).png"
+    },
+    "body": {
+      "primitive": "body-copy",
+      "headline": "A Fragrant June Tradition",
+      "bodyP1": "Stock has been a garden favourite for centuries — its intoxicating fragrance and ruffled petals make it the perfect June bloom. Hand-tied with seasonal foliage, wrapped in our signature white tissue and black ribbon.",
+      "bodyP2": "Each bouquet is unique, just like the moments they celebrate.",
+      "assetsBase": "https://cdn.shopify.com/s/files/1/0657/8723/2489/files"
+    },
+    "divider1": {
+      "primitive": "divider-line"
+    },
+    "products": {
+      "primitive": "product-grid",
+      "sectionTitle": "Shop June's Seasonal",
+      "columns": 2,
+      "products": [
+        {
+          "name": "Stock Seasonal Bouquet",
+          "image": "https://cdn.shopify.com/s/files/1/0267/2636/files/stock-seasonal.jpg",
+          "url": "/products/stock-seasonal",
+          "price": "From $89",
+          "ctaText": "SHOP NOW"
+        },
+        {
+          "name": "Stock + Vase Bundle",
+          "image": "https://cdn.shopify.com/s/files/1/0267/2636/files/stock-vase-bundle.jpg",
+          "url": "/products/stock-vase-bundle",
+          "price": "From $129",
+          "ctaText": "SHOP NOW"
+        }
+      ]
+    },
+    "divider2": {
+      "primitive": "divider-line"
+    },
+    "testimonial": {
+      "primitive": "testimonial",
+      "reviewStars": "★★★★★",
+      "reviewText": "The Stock bouquet was absolutely stunning — the fragrance filled the entire room. Will definitely order again.",
+      "reviewerName": "Sarah M., Melbourne"
+    },
+    "cta": {
+      "primitive": "cta",
+      "buttons": [
+        {
+          "text": "SHOP SEASONAL FLOWERS",
+          "href": "/collections/seasonal",
+          "variant": "primary"
+        }
+      ]
+    },
+    "trust": {
+      "primitive": "trust-bar"
+    },
+    "footer": {
+      "primitive": "footer"
+    }
+  }
+}

@@ -140,6 +140,12 @@ When reviewing any asset or channel for brand compliance, check against:
 6. **Tone** — Warm, intentional, Australian English, no filler, no salesy energy, identity-affirming
 7. **Tagline** — "For Moment Makers" used correctly; never separated from logo; never modified
 
+### Static ad adaptation from external references
+
+When Daniel provides an external ad/design reference and asks to create Fig & Bloom statics, use the reference as a **format/pattern library**, not a template to copy. Extract the mechanic (e.g. colour finder, moodboard, social proof, complete moment, choice helper), then rebuild as a Fig & Bloom original using real product imagery where possible.
+
+**Correction from Daniel:** do not over-sanitise the work into generic “brand-safe cards.” Preserve the reference’s **structural look** — composition, hierarchy, density, framing, device/mockup mechanics, collage behaviour, annotation style, and visual rhythm — while replacing the brand/product/copy system with Fig & Bloom. If the user asks for the examples themselves, deliver the recovered/source examples before adapting. For the detailed workflow, QA checklist, and reusable pattern list, see `references/fig-bloom-ad-static-adaptation.md`.
+
 ---
 
 ## Updating the guidelines

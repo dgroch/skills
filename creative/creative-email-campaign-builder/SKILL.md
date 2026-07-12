@@ -952,6 +952,22 @@ If a campaign need cannot be met with the existing templates, escalate for templ
 
 ---
 
+## Bundled V5 engine — reference and migration work only
+
+The additive `v5-engine/`, `templates/brief-template.json`, and associated V5/corpus references are retained for testing, migration analysis and historical campaign reproduction. They **do not override** the canonical workflow at the top of this skill: for new production work, the live builder, `/api/schema`, `/api/validate` and `/api/designs` remain the source of truth.
+
+Safe uses include validating bundled example briefs, comparing primitive output with the live component library, and migrating a proven primitive into the live builder through its normal review path. Do not upload, deploy or publish directly from the bundled engine without explicit approval and fresh live-schema validation.
+
+Relevant references:
+
+- `references/v5-engine-architecture.md`
+- `references/corpus-analysis-report.md`
+- `references/visual-corpus-patterns.md`
+- `references/builder-json-agent-contract.md`
+- `references/live-context-pattern.md`
+- `references/klaviyo-campaign-api.md`
+- `references/v4-legacy-pipeline.md`
+
 ## Companion: `fig-bloom-email-generator`
 
 > A new companion skill — **`creative/fig-bloom-email-generator`** — packages the brand + persona + lens-routing + schema context into a single LLM call, so a brief (from the email-builder "Create Campaign" button or an agent conversation) produces a complete, validated campaign JSON in one shot.

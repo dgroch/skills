@@ -1,0 +1,119 @@
+{
+  "id": "2026-05-29-when-the-card",
+  "campaignDate": "2026-05-31",
+  "layout": "editorial-blog",
+  "theme": "fig-and-bloom",
+  "subject": "When the card is the hard part",
+  "preview": "A few words can make the whole gesture feel more like you.",
+  "audience": "THh7qN",
+  "slots": {
+    "header": {},
+    "hero": {
+      "primitive": "hero-b-white",
+      "superLabel": "GIFTING · CARDS & MESSAGES",
+      "headline": "when the card is the hard part",
+      "subheadline": "A few words can make the whole gesture feel more like you.",
+      "ctaText": "FIND THE WORDS",
+      "ctaUrl": "https://figandbloom.com/blogs/what-to-write-flower-card",
+      "heroImage": "https://cdn.shopify.com/s/files/1/0657/8723/2489/files/hero-lifestyle-01.jpg"
+    },
+    "opt-out": {
+      "primitive": "opt-out",
+      "optOutHeadline": "not the right moment?",
+      "optOutBody": "We understand. If you'd prefer not to receive gifting reminders, you can opt out below.",
+      "unsubscribeUrl": "{{unsubscribe}}"
+    },
+    "body-main": {
+      "primitive": "body-copy",
+      "headline": "The flowers were easy. It's the card that stopped you.",
+      "bodyP1": "You picked the bouquet in three minutes. But then you sat there, pen hovering, wondering if 'Happy Birthday' was enough. Or too much. Or somehow both at once.",
+      "bodyP2": "Here's the thing: the card isn't an afterthought. It's where the flowers become yours. Where a beautiful gesture becomes a personal one."
+    },
+    "divider-1": {
+      "primitive": "divider-illustration",
+      "bgVariant": "white",
+      "illustration": "BodyFlower"
+    },
+    "section-headline": {
+      "primitive": "section-headline",
+      "superLabel": "THREE APPROACHES",
+      "headline": "That Actually Work"
+    },
+    "steps": {
+      "primitive": "three-column-steps",
+      "bgVariant": "50clay",
+      "headline": "Three Approaches That Actually Work",
+      "step1Number": "1.",
+      "step1Text": "Be Specific — Not 'thinking of you' but 'thinking of that time we got lost in the botanic gardens'.",
+      "step2Number": "2.",
+      "step2Text": "Be Honest — 'I'm not great at this, but I wanted you to know I care' says more than any poem.",
+      "step3Number": "3.",
+      "step3Text": "Be Brief — Two sentences, handwritten. That's the whole card.",
+      "ctaText": "READ THE GUIDE",
+      "ctaUrl": "https://figandbloom.com/blogs/what-to-write-flower-card"
+    },
+    "product-heading": {
+      "primitive": "section-headline",
+      "superLabel": "SEND WITH A NOTE",
+      "headline": "Pair With a Bouquet"
+    },
+    "product-1": {
+      "primitive": "card-horizontal",
+      "productImage": "https://cdn.shopify.com/s/files/1/0657/8723/2489/files/product-birthday.jpg",
+      "productLabel": "BOUQUET · GIFTING",
+      "productName": "Birthday Bloom",
+      "productOccasion": "For the one who makes every day feel like a celebration",
+      "productPrice": "From $97",
+      "productUrl": "https://figandbloom.com/products/birthday-bloom"
+    },
+    "product-2": {
+      "primitive": "card-horizontal-reversed",
+      "productImage": "https://cdn.shopify.com/s/files/1/0657/8723/2489/files/product-care.jpg",
+      "productLabel": "BOUQUET · CARE PACKAGE",
+      "productName": "Gentle Thoughts",
+      "productOccasion": "For when words aren't quite enough on their own",
+      "productPrice": "From $120",
+      "productUrl": "https://figandbloom.com/products/gentle-thoughts"
+    },
+    "cta": {
+      "primitive": "cta",
+      "buttons": [
+        { "text": "FIND THE WORDS", "href": "https://figandbloom.com/blogs/what-to-write-flower-card", "variant": "primary" },
+        { "text": "SEND WITH A NOTE", "href": "https://figandbloom.com/collections/cards", "variant": "outline" }
+      ]
+    },
+    "divider-2": {
+      "primitive": "divider-line"
+    },
+    "body-closing": {
+      "primitive": "body-copy-plain",
+      "headline": "The best messages sound like you",
+      "bodyP1": "Not a greeting card. So write like you'd speak — just a little more thoughtful. And if you need a starting point, we've got a whole guide waiting for you."
+    },
+    "trust-bar": {
+      "primitive": "trust-bar"
+    },
+    "footer": {
+      "primitive": "footer",
+      "links": [
+        { "text": "SHOP", "href": "https://figandbloom.com/collections/all" },
+        { "text": "ABOUT", "href": "https://figandbloom.com/pages/about" },
+        { "text": "CONTACT", "href": "https://figandbloom.com/pages/contact" }
+      ],
+      "unsubscribeHref": "{{unsubscribe}}",
+      "companyName": "Fig & Bloom",
+      "companyAddress": "Melbourne, Australia"
+    }
+  },
+  "primaryCta": {
+    "text": "Find the words",
+    "href": "/blogs/what-to-write-flower-card"
+  },
+  "copyGuardrails": {
+    "language": "Australian English",
+    "banned": ["elevate", "curate", "stunning", "gorgeous", "pop of colour", "don't miss out"],
+    "maxSubjectLength": 50,
+    "emoji": false,
+    "hype": false
+  }
+}

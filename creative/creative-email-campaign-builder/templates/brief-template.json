@@ -1,0 +1,128 @@
+{
+  "id": "YYYY-MM-DD-campaign-slug",
+  "campaignDate": "YYYY-MM-DD",
+  "layout": "editorial-blog",
+  "theme": "fig-and-bloom",
+  "subject": "Subject line (≤50 chars, no emoji, no hype)",
+  "preview": "Preview text for inbox display",
+  "audience": "THh7qN",
+  "slots": {
+    "header": {},
+
+    "hero": {
+      "primitive": "hero-b-white",
+      "superLabel": "CATEGORY · SEASON",
+      "headline": "lowercase cervanttis headline",
+      "subheadline": "Supporting copy (1-2 lines)",
+      "ctaText": "CTA LABEL",
+      "ctaUrl": "https://figandbloom.com/...",
+      "heroImage": "https://cdn.shopify.com/.../hero-image.jpg"
+    },
+
+    "opt-out": {
+      "primitive": "opt-out",
+      "optOutHeadline": "not the right moment?",
+      "optOutBody": "We understand. Opt out below if you prefer not to receive these.",
+      "unsubscribeUrl": "{{unsubscribe}}"
+    },
+
+    "body-main": {
+      "primitive": "body-copy",
+      "headline": "Lust headline, sentence case",
+      "bodyP1": "First paragraph — emotional hook.",
+      "bodyP2": "Second paragraph — gentle call to action."
+    },
+
+    "divider-1": {
+      "primitive": "divider-illustration",
+      "bgVariant": "white",
+      "illustration": "BodyFlower"
+    },
+
+    "section-headline": {
+      "primitive": "section-headline",
+      "superLabel": "CATEGORY LABEL",
+      "headline": "Section Headline"
+    },
+
+    "product-1": {
+      "primitive": "card-horizontal",
+      "productImage": "https://cdn.shopify.com/.../product-1.jpg",
+      "productLabel": "BOUQUET · GIFTING",
+      "productName": "Product Name",
+      "productOccasion": "For the one who...",
+      "productPrice": "From $XX",
+      "productUrl": "https://figandbloom.com/products/..."
+    },
+
+    "product-2": {
+      "primitive": "card-horizontal-reversed",
+      "productImage": "https://cdn.shopify.com/.../product-2.jpg",
+      "productLabel": "BOUQUET · GIFTING",
+      "productName": "Second Product",
+      "productOccasion": "For the one who...",
+      "productPrice": "From $XX",
+      "productUrl": "https://figandbloom.com/products/..."
+    },
+
+    "testimonial": {
+      "primitive": "testimonial",
+      "reviewStars": "★★★★★",
+      "reviewText": "Customer review text here.",
+      "reviewerName": "— Sarah, Melbourne"
+    },
+
+    "promo-code": {
+      "primitive": "promo-code",
+      "promoCode": "SAVE20",
+      "ctaText": "SHOP NOW",
+      "ctaUrl": "https://figandbloom.com/collections/all"
+    },
+
+    "upsell": {
+      "primitive": "upsell-noir",
+      "headline": "closing cervanttis headline",
+      "ctaText": "COMPLETE YOUR GIFT",
+      "ctaUrl": "https://figandbloom.com/collections/add-ons"
+    },
+
+    "cta": {
+      "primitive": "cta",
+      "buttons": [
+        { "text": "PRIMARY CTA", "href": "https://...", "variant": "primary" },
+        { "text": "SECONDARY", "href": "https://...", "variant": "outline" }
+      ]
+    },
+
+    "divider-2": {
+      "primitive": "divider-line"
+    },
+
+    "trust-bar": {
+      "primitive": "trust-bar"
+    },
+
+    "footer": {
+      "primitive": "footer",
+      "links": [
+        { "text": "SHOP", "href": "https://figandbloom.com/collections/all" },
+        { "text": "ABOUT", "href": "https://figandbloom.com/pages/about" },
+        { "text": "CONTACT", "href": "https://figandbloom.com/pages/contact" }
+      ],
+      "unsubscribeHref": "{{unsubscribe}}",
+      "companyName": "Fig & Bloom",
+      "companyAddress": "Melbourne, Australia"
+    }
+  },
+  "primaryCta": {
+    "text": "Primary CTA text",
+    "href": "/path/to/landing"
+  },
+  "copyGuardrails": {
+    "language": "Australian English",
+    "banned": ["elevate", "curate", "stunning", "gorgeous", "pop of colour", "don't miss out"],
+    "maxSubjectLength": 50,
+    "emoji": false,
+    "hype": false
+  }
+}

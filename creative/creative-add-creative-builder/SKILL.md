@@ -54,6 +54,21 @@ Before execution, the following must be available:
 - **Creating new Figma templates** → human-led task (v1)
 - **Writing ad copy from scratch** → copywriting skill or human brief
 
+## Meta Ads Performance Lessons
+
+When building Meta/Instagram/Facebook ad creative, treat creative as the primary targeting and learning surface — not just a branded layout task. These lessons come from Daniel's requested extraction of Sabri Suby's “Learn 97% of Meta Ads in Under 19 minutes” and should inform Meta ad briefs and creative variants:
+
+1. **Prioritise high-volume static creative.** Do not wait for polished video/UGC before testing. Meta's Andromeda-era delivery needs lots of fresh creative to avoid fatigue, and static variants can be produced far faster than video. For a winning offer, bias toward many static variations across angles, hooks, headlines, and formats.
+2. **Use identity-trigger keywords.** Clone winning ads with audience/category/occasion words inserted into headline or body copy. These words help both the human viewer and Meta infer fit. For Fig & Bloom examples: `Sydney husbands`, `corporate gifting`, `sympathy flowers`, `same-day birthday flowers`, `new baby flowers`, `premium florist`.
+3. **Clone winning formats, not just winning ads.** A winner is a template. Preserve the structure, voice, and persuasive mechanism, then create many variants by demographic, occasion, pain point, product category, or offer. Start with body copy variants, then headlines, then visual creative.
+4. **Make ads look native, not ad-like.** Avoid over-designed “look at me” ads when the platform/niche rewards casual native content. Mine organic formats from Instagram/TikTok/YouTube and adapt them into paid creative. Examples: POV hooks, order prep, bouquet reveals, delivery handoffs, text-message screenshots, “what I'd send for…” recommendations.
+5. **Broad targeting needs specific creative.** For Meta, assume broad targeting plus highly specific creative/copy often beats interest stacking. The ad copy, image, offer, and landing page provide the targeting context.
+6. **Maintain ad-to-landing-page scent.** The winning ad headline/promise should be mirrored on the landing page headline, subhead, and opening copy. If an ad says “same-day birthday flowers in Sydney,” the click destination should immediately repeat that promise and show relevant products/proof.
+7. **Retarget with different offers and proof.** Do not only show non-buyers the same product again. Retarget with adjacent offers, objection-handling, testimonials/proof, gift guides, best-sellers, bundles, or value-led consultation/audit where relevant.
+8. **Optimise for business cash, not vanity ROAS.** Creative decisions should ultimately support blended business economics: allowable CAC, contribution margin, repeat purchase value, MER/blended ROAS, and net cash impact — not only platform-reported ROAS.
+
+**Default Fig & Bloom Meta variant matrix:** for any strong offer, produce variants across occasion (`birthday`, `sympathy`, `anniversary`, `apology`, `new baby`, `corporate thank-you`), urgency (`same-day`, `forgotten gift`, `last-minute`), audience (`husbands/partners`, `office managers`, `corporate clients`, `friends/family`), and product path (`bouquets`, `plants`, `candles`, `gift boxes`, `cards`, bundles).
+
 ## Process
 
 ### Phase 1: Parse Brief
@@ -128,7 +143,7 @@ or returned from `ai-image-generation`).
 **Actions:**
 
 1. **Image fitting:**
-   
+
    - Retrieve the hero image slot dimensions from the template.
    - Analyse the source photograph's aspect ratio and subject position.
    - If the source image aspect ratio does not match the slot:
@@ -141,7 +156,7 @@ or returned from `ai-image-generation`).
    - Place the processed image into the hero slot via Figma API.
 
 2. **Text population:**
-   
+
    - Insert headline into the headline component.
    - Insert body copy into the body component (if the template has one).
    - Insert CTA text into the CTA component.
@@ -156,7 +171,7 @@ or returned from `ai-image-generation`).
        non-negotiable.
 
 3. **Brand application:**
-   
+
    - Confirm logo is placed in the template's logo slot (templates
      should have this pre-set, but verify it hasn't been cleared).
    - Verify brand colours are applied to CTA button, background
@@ -175,28 +190,28 @@ in the template instance.
    for QA).
 
 2. Inspect the rendered image using vision. Check against this list:
-   
+
    **Must pass (blocking):**
-   
+
    - [ ] Text is fully visible and not clipped by edges or overlapping
-     
+
          elements
    - [ ] Hero image is not awkwardly cropped (subject is recognisable)
    - [ ] CTA button/text is legible and has sufficient contrast
    - [ ] Logo is present and correctly positioned
    - [ ] No empty/placeholder slots visible
    - [ ] Overall layout is not broken (no overlapping layers, no
-     
+
          misaligned elements)
-   
+
    **Should pass (warning, do not block):**
-   
+
    - [ ] Text hierarchy is clear (headline reads as dominant element)
    - [ ] Image quality appears acceptable (not pixelated)
    - [ ] Colour palette matches brand guidelines
 
 3. **Decision tree:**
-   
+
    - If any "must pass" item fails → diagnose the issue, return to
      Phase 3 to fix, then re-export and re-check. Maximum 3 retry
      loops. If still failing after 3 attempts → escalate to human
@@ -249,6 +264,7 @@ in the template instance.
    - Any warnings from QA (image quality, copy truncation)
    - Template name used
    - Formats delivered
+4. **If the deliverable is a creative operating system, concept bank, or testing calendar rather than only finished image files, put it into motion instead of leaving markdown/CSV on disk.** For Daniel, prefer a live Notion/Paperclip workspace with actionable databases/queues: concept backlog, production assets, creative tests, weekly reviews, and learnings. Import rows, seed the first production batch, and verify row counts/links before reporting done.
 
 **Quality gate:** Files are uploaded and accessible. Drive links resolve.
 

@@ -1,0 +1,83 @@
+{
+  "id": "2026-05-28-ltv-incentive-test",
+  "subject": "20% OFF — Make Another Moment Bloom",
+  "name": "2026-05-28-ltv-incentive-test",
+  "campaignType": "LTV Incentive",
+  "campaignDate": "2026-05-28",
+  "layout": "editorial-blog",
+  "theme": "fig-and-bloom",
+  "preview": "A welcome-back gift for your next flower delivery.",
+  "primaryCta": {
+    "text": "REDEEM YOUR GIFT",
+    "href": "/collections/all"
+  },
+  "slots": {
+    "header": {
+      "primitive": "header"
+    },
+    "hero": {
+      "primitive": "hero-b-white",
+      "superLabel": "REWARDS",
+      "headline": "make another moment bloom",
+      "subheadline": "20% OFF Flowers Wilts in 2 Weeks",
+      "ctaText": "REDEEM YOUR GIFT",
+      "ctaUrl": "/collections/all",
+      "heroImage": "https://cdn.shopify.com/s/files/1/0267/2636/files/hero-lifestyle.jpg"
+    },
+    "greeting": {
+      "primitive": "personalized-greeting",
+      "greeting": "Hi {{ first_name|default:'Moment Maker' }}",
+      "bodyText": "We noticed it's been a while. Here's a special gift just for you — because every moment deserves to bloom."
+    },
+    "countdown": {
+      "primitive": "countdown-timer",
+      "days": "14",
+      "hours": "0",
+      "minutes": "0",
+      "label": "Your 20% discount expires in"
+    },
+    "promo": {
+      "primitive": "promo-code-display",
+      "promoCode": "WELCOME-BACK",
+      "label": "Use code at checkout",
+      "validity": "Valid for 14 days on orders over $120",
+      "ctaText": "REDEEM YOUR GIFT",
+      "ctaUrl": "/collections/all"
+    },
+    "products": {
+      "primitive": "product-grid",
+      "sectionTitle": "Shop 20% Off",
+      "columns": 2,
+      "products": [
+        {
+          "name": "Broome Bouquet",
+          "image": "https://cdn.shopify.com/s/files/1/0267/2636/files/broome.jpg",
+          "url": "/products/broome",
+          "badge": "20% OFF",
+          "ctaText": "SHOP 20% OFF"
+        },
+        {
+          "name": "Osaka + Vase",
+          "image": "https://cdn.shopify.com/s/files/1/0267/2636/files/osaka-vase.jpg",
+          "url": "/products/osaka-vase",
+          "badge": "20% OFF",
+          "ctaText": "SHOP 20% OFF"
+        }
+      ]
+    },
+    "divider": {
+      "primitive": "divider-line"
+    },
+    "cta": {
+      "primitive": "cta-emotional",
+      "text": "REDEEM YOUR GIFT",
+      "url": "/collections/all"
+    },
+    "trust": {
+      "primitive": "trust-bar"
+    },
+    "footer": {
+      "primitive": "footer"
+    }
+  }
+}

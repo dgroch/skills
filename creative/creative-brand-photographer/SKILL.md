@@ -362,6 +362,8 @@ bouquets. Use glob-style patterns:
 
 ### Gathering seeds — what to photograph
 
+Use `references/seed-interview-questions.md` as the reusable human interview checklist when gathering or refreshing logo, bouquet, model, packaging, space, lifestyle and product seed assets.
+
 **Minimum viable seed library per brand (to unlock Mode B):**
 
 | Category  | Minimum | Ideal | Notes                                         |
