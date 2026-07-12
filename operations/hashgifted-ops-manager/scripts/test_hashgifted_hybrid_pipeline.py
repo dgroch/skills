@@ -14,6 +14,19 @@ def load_module():
 
 
 class HybridDecisionTests(unittest.TestCase):
+    def test_operational_gift_discovery_does_not_depend_on_tmp_helper_method(self):
+        h=load_module()
+        class FakeLegacy:
+            BASE='https://example.test/service'
+            BRAND_ID='brand'
+            def req(self,method,url,token):
+                status=url.rsplit('=',1)[-1]
+                rows={'ACTIVE':[{'uid':'active','name':'Reflexed Roses - Red','status':'ACTIVE'}],
+                      'CLOSED':[{'uid':'closed','name':'Reflexed Roses - White','status':'CLOSED'}]}
+                return {'ok':True,'status':200,'data':rows[status]}
+        gifts=h.fetch_operational_gifts(FakeLegacy(),'token')
+        self.assertEqual([g['uid'] for g in gifts],['active','closed'])
+
     def test_campaign_scope_includes_intake_closed_but_operational_campaigns(self):
         h=load_module()
         gifts=[

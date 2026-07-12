@@ -44,6 +44,20 @@ def campaigns_in_scope(gifts):
     return [g for g in gifts if g.get('name') in REFLEXED_CAMPAIGNS and str(g.get('status') or '').upper() in {'ACTIVE','CLOSED'}]
 
 
+def fetch_operational_gifts(h,token):
+    """Discover active and intake-closed gifts without relying on a tmp helper API."""
+    gifts=[]; seen=set()
+    for status in ('ACTIVE','CLOSED'):
+        result=h.req('GET',f'{h.BASE}/producer/brands/{h.BRAND_ID}/gifts?status={status}',token)
+        if not result.get('ok') or not isinstance(result.get('data'),list):
+            raise RuntimeError(f'gift discovery failed for {status} HTTP {result.get("status")}')
+        for gift in result['data']:
+            uid=gift.get('uid')
+            if uid and uid not in seen:
+                seen.add(uid); gifts.append(gift)
+    return gifts
+
+
 def live_preflight(candidate, live_transcript):
     current=sha256_text(live_transcript)
     if current!=candidate.get('thread_sha256'):
@@ -159,7 +173,7 @@ def validate_decision_bundle(collection, decisions):
 def collect_live(output_path=None):
     """Read active and intake-closed operational Reflexed Rose threads without side effects."""
     h=load_legacy(); h.load_env(); token=h.login(); now=datetime.now(timezone.utc)
-    gifts=campaigns_in_scope(h.fetch_gifts_all(token)); campaign_ids={g['name']:g['uid'] for g in gifts}
+    gifts=campaigns_in_scope(fetch_operational_gifts(h,token)); campaign_ids={g['name']:g['uid'] for g in gifts}
     rows_by_campaign={name:h.fetch_waves(token,gid) for name,gid in campaign_ids.items()}
     start=h.week_start(now); selected_by_campaign={}
     for campaign,rows in rows_by_campaign.items():
@@ -270,7 +284,7 @@ def _resolve_synced_card(h,ctx,sync,title,wave_uid,handle,campaign):
 def apply_validated(collection,validation,dry_run=False):
     if not validation.get('ok'):
         return {'ok':False,'error':'validation_not_ok','actions':[]}
-    h=load_legacy(); h.load_env(); token=h.login(); now=datetime.now(timezone.utc); gifts=campaigns_in_scope(h.fetch_gifts_all(token))
+    h=load_legacy(); h.load_env(); token=h.login(); now=datetime.now(timezone.utc); gifts=campaigns_in_scope(fetch_operational_gifts(h,token))
     gifts_by_id={gift['uid']:gift for gift in gifts}
     candidates={(x['gift_id'],x['wave_uid']):x for x in collection.get('candidates',[])}
     selected_live_by_campaign={gift['name']:_campaign_selected_live(h,token,gift,now) for gift in gifts}
