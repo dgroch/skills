@@ -146,12 +146,17 @@ def main():
         "candidates": [],
     }
     for provider in providers:
-        if provider == "pexels":
-            res = search_pexels(args.query, args.limit, args.orientation)
-        elif provider == "unsplash":
-            res = search_unsplash(args.query, args.limit, args.orientation)
-        else:
-            res = {"provider": provider, "error": "unknown provider", "results": []}
+        try:
+            if provider == "pexels":
+                res = search_pexels(args.query, args.limit, args.orientation)
+            elif provider == "unsplash":
+                res = search_unsplash(args.query, args.limit, args.orientation)
+            else:
+                res = {"provider": provider, "error": "unknown provider", "results": []}
+        except Exception as e:
+            # Provider failures are isolated: one blocked/down API must not
+            # prevent returning candidates from the other official provider.
+            res = {"provider": provider, "error": str(e)[:1000], "results": []}
         payload["providers"].append({k: v for k, v in res.items() if k != "results"})
         payload["candidates"].extend(res.get("results", []))
 
