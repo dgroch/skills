@@ -1,6 +1,6 @@
 ---
 name: creative-social-media-builder
-description: Generate branded Fig & Bloom social media creatives (Instagram/Facebook story 1080×1920 and post 1080×1350) as flat PNG images by filling content tokens into pre-built, locked templates. Use this skill whenever someone asks to create a Fig & Bloom social post, story, Instagram/Facebook creative, quote card, statement graphic, giveaway/poll graphic, link-in-bio card, or illustrated social tile.
+description: Plan and generate branded Fig & Bloom social media creatives — screens of 9 grid tiles (the default unit of work), rows of 3, and individual creatives (Instagram/Facebook story 1080×1920 and post 1080×1350) — as flat PNG images via the hosted social builder API or the local locked-template render pipeline. Use this skill whenever someone asks to plan the next screen or grid batch, complete a grid row, or create a Fig & Bloom social post, story, Instagram/Facebook creative, carousel cover, quote card, statement graphic, giveaway/poll graphic, link-in-bio card, or illustrated social tile.
 ---
 
 # Social Media Builder — Fig & Bloom (v1)
@@ -8,6 +8,34 @@ description: Generate branded Fig & Bloom social media creatives (Instagram/Face
 Generates production-ready social creatives by filling content tokens into pre-built, locked templates and rendering them to flat PNGs. The agent picks a template and injects content. It does not write HTML or make design decisions.
 
 This skill is the social-media sibling of `creative-email-campaign-builder` and deliberately mirrors its architecture: locked templates, a machine-readable `manifest.json`, a base64-font preview shell, and a headless-render harness (the `puppeteer` skill). Font handling, token injection, and the render approach are reused from that skill — not reinvented.
+
+## Read this first: the operating layer
+
+**`references/operating-instructions.md` is mandatory reading before planning or rendering anything.** It is the judgment layer that sits on top of this file: the grid system (screens of 9, column roles, adjacency and rhythm rules), the hosted-builder operating loop, the caption-luminance rule and its fallback ladder, brand voice guardrails, and the corrections log of past mistakes. This file tells you how to render a tile; that file tells you which tiles to make, where they go, and what "done" means.
+
+Companion skills:
+
+- **`creative-design-discipline`** — the craft layer for every individual tile: grid/margins, type scale, spacing rhythm, focal-point and logo discipline, and the critique loop. Apply it to each tile at 100% render; the contact sheet in this skill's workflow is for **grid-level cohesion only**, never per-tile approval.
+- **`creative-social-grid-planner`** — campaign theming: turning an occasion or campaign into a 9/12-tile content world. Use it to decide *what the screen is about*; the operating instructions here govern *where each tile may sit* (columns, adjacency, rhythm). When the two conflict on placement, the operating instructions win.
+
+## Unit of work: the screen, not the asset
+
+The deliverable is a **cohesive screen of 9 tiles**, planned as three rows before anything is rendered. Canonical invocation:
+
+> "Plan the next screen — 9 tiles, following the grid system. Here's what's ready: [reflexed roses content, quiet arts #2, …]"
+
+Three modes, defined fully in the operating instructions:
+
+- **Screen (default)** — plan 9 tiles from the ready-content list, render all, deliver a 3×3 contact sheet for approval, then the posting order (reverse row order).
+- **Row (3 tiles)** — only with grid state: a user-supplied screenshot of the current grid top, or a best-effort headless-browser screenshot via `references/scripts/grid-snapshot.js`. **No grid state → no row** — escalate to a full screen instead.
+- **Single tile** — only as a fill for a named slot in an approved screen plan, or as evergreen silent padding. Never scheduled outside a row or screen plan.
+
+## Render paths
+
+- **Hosted builder (primary):** `my-social-builder.onrender.com` — JSON-first API. Loop: `GET /api/schema` (always first — it is versioned and moves) → `GET /api/library` (copy a preset row verbatim) → `POST /api/validate` → `POST /api/render` → decode and eyeball every slice. Payload gotchas and levers are in the operating instructions.
+- **Local pipeline (fallback / template development):** the locked T1–T9 templates and `render.js` harness documented in the rest of this file. Use when the hosted builder is unreachable or when working on the templates themselves.
+
+Brand voice guardrails apply on both paths and are non-negotiable: no exclamation marks, Australian English, flower names lowercase, banned words (blooms, gorgeous, stunning, luxury, exquisite, elevate, curate), Cervanttis always lowercase.
 
 ## Core principle
 
@@ -35,7 +63,7 @@ The 9 templates are *purposes*, not one file per design. Visual variety comes fr
 
 ---
 
-## Pipeline
+## Pipeline (local render path)
 
 ```
 1. BRIEF     → message, template choice, ratio(s)
@@ -141,6 +169,7 @@ If edits are requested:
 
 | File | Read before... |
 |---|---|
+| `references/operating-instructions.md` | **Anything** — grid planning, tile production, copy, captions. The judgment layer over this file |
 | `references/manifest.json` | Selecting a template, confirming tokens, copying preset rows (Steps 3–4) |
 | `references/design-system.md` | Any question about colour, type scale, illustration, or photography rules |
 | `references/templates/*.html` | Filling tokens — read the actual file's comment block; never reconstruct from memory |
