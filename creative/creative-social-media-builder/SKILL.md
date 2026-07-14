@@ -13,6 +13,11 @@ This skill is the social-media sibling of `creative-email-campaign-builder` and 
 
 **`references/operating-instructions.md` is mandatory reading before planning or rendering anything.** It is the judgment layer that sits on top of this file: the grid system (screens of 9, column roles, adjacency and rhythm rules), the hosted-builder operating loop, the caption-luminance rule and its fallback ladder, brand voice guardrails, and the corrections log of past mistakes. This file tells you how to render a tile; that file tells you which tiles to make, where they go, and what "done" means.
 
+Companion skills:
+
+- **`creative-design-discipline`** — the craft layer for every individual tile: grid/margins, type scale, spacing rhythm, focal-point and logo discipline, and the critique loop. Apply it to each tile at 100% render; the contact sheet in this skill's workflow is for **grid-level cohesion only**, never per-tile approval.
+- **`creative-social-grid-planner`** — campaign theming: turning an occasion or campaign into a 9/12-tile content world. Use it to decide *what the screen is about*; the operating instructions here govern *where each tile may sit* (columns, adjacency, rhythm). When the two conflict on placement, the operating instructions win.
+
 ## Unit of work: the screen, not the asset
 
 The deliverable is a **cohesive screen of 9 tiles**, planned as three rows before anything is rendered. Canonical invocation:

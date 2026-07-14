@@ -107,7 +107,7 @@ Counts that fall out: **type-led 1–2** (two is the default) · **callouts ≤2
 ### Planning & posting workflow
 
 1. Plan the screen of 9 as three rows against the maps above.
-2. Assemble a **contact sheet** — square-crop every cover, lay out 3×3 — and look. Never approve a batch from a list. Check: column roles, counts, adjacency, scale/tone/colour per row, luminance on every callout, spine grounds alternating.
+2. Assemble a **contact sheet** — square-crop every cover, lay out 3×3 — and look. Never approve a batch from a list. Check: column roles, counts, adjacency, scale/tone/colour per row, luminance on every callout, spine grounds alternating. The contact sheet judges **grid cohesion only** — each individual tile must already have passed the `creative-design-discipline` critique loop at 100% render (per-tile faults hide at thumbnail size).
 3. Post in **reverse row order** — Instagram fills newest-leftmost.
 4. Keep **two evergreen silent tiles** rendered and queued as padding, so an unplanned reel or reactive post completes a row instead of breaking the spine.
 
