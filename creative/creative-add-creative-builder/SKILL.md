@@ -1,6 +1,6 @@
 ---
 name: creative-ad-creative-builder
-description: Paperclip creative workflow for Ad Creative Builder. Use this skill when you need to assemble production-ready static or carousel ad creatives from existing images, copy, and brand assets.
+description: Paperclip creative workflow for Ad Creative Builder. Build production-ready static and carousel ad creatives by composing photography, copy, and brand elements into Figma templates and rendering final assets. Use whenever someone asks to create ads, social media graphics, promotional banners, campaign assets, carousel posts, or any branded visual content that combines photography with graphic design. Also triggers for "make creatives for this campaign", "I need Meta/Instagram/Facebook ad assets", "resize this ad for Stories", "create a set of ads from these product shots", or "build a carousel". Does NOT generate photographs or video — it consumes them; delegate generation to creative-brand-photographer or video skills.
 ---
 
 # Ad Creative Builder

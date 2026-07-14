@@ -23,6 +23,8 @@ This is a fallback workflow, not a replacement for Fig & Bloom imagery.
 
 ## Source priority
 
+Daniel's preferred order for editorial/lifestyle gaps is:
+
 1. **Owned Fig & Bloom asset library**
    - Search `https://asset-library-u70t.onrender.com/api/search?q={scene}&limit=8`.
    - Prefer real Fig & Bloom product, studio, delivery, process, card, table,
@@ -30,6 +32,8 @@ This is a fallback workflow, not a replacement for Fig & Bloom imagery.
 2. **Licensed lifestyle fallback** using official APIs only:
    - Pexels API: `https://api.pexels.com/v1/search`
    - Unsplash API: `https://api.unsplash.com/search/photos`
+   - Use this before generating when the need is context/mood/lifestyle rather
+     than exact Fig & Bloom product truth.
 3. **Generated brand photography**
    - Use `creative-brand-photographer` / Higgsfield when the scene must look
      like Fig & Bloom and neither owned nor licensed lifestyle imagery fits.
@@ -57,6 +61,8 @@ Disallowed:
 - obvious stock smiles / staged wellness clichés
 - grief clichés, hospital clichés, melodrama
 - over-bright, cool, glossy, or generic studio lifestyle
+- generic corporate/office imagery (laptop, keyboard, pen cup, blank paper on desk) unless the story is explicitly about office gifting
+- sympathy/care images that leave the floral/card/home world and start reading as productivity stationery
 - any image whose details contradict the article copy
 
 ## Query strategy
@@ -91,10 +97,13 @@ For every candidate, score quickly:
 - **Role fit:** mood/context/supporting image, not product truth.
 - **Brand fit:** warm, slightly desaturated, tasteful, quiet, human scale.
 - **Composition:** portrait crop works; enough negative space; no awkward crop.
-- **Risk:** no fake Fig & Bloom product, no competitor branding, no clichés.
-- **Pairability:** can form a 2-up vertical block with another image.
+- **Risk:** no fake Fig & Bloom product, no competitor branding, no clichés, no
+  generic office/corporate read unless the article genuinely needs it.
+- **Pairability:** can form a compact 2-up vertical block with another image
+  without turning into two stacked full-width hero images on mobile.
 
-Reject any candidate that fails product-truth boundaries even if it is pretty.
+Reject any candidate that fails product-truth or brand-world boundaries even if
+it is pretty.
 
 ## Output contract
 
@@ -134,6 +143,12 @@ When used with `blog-production-loop`:
 - Keep product photography only in the Shopify product callout.
 - Add captions that carry useful craft or emotional context.
 - Record the image source metadata in the run report or upload manifest.
+
+## Provider failure isolation
+
+Treat Pexels and Unsplash as independent providers. If one official API fails, returns zero candidates, or is blocked from the current runtime, do **not** abort the whole image search. Record the provider-level error in the candidate JSON and continue with the other provider plus owned asset-library options. A valid run may use owned imagery + Unsplash only, or owned imagery + Pexels only.
+
+See `references/provider-failure-isolation.md` for the tested pattern and the Pexels-403 / Unsplash-success case.
 
 ## API usage
 

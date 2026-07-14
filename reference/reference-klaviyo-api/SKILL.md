@@ -1,6 +1,6 @@
 ---
 name: reference-klaviyo-api
-description: Provides authentication patterns, endpoint documentation, request/response formats, error handling, rate limiting, and known gotchas for all Klaviyo API domains.
+description: Provides authentication patterns, endpoint documentation, request/response formats, error handling, rate limiting, and known gotchas for all Klaviyo API domains. Use whenever an agent needs to make any Klaviyo API call — creating templates, campaigns, flows, pulling metrics, managing profiles, lists, or segments — and when debugging Klaviyo API errors, choosing between MCP and direct API access, or checking whether a Klaviyo capability is API-accessible.
 source_api_revision: "2026-01-15"
 openapi_spec_repo: "https://github.com/klaviyo/openapi"
 author: Dan Groch

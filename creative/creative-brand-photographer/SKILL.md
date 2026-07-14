@@ -1,6 +1,6 @@
 ---
 name: creative-brand-photographer
-description: Generates brand-consistent AI photography for any configured brand, with an automated critique loop and image-seed compositing.
+description: Generates brand-consistent AI photography for any configured brand, with an automated critique loop and image-seed compositing. Use whenever the user asks for brand imagery, campaign shots, product hero shots, social grids, lifestyle scenes, "this week's posts", "fill the grid", or any AI-generated image that should match a specific brand's aesthetic — even when the user doesn't say "brand photography".
 version: 3.1.0
 author: Dan Groch
 license: MIT

@@ -1,6 +1,6 @@
 ---
 name: creative-ugc-photo-review
-description: Assess photo and UGC assets against brand visual standards. 
+description: Assess photo and UGC assets against brand visual standards. Use whenever an image or batch of images needs to be reviewed for brand compliance — influencer deliverables, AI-generated product shots, content submissions, asset audits, or any visual QA gate. Triggers include "review these photos", "check this UGC", "does this match our brand", "assess these deliverables", "visual QA", "rate these images", "are these on-brand", or any request to evaluate imagery against a style standard.
 version: 1.0.0
 author: Dan Groch
 license: MIT
