@@ -13,7 +13,7 @@ metadata:
 
 Use this skill when operating the **consumer/operator side** of Fig & Bloom's backlink acquisition workflow in Notion: reviewing link opportunities, approving proposed content, running outreach, tracking follow-ups, verifying secured backlinks, and handing approved content briefs to Clawd.
 
-This skill documents the application usage layer. The execution mechanics for media inboxes, PR safety rules, and pitch-writing live in `digital-pr-outreach`; this skill explains how the Notion control plane should be consumed by Daniel and agents.
+This skill documents the application usage layer. The execution mechanics for media inboxes, PR safety rules, and pitch-writing live in `digital-pr-outreach`; this skill explains how the Notion control plane should be consumed by Daniel and agents. It must not define or mutate the SEO Backlink Trello lifecycle directly: all card/list creation, moves, comments, retirement and structural changes defer to `backlink-outreach-automation`, `references/trello-unitary-board-operator.md`, `/opt/data/workspace/backlink_outreach/backlink_board_contract.json`, and the shared `BoardOperator`.
 
 ## Goal
 
