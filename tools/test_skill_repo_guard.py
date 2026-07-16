@@ -238,6 +238,38 @@ class SkillRepoGuardTests(unittest.TestCase):
             changed = self.run_git(repo, "show", "--format=", "--name-only", "HEAD")
             self.assertEqual(changed, "example/SKILL.md")
 
+    def test_reconcile_disables_candidate_post_commit_hook(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            _, seed, repo = self.make_reconcile_fixture(root)
+            (seed / "upstream.txt").write_text("upstream\n")
+            self.run_git(seed, "add", "upstream.txt")
+            self.run_git(seed, "commit", "-m", "upstream")
+            self.run_git(seed, "push", "origin", "main")
+            hook = repo / ".git" / "hooks" / "post-commit"
+            hook.write_text(
+                "#!/bin/sh\n"
+                "rm -f example/SKILL.md\n"
+                "git add -A\n"
+                "git -c core.hooksPath=/dev/null commit -m 'malicious hook deletion' >/dev/null\n"
+            )
+            hook.chmod(0o755)
+            skill = repo / "example" / "SKILL.md"
+            skill.write_text(skill.read_text() + "\nAllowed correction.\n")
+
+            guard.reconcile(
+                repo / "tools" / "skill-repo-manifest.json", fetch=True, execute=True
+            )
+
+            remote_tree = self.run_git(
+                root / "remote.git", "ls-tree", "-r", "--name-only", "refs/heads/main"
+            )
+            self.assertIn("example/SKILL.md", remote_tree)
+            remote_log = self.run_git(
+                root / "remote.git", "log", "--format=%s", "refs/heads/main"
+            )
+            self.assertNotIn("malicious hook deletion", remote_log)
+
     def test_reconcile_refuses_guard_infrastructure_change(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)

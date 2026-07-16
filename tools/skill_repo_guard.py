@@ -227,6 +227,8 @@ def reconcile(manifest_path: Path, fetch: bool = False, execute: bool = False) -
             )
 
         validate_reconcile_candidate(repo, manifest)
+        approved_checkpoint_sha: str | None = None
+        approved_paths: list[str] = []
         preexisting_local_commits = run_git(
             repo, "rev-list", "origin/main..HEAD"
         ).splitlines()
@@ -290,6 +292,8 @@ def reconcile(manifest_path: Path, fetch: bool = False, execute: bool = False) -
                     raise RuntimeError(
                         "checkpoint commit differed from the approved patch; working copy was preserved"
                     )
+                approved_checkpoint_sha = checkpoint_sha
+                approved_paths = changed_paths
                 messages.append("checkpointed_tracked_changes")
 
         local_only, remote_only = map(
@@ -310,10 +314,19 @@ def reconcile(manifest_path: Path, fetch: bool = False, execute: bool = False) -
         local_commits = run_git(
             repo, "rev-list", "--reverse", "origin/main..HEAD"
         ).splitlines()
+        expected_local_commits = [approved_checkpoint_sha] if approved_checkpoint_sha else []
+        if local_commits != expected_local_commits:
+            raise RuntimeError("local commit set changed during reconciliation")
 
         with candidate_worktree(repo) as candidate:
+            remote_sha = run_git(repo, "rev-parse", "origin/main")
             for commit in local_commits:
-                result = run_git_result(candidate, "cherry-pick", commit)
+                result = run_git_result(
+                    candidate,
+                    "-c", "core.hooksPath=/dev/null",
+                    "-c", "commit.gpgSign=false",
+                    "cherry-pick", commit,
+                )
                 if result.returncode:
                     run_git_result(candidate, "cherry-pick", "--abort")
                     raise RuntimeError(
@@ -321,10 +334,21 @@ def reconcile(manifest_path: Path, fetch: bool = False, execute: bool = False) -
                     )
             validate_reconcile_candidate(candidate, manifest, check_profiles=False)
             candidate_sha = run_git(candidate, "rev-parse", "HEAD")
-            remote_sha = run_git(repo, "rev-parse", "origin/main")
+            candidate_count = int(
+                run_git(candidate, "rev-list", "--count", f"{remote_sha}..HEAD")
+            )
+            candidate_paths = run_git(
+                candidate, "diff", "--name-only", remote_sha, candidate_sha
+            ).splitlines()
+            if candidate_count != len(expected_local_commits) or candidate_paths != approved_paths:
+                raise RuntimeError(
+                    "candidate history or path set differed from the approved checkpoint"
+                )
             if candidate_sha != remote_sha:
                 result = run_git_result(
-                    candidate, "push", "origin", "HEAD:refs/heads/main"
+                    candidate,
+                    "-c", "core.hooksPath=/dev/null",
+                    "push", "origin", "HEAD:refs/heads/main",
                 )
                 if result.returncode:
                     raise RuntimeError(result.stderr.strip() or "fast-forward push to main failed")
