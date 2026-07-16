@@ -185,6 +185,59 @@ class SkillRepoGuardTests(unittest.TestCase):
                     repo / "tools" / "skill-repo-manifest.json", fetch=True, execute=True
                 )
 
+    def test_reconcile_refuses_staged_skill_change(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            _, _, repo = self.make_reconcile_fixture(root)
+            skill = repo / "example" / "SKILL.md"
+            skill.write_text(skill.read_text() + "\nstaged\n")
+            self.run_git(repo, "add", str(skill.relative_to(repo)))
+            with self.assertRaisesRegex(RuntimeError, "safe unstaged skill modifications"):
+                guard.reconcile(repo / "tools" / "skill-repo-manifest.json", fetch=True, execute=True)
+
+    def test_reconcile_refuses_skill_rename(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            _, _, repo = self.make_reconcile_fixture(root)
+            self.run_git(repo, "mv", "example/SKILL.md", "example/RENAMED.md")
+            with self.assertRaisesRegex(RuntimeError, "safe unstaged skill modifications"):
+                guard.reconcile(repo / "tools" / "skill-repo-manifest.json", fetch=True, execute=True)
+
+    def test_reconcile_refuses_mode_change(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            _, _, repo = self.make_reconcile_fixture(root)
+            skill = repo / "example" / "SKILL.md"
+            skill.chmod(0o755)
+            with self.assertRaisesRegex(RuntimeError, "mode changes"):
+                guard.reconcile(repo / "tools" / "skill-repo-manifest.json", fetch=True, execute=True)
+
+    def test_reconcile_refuses_binary_skill_change(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            _, _, repo = self.make_reconcile_fixture(root)
+            skill = repo / "example" / "SKILL.md"
+            skill.write_bytes(skill.read_bytes() + b"\x00binary\n")
+            with self.assertRaisesRegex(RuntimeError, "binary skill changes"):
+                guard.reconcile(repo / "tools" / "skill-repo-manifest.json", fetch=True, execute=True)
+
+    def test_reconcile_preserves_concurrent_live_edit(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            remote, _, repo = self.make_reconcile_fixture(root)
+            skill = repo / "example" / "SKILL.md"
+            skill.write_text(skill.read_text() + "\napproved correction\n")
+            hook = remote / "hooks" / "pre-receive"
+            hook.write_text(
+                f"#!/bin/sh\nprintf '\\nconcurrent edit\\n' >> '{skill}'\nexit 0\n"
+            )
+            hook.chmod(0o755)
+
+            with self.assertRaisesRegex(RuntimeError, "concurrent edits were preserved"):
+                guard.reconcile(repo / "tools" / "skill-repo-manifest.json", fetch=True, execute=True)
+
+            self.assertIn("concurrent edit", skill.read_text())
+
     def test_reconcile_refuses_tracked_deletion(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)

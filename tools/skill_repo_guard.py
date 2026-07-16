@@ -404,8 +404,7 @@ def audit(manifest_path: Path, fetch: bool = False, include_shadows: bool = True
     alerts: list[dict[str, str]] = []
 
     if fetch:
-        result = subprocess.run(["git", "fetch", "origin", "--prune"], cwd=repo, text=True,
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
+        result = run_git_result(repo, "fetch", "origin", "--prune")
         if result.returncode:
             alerts.append({"code": "fetch_failed", "detail": result.stderr.strip().splitlines()[-1]})
 
