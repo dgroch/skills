@@ -82,7 +82,7 @@ The dedicated inbox (`media@figandbloom.com`) is operated via the Hermes Email g
 - `EMAIL_ALLOW_ALL_USERS=true` — **essential for a PR inbox**: journalists are unknown senders
 - `EMAIL_HOME_ADDRESS=admin@figandbloom.com` — cron delivery target
 - Config lives in the **profile `.env`** at `~/.hermes/profiles/director/.env` (not the main `~/.hermes/.env` which has commented-out defaults)
-- BCC is enforced via `gateway.platforms.email.bcc=admin@figandbloom.com` in config.yaml
+- No routine CC/BCC is configured for Daniel; he monitors `media@figandbloom.com` directly.
 
 Required from Daniel (treat as REDACTED, never print):
 - Email address + app password (not regular password — app password from provider's 2FA settings; Google Workspace app passwords are 16 chars with spaces)
@@ -98,11 +98,11 @@ Set in `.env` (append to the profile `.env`, don't edit the commented defaults):
 
 Set in `config.yaml` via CLI (`hermes config set`, NOT direct file edit — the config-file guard refuses agent writes to security-sensitive config):
 - `gateway.platforms.email.enabled=true`
-- `gateway.platforms.email.bcc=admin@figandbloom.com` — **auto-BCCs every outgoing email** (pitches, follow-ups, AND replies). This is the primary BCC mechanism; it fires at the platform layer so nothing can be forgotten.
+- Ensure `gateway.platforms.email.bcc` is unset unless Daniel has explicitly requested a temporary copy rule for a specific operational reason.
 
 **Pre-flight: test credentials live before activating.** Before restarting the gateway, verify the app password works with a direct Python `imaplib`/`smtplib` login test against the IMAP/SMTP hosts. This catches bad app passwords / wrong hosts in seconds instead of debugging a silent gateway failure. The IMAP test should `select("INBOX")` and report message count; the SMTP test should `starttls()` + `login()` but not send a test email.
 
-The gateway polls for UNSEEN messages every `EMAIL_POLL_INTERVAL` seconds and replies in-thread, preserving `In-Reply-To` / `References` headers. BCC is enforced automatically by the platform config — no manual BCC header needed on individual sends.
+The gateway polls for UNSEEN messages every `EMAIL_POLL_INTERVAL` seconds and replies in-thread, preserving `In-Reply-To` / `References` headers. Do not add a manual CC/BCC unless Daniel specifically requests it or a genuine escalation requires direct involvement.
 
 ## Offering the Dataset
 
