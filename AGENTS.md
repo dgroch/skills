@@ -41,8 +41,6 @@ python3 tools/skill_repo_guard.py remove-shadows --execute
 
 The managed topology is declared in `tools/skill-repo-manifest.json`.
 
-The daily watchdog runs the executing reconciliation command, not audit-only mode. It checkpoints
-tracked changes, rebases or fast-forwards onto current `origin/main`, validates the repository,
-pushes a fast-forward `main` update, and verifies remote equality. It must refuse and alert on
-unknown untracked files, conflicts, invalid skills, shadows, generated clutter, failed validation,
-authentication failure, or a non-fast-forward push.
+The daily no-agent watchdog runs `reconcile --fetch --execute` and is silent only when the live checkout is clean and equal to verified `origin/main`.
+
+Automatic publication is deliberately narrow: the checkout must be on `main`, there must be no pre-existing local commits, and dirty paths must be unstaged, non-binary modifications to files already owned by an existing skill. Deletions, renames, mode/type changes, untracked or staged paths, guard/config changes, merge commits, conflicts, validation failures, concurrent edits, non-fast-forward pushes, and failed remote readback stop without overwriting the live checkout and produce an alert. Candidate integration and validation occur in an isolated worktree; publication is an exact non-force update to `refs/heads/main`, and live synchronization uses `git reset --keep`.

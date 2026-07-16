@@ -196,6 +196,25 @@ class SkillRepoGuardTests(unittest.TestCase):
                     repo / "tools" / "skill-repo-manifest.json", fetch=True, execute=True
                 )
 
+    def test_reconcile_refuses_preexisting_local_commit_with_skill_deletion(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            _, _, repo = self.make_reconcile_fixture(root)
+            (repo / "example" / "SKILL.md").unlink()
+            self.run_git(repo, "add", "-u")
+            self.run_git(repo, "commit", "-m", "delete canonical skill")
+
+            with self.assertRaisesRegex(RuntimeError, "pre-existing local commits"):
+                guard.reconcile(
+                    repo / "tools" / "skill-repo-manifest.json", fetch=True, execute=True
+                )
+
+            self.assertFalse((repo / "example" / "SKILL.md").exists())
+            remote_tree = self.run_git(
+                root / "remote.git", "ls-tree", "-r", "--name-only", "refs/heads/main"
+            )
+            self.assertIn("example/SKILL.md", remote_tree)
+
     def test_reconcile_refuses_guard_infrastructure_change(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)

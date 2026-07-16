@@ -227,6 +227,13 @@ def reconcile(manifest_path: Path, fetch: bool = False, execute: bool = False) -
             )
 
         validate_reconcile_candidate(repo, manifest)
+        preexisting_local_commits = run_git(
+            repo, "rev-list", "origin/main..HEAD"
+        ).splitlines()
+        if preexisting_local_commits:
+            raise RuntimeError(
+                "pre-existing local commits require semantic review before reconciliation"
+            )
         changed_paths = safe_tracked_modifications(repo)
         if changed_paths:
             if run_git_result(repo, "diff", "--check").returncode:
@@ -234,7 +241,29 @@ def reconcile(manifest_path: Path, fetch: bool = False, execute: bool = False) -
             if not execute:
                 messages.append("would_checkpoint_tracked_changes")
             else:
-                run_git(repo, "add", "-u")
+                original_patch = run_git_result(
+                    repo, "diff", "--binary", "--", *changed_paths
+                ).stdout
+                if safe_tracked_modifications(repo) != changed_paths:
+                    raise RuntimeError("tracked skill changes moved during reconciliation")
+                run_git(repo, "add", "--", *changed_paths)
+                staged_patch = run_git_result(
+                    repo, "diff", "--cached", "--binary", "--", *changed_paths
+                ).stdout
+                if staged_patch != original_patch or run_git(repo, "diff", "--", *changed_paths):
+                    run_git_result(repo, "reset")
+                    raise RuntimeError(
+                        "tracked skill changes moved while staging; working copy was preserved"
+                    )
+                staged_status = run_git_result(
+                    repo, "status", "--porcelain=v1", "-z"
+                ).stdout
+                expected_status = "".join(f"M  {path}\0" for path in changed_paths)
+                if staged_status != expected_status:
+                    run_git_result(repo, "reset")
+                    raise RuntimeError(
+                        "repository changed while staging; working copy was preserved"
+                    )
                 result = run_git_result(
                     repo, "commit", "-m", "chore: reconcile durable skill repository drift"
                 )
@@ -295,7 +324,16 @@ def reconcile(manifest_path: Path, fetch: bool = False, execute: bool = False) -
         run_git(
             repo, "update-ref", f"refs/skill-reconcile/backups/{checkpoint_sha[:12]}", checkpoint_sha
         )
-        run_git(repo, "reset", "--hard", candidate_sha)
+        if run_git(repo, "status", "--porcelain=v1"):
+            raise RuntimeError(
+                "live checkout changed during reconciliation; concurrent edits were preserved"
+            )
+        reset = run_git_result(repo, "reset", "--keep", candidate_sha)
+        if reset.returncode:
+            raise RuntimeError(
+                reset.stderr.strip()
+                or "live synchronization refused to overwrite concurrent edits"
+            )
         if run_git(repo, "rev-parse", "HEAD") != run_git(repo, "rev-parse", "origin/main"):
             raise RuntimeError("live synchronization failed after verified publication")
         if run_git(repo, "status", "--porcelain=v1"):
