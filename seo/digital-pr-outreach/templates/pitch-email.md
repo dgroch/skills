@@ -47,7 +47,7 @@ media@figandbloom.com
 
 ## Hard rules
 
-- **BCC is automatic.** `gateway.platforms.email.bcc=admin@figandbloom.com` in config BCCs every outgoing email — pitches, follow-ups, AND replies. Do NOT add a manual BCC header (that double-BCCs Daniel). If the platform BCC is unset, set it via `hermes config set gateway.platforms.email.bcc admin@figandbloom.com` before sending anything.
+- **No routine CC/BCC.** Daniel monitors `media@figandbloom.com` directly. Add him only when he explicitly requests a copy or a genuine escalation requires direct involvement.
 - Plain text only. No HTML, no embedded images. Attachments via MEDIA: path if approved.
 - No phone number in signature unless the journalist requests a call.
 - One follow-up after 5 business days. No second follow-up — silence is an answer.

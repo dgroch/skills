@@ -191,7 +191,7 @@ An automated approval workflow lives in Notion + a cron job. Daniel drafts a rel
 3. **Submit for review.** Set Approval Status = "Pending Approval".
 4. **Daniel reviews** the full email copy in the Notion page body and either approves (→ "Approved") or sends back (→ "Revisions Needed").
 5. **Cron monitors every 5 minutes** (`*/5 * * * *`), querying for releases where Approval Status = "Approved" AND Sent Status = "Not Sent" AND the page has body blocks (email copy). If the page has zero body blocks, the cron skips it silently — no copy written means no send.
-6. When found: the cron marks Sent Status → "Sending", then sends PR emails via IMAP/SMTP from `media@figandbloom.com` to relevant journalist contacts. **NEVER use gws or Gmail API.** BCC `admin@figandbloom.com` on every email.
+6. When found: the cron marks Sent Status → "Sending", then sends PR emails via IMAP/SMTP from `media@figandbloom.com` to relevant journalist contacts. **NEVER use gws or Gmail API.** Do not routinely CC/BCC Daniel.
 7. After sending: updates Sent Status → "Sent" and sets Sent Date.
 8. If no approved releases pending: the cron stays **silent** — no notification, no spam.
 
@@ -202,11 +202,11 @@ An automated approval workflow lives in Notion + a cron job. Daniel drafts a rel
 
 - **No order numbers or volume.** Never include order counts, customer counts, revenue, or any figure derived from Shopify data in press releases. Share insights (e.g. "Thinking of You is the most common card message") but not the underlying volume.
 - **Spokesperson:** Kellie Brown for quotes. Dan Groch as PR contact.
-- **BCC:** `admin@figandbloom.com` on every email (enforced by gateway config, but verify before sending).
+- **Copying Daniel:** no routine CC/BCC. Include Daniel only when specifically requested or when a genuine escalation requires direct involvement.
 
 ## Support Files
 
-- `templates/pitch-email.md` — copy-and-modify pitch template with the mandatory structural anatomy and BCC rule.
+- `templates/pitch-email.md` — copy-and-modify pitch template with the mandatory structural anatomy and no-routine-copying rule.
 - `references/campaign-flower-card.md` — worked example: the "What Australians Write on a Flower Card" campaign (20 outlets, 8 angles, 6 pitch variants). Use as a blueprint for the next data-journalism campaign.
 - `scripts/send_pr_email.py` — send PR emails via IMAP/SMTP from `media@figandbloom.com`. Reads credentials from the profile `.env`. NEVER use gws or Gmail API — this script is the correct sending path.
 
@@ -216,7 +216,7 @@ An automated approval workflow lives in Notion + a cron job. Daniel drafts a rel
 
 - **NEVER use gws / Gmail API for PR sends.** All PR emails — pitches, follow-ups, press releases, replies — MUST go through IMAP/SMTP from `media@figandbloom.com`. The `gws` CLI sends from `admin@figandbloom.com.au` (Daniel's personal address), which is NOT the PR inbox. This happened once: the cron job used `gws` to send 13 emails from Daniel's personal address with auto-generated copy Daniel had never seen. It required a formal apology to 10 journalists. If a cron job or script needs to send PR emails, use Python `smtplib` with the IMAP/SMTP credentials from the profile `.env` (`EMAIL_ADDRESS=media@figandbloom.com`, `EMAIL_PASSWORD=...`, `EMAIL_SMTP_HOST=smtp.gmail.com`, `EMAIL_SMTP_PORT=587`). The cron prompt must explicitly state: "Send via IMAP/SMTP from media@figandbloom.com ONLY. NEVER use gws or Gmail API. NEVER send from admin@."
 - **Content gate: cron must not send if Notion page has no email body content.** The approval workflow has two gates, not one. Gate 1: Daniel sets Approval Status = "Approved". Gate 2: the cron checks that the Notion page has actual email body content (blocks) written in it — the full subject line, email text, and sign-off that Daniel has reviewed. If the page has zero body blocks (only properties, no content), the cron MUST skip it and stay silent. Without this gate, the cron will auto-generate its own generic copy and send it without Daniel ever seeing the text. The monitor script at `/opt/data/.hermes/profiles/director/scripts/press_release_monitor.py` enforces this by querying `GET /v1/blocks/{page_id}/children` and skipping pages with zero blocks.
-- **BCC is auto, not manual.** `gateway.platforms.email.bcc` in config auto-BCCs every outgoing email. Do NOT also add a manual BCC header to individual sends — that would double-BCC Daniel. The old advice ("enforced manually, gateway doesn't auto-BCC") is wrong; the platform config is the source of truth.
+- **No routine CC/BCC.** Keep `gateway.platforms.email.bcc` unset and do not add manual copy headers unless Daniel explicitly requests them or a genuine escalation requires direct involvement.
 - **`EMAIL_ALLOW_ALL_USERS=true` is mandatory for a PR inbox.** Journalists are unknown senders. Without this flag, the adapter silently drops their replies as anti-spam. This is the single most likely cause of "journalist replied but I never saw it."
 - **Gateway cannot self-restart.** The Hermes gateway has a safety guard that blocks `hermes gateway restart` from inside the running gateway process (SIGTERM would kill the command before it completes). When config/env changes need a restart, tell Daniel to run `hermes gateway restart` from a separate shell/SSH session outside the gateway. Do not attempt background/detached restart wrappers — they're blocked too.
 - **Config file write guard.** Direct `patch`/`write_file` to `config.yaml` is refused ("Agent cannot modify security-sensitive configuration"). Use `hermes config set key value` instead — it writes through the guard.
