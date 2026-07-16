@@ -156,7 +156,7 @@ class SkillRepoGuardTests(unittest.TestCase):
             )
 
             self.assertIn("checkpointed_tracked_changes", messages)
-            self.assertIn("rebased_onto_origin_main", messages)
+            self.assertIn("integrated_onto_origin_main", messages)
             self.assertIn("pushed_main", messages)
             remote_main = self.run_git(remote, "rev-parse", "refs/heads/main")
             self.assertEqual(self.run_git(repo, "rev-parse", "HEAD"), remote_main)
@@ -173,6 +173,57 @@ class SkillRepoGuardTests(unittest.TestCase):
                 guard.reconcile(
                     repo / "tools" / "skill-repo-manifest.json", fetch=True, execute=True
                 )
+
+    def test_reconcile_refuses_feature_branch(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            _, _, repo = self.make_reconcile_fixture(root)
+            self.run_git(repo, "switch", "-c", "feature/unsafe")
+
+            with self.assertRaisesRegex(RuntimeError, "main branch"):
+                guard.reconcile(
+                    repo / "tools" / "skill-repo-manifest.json", fetch=True, execute=True
+                )
+
+    def test_reconcile_refuses_tracked_deletion(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            _, _, repo = self.make_reconcile_fixture(root)
+            (repo / "example" / "SKILL.md").unlink()
+
+            with self.assertRaisesRegex(RuntimeError, "safe unstaged skill modifications"):
+                guard.reconcile(
+                    repo / "tools" / "skill-repo-manifest.json", fetch=True, execute=True
+                )
+
+    def test_reconcile_refuses_guard_infrastructure_change(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            _, _, repo = self.make_reconcile_fixture(root)
+            manifest = repo / "tools" / "skill-repo-manifest.json"
+            manifest.write_text(manifest.read_text() + "\n")
+
+            with self.assertRaisesRegex(RuntimeError, "skill-owned"):
+                guard.reconcile(manifest, fetch=True, execute=True)
+
+    def test_invalid_upstream_candidate_does_not_replace_live_checkout(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            _, seed, repo = self.make_reconcile_fixture(root)
+            original_head = self.run_git(repo, "rev-parse", "HEAD")
+            (seed / "broken.py").write_text("def invalid(:\n")
+            self.run_git(seed, "add", "broken.py")
+            self.run_git(seed, "commit", "-m", "broken upstream")
+            self.run_git(seed, "push", "origin", "main")
+
+            with self.assertRaisesRegex(RuntimeError, "syntax validation failed"):
+                guard.reconcile(
+                    repo / "tools" / "skill-repo-manifest.json", fetch=True, execute=True
+                )
+
+            self.assertEqual(self.run_git(repo, "rev-parse", "HEAD"), original_head)
+            self.assertFalse((repo / "broken.py").exists())
+            self.assertEqual(self.run_git(repo, "status", "--porcelain"), "")
 
 
 if __name__ == "__main__":

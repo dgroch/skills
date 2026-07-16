@@ -12,6 +12,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from typing import Iterable
 
@@ -130,13 +131,15 @@ def validate_python_syntax(repo: Path) -> None:
             raise RuntimeError(f"python syntax validation failed: {path.relative_to(repo)}: {exc}") from exc
 
 
-def validate_reconcile_candidate(repo: Path, manifest: dict) -> None:
+def validate_reconcile_candidate(repo: Path, manifest: dict, check_profiles: bool = True) -> None:
     clutter = find_generated_clutter(repo)
     if clutter:
         sample = ", ".join(str(path.relative_to(repo)) for path in clutter[:5])
         raise RuntimeError(f"generated repository clutter requires cleanup: {sample}")
     inventory_skills(repo)
     validate_python_syntax(repo)
+    if not check_profiles:
+        return
     for profile in manifest["profiles"]:
         profile_root = Path(profile["skills_root"]).resolve()
         config = Path(profile["config"]).resolve()
@@ -146,6 +149,63 @@ def validate_reconcile_candidate(repo: Path, manifest: dict) -> None:
         if shadows:
             names = ", ".join(f"{profile['name']}:{item['name']}" for item in shadows[:5])
             raise RuntimeError(f"skill shadows require semantic reconciliation: {names}")
+
+
+def is_skill_owned_path(repo: Path, relative_path: str) -> bool:
+    path = (repo / relative_path).resolve()
+    try:
+        path.relative_to(repo)
+    except ValueError:
+        return False
+    parent = path.parent
+    while parent != repo and repo in parent.parents:
+        if (parent / "SKILL.md").is_file():
+            return True
+        parent = parent.parent
+    return (repo / "SKILL.md").is_file()
+
+
+def safe_tracked_modifications(repo: Path) -> list[str]:
+    result = run_git_result(repo, "status", "--porcelain=v1", "-z")
+    if result.returncode:
+        raise RuntimeError(result.stderr.strip() or "git status failed")
+    entries = [entry for entry in result.stdout.split("\0") if entry]
+    if not entries:
+        return []
+    if len(entries) > 50:
+        raise RuntimeError("too many changed paths for automatic reconciliation")
+    paths: list[str] = []
+    for entry in entries:
+        status, relative = entry[:2], entry[3:]
+        if status == "??":
+            raise RuntimeError(f"untracked path requires classification: {relative}")
+        if status != " M":
+            raise RuntimeError(
+                "only safe unstaged skill modifications can be reconciled automatically"
+            )
+        if not is_skill_owned_path(repo, relative):
+            raise RuntimeError(f"changed path is not skill-owned: {relative}")
+        paths.append(relative)
+    if run_git(repo, "diff", "--summary"):
+        raise RuntimeError("renames, deletions, type changes and mode changes require review")
+    for line in run_git(repo, "diff", "--numstat").splitlines():
+        if line.startswith("-\t-"):
+            raise RuntimeError("binary skill changes require review")
+    return paths
+
+
+@contextmanager
+def candidate_worktree(repo: Path):
+    path = Path(tempfile.mkdtemp(prefix="skill-reconcile-candidate-"))
+    result = run_git_result(repo, "worktree", "add", "--detach", str(path), "origin/main")
+    if result.returncode:
+        shutil.rmtree(path, ignore_errors=True)
+        raise RuntimeError(result.stderr.strip() or "candidate worktree creation failed")
+    try:
+        yield path
+    finally:
+        run_git_result(repo, "worktree", "remove", "--force", str(path))
+        shutil.rmtree(path, ignore_errors=True)
 
 
 def reconcile(manifest_path: Path, fetch: bool = False, execute: bool = False) -> list[str]:
@@ -160,20 +220,17 @@ def reconcile(manifest_path: Path, fetch: bool = False, execute: bool = False) -
             if result.returncode:
                 raise RuntimeError(result.stderr.strip() or "git fetch failed")
 
-        if not run_git(repo, "branch", "--show-current"):
-            raise RuntimeError("detached HEAD cannot be reconciled automatically")
+        branch = run_git(repo, "branch", "--show-current")
+        if branch != "main":
+            raise RuntimeError(
+                f"automatic reconciliation requires the main branch, found: {branch or 'detached HEAD'}"
+            )
 
         validate_reconcile_candidate(repo, manifest)
-        status = run_git(repo, "status", "--porcelain=v1").splitlines()
-        untracked = [line[3:] for line in status if line.startswith("?? ")]
-        if untracked:
-            raise RuntimeError(f"untracked paths require classification: {', '.join(untracked[:5])}")
-
-        if status:
+        changed_paths = safe_tracked_modifications(repo)
+        if changed_paths:
             if run_git_result(repo, "diff", "--check").returncode:
                 raise RuntimeError("unstaged diff check failed")
-            if run_git_result(repo, "diff", "--cached", "--check").returncode:
-                raise RuntimeError("staged diff check failed")
             if not execute:
                 messages.append("would_checkpoint_tracked_changes")
             else:
@@ -188,40 +245,61 @@ def reconcile(manifest_path: Path, fetch: bool = False, execute: bool = False) -
         local_only, remote_only = map(
             int, run_git(repo, "rev-list", "--left-right", "--count", "HEAD...origin/main").split()
         )
-        if remote_only:
-            if not execute:
-                messages.append("would_rebase_onto_origin_main" if local_only else "would_fast_forward")
-            elif local_only:
-                result = run_git_result(repo, "rebase", "origin/main")
-                if result.returncode:
-                    run_git_result(repo, "rebase", "--abort")
-                    raise RuntimeError("automatic rebase conflicted; repository restored to checkpoint")
-                messages.append("rebased_onto_origin_main")
-            else:
-                run_git(repo, "merge", "--ff-only", "origin/main")
-                messages.append("fast_forwarded")
-
         if not execute:
-            if run_git(repo, "rev-parse", "HEAD") != run_git(repo, "rev-parse", "origin/main"):
+            if remote_only:
+                messages.append("would_integrate_onto_origin_main" if local_only else "would_fast_forward")
+            if local_only:
                 messages.append("would_push_main")
             return messages
 
         if run_git(repo, "status", "--porcelain=v1"):
-            raise RuntimeError("repository remained dirty after checkpoint/rebase")
+            raise RuntimeError("repository remained dirty after checkpoint")
         validate_reconcile_candidate(repo, manifest)
-        if run_git(repo, "rev-parse", "HEAD") != run_git(repo, "rev-parse", "origin/main"):
-            result = run_git_result(repo, "push", "origin", "HEAD:main")
-            if result.returncode:
-                raise RuntimeError(result.stderr.strip() or "fast-forward push to main failed")
-            messages.append("pushed_main")
+        if run_git(repo, "rev-list", "--merges", "origin/main..HEAD"):
+            raise RuntimeError("local merge commits require manual reconciliation")
+        local_commits = run_git(
+            repo, "rev-list", "--reverse", "origin/main..HEAD"
+        ).splitlines()
+
+        with candidate_worktree(repo) as candidate:
+            for commit in local_commits:
+                result = run_git_result(candidate, "cherry-pick", commit)
+                if result.returncode:
+                    run_git_result(candidate, "cherry-pick", "--abort")
+                    raise RuntimeError(
+                        "candidate integration conflicted; live checkpoint was preserved"
+                    )
+            validate_reconcile_candidate(candidate, manifest, check_profiles=False)
+            candidate_sha = run_git(candidate, "rev-parse", "HEAD")
+            remote_sha = run_git(repo, "rev-parse", "origin/main")
+            if candidate_sha != remote_sha:
+                result = run_git_result(
+                    candidate, "push", "origin", "HEAD:refs/heads/main"
+                )
+                if result.returncode:
+                    raise RuntimeError(result.stderr.strip() or "fast-forward push to main failed")
+                messages.append("pushed_main")
+                messages.append("integrated_onto_origin_main")
+            elif remote_only:
+                messages.append("fast_forwarded")
 
         result = run_git_result(repo, "fetch", "origin", "--prune")
         if result.returncode:
-            raise RuntimeError(result.stderr.strip() or "post-push fetch failed")
+            raise RuntimeError(
+                result.stderr.strip() or "post-push fetch failed; live checkpoint preserved"
+            )
+        remote_sha = run_git(repo, "rev-parse", "origin/main")
+        if remote_sha != candidate_sha:
+            raise RuntimeError("remote verification failed; live checkpoint preserved")
+        checkpoint_sha = run_git(repo, "rev-parse", "HEAD")
+        run_git(
+            repo, "update-ref", f"refs/skill-reconcile/backups/{checkpoint_sha[:12]}", checkpoint_sha
+        )
+        run_git(repo, "reset", "--hard", candidate_sha)
         if run_git(repo, "rev-parse", "HEAD") != run_git(repo, "rev-parse", "origin/main"):
-            raise RuntimeError("remote verification failed: HEAD does not equal origin/main")
+            raise RuntimeError("live synchronization failed after verified publication")
         if run_git(repo, "status", "--porcelain=v1"):
-            raise RuntimeError("remote verification failed: repository is dirty")
+            raise RuntimeError("live synchronization left a dirty repository")
         return messages
 
 
