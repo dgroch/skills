@@ -214,6 +214,7 @@ def reconcile(manifest_path: Path, fetch: bool = False, execute: bool = False) -
     manifest_path = manifest_path.resolve()
     manifest = load_manifest(manifest_path)
     repo = (manifest_path.parent / manifest["repository"]).resolve()
+    manifest_relative_path = manifest_path.relative_to(repo)
     messages: list[str] = []
 
     with repository_lock(repo):
@@ -334,7 +335,8 @@ def reconcile(manifest_path: Path, fetch: bool = False, execute: bool = False) -
                     raise RuntimeError(
                         "candidate integration conflicted; live checkpoint was preserved"
                     )
-            validate_reconcile_candidate(candidate, manifest, check_profiles=False)
+            candidate_manifest = load_manifest(candidate / manifest_relative_path)
+            validate_reconcile_candidate(candidate, candidate_manifest, check_profiles=False)
             candidate_sha = run_git(candidate, "rev-parse", "HEAD")
             candidate_count = int(
                 run_git(candidate, "rev-list", "--count", f"{remote_sha}..HEAD")

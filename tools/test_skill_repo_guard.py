@@ -169,6 +169,37 @@ class SkillRepoGuardTests(unittest.TestCase):
             self.assertEqual(self.run_git(repo, "rev-parse", "HEAD"), original_head)
             self.assertFalse((repo / "upstream" / "new-skill" / "SKILL.md").exists())
 
+    def test_reconcile_uses_candidate_manifest_for_profile_shadows(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            profile_root = root / "new-profile-skills"
+            config = root / "new-profile-config.yaml"
+            _, seed, repo = self.make_reconcile_fixture(root)
+            config.write_text(f"skills:\n  external_dirs:\n    - {repo}\n")
+            self.make_skill(profile_root, "local-shadow", "candidate-shadow")
+            self.make_skill(seed, "upstream/candidate-skill", "candidate-shadow")
+            manifest = seed / "tools" / "skill-repo-manifest.json"
+            data = json.loads(manifest.read_text())
+            data["profiles"] = [{
+                "name": "new-profile",
+                "skills_root": str(profile_root),
+                "config": str(config),
+            }]
+            manifest.write_text(json.dumps(data))
+            self.run_git(
+                seed, "add", "tools/skill-repo-manifest.json", "upstream/candidate-skill/SKILL.md"
+            )
+            self.run_git(seed, "commit", "-m", "add candidate profile and colliding skill")
+            self.run_git(seed, "push", "origin", "main")
+            original_head = self.run_git(repo, "rev-parse", "HEAD")
+
+            with self.assertRaisesRegex(RuntimeError, "skill shadows require semantic reconciliation"):
+                guard.reconcile(
+                    repo / "tools" / "skill-repo-manifest.json", fetch=True, execute=True
+                )
+
+            self.assertEqual(self.run_git(repo, "rev-parse", "HEAD"), original_head)
+
     def test_reconcile_checkpoints_tracked_changes_rebases_and_pushes_main(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
