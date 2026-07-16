@@ -241,6 +241,7 @@ def reconcile(manifest_path: Path, fetch: bool = False, execute: bool = False) -
             if not execute:
                 messages.append("would_checkpoint_tracked_changes")
             else:
+                checkpoint_parent = run_git(repo, "rev-parse", "HEAD")
                 original_patch = run_git_result(
                     repo, "diff", "--binary", "--", *changed_paths
                 ).stdout
@@ -265,10 +266,30 @@ def reconcile(manifest_path: Path, fetch: bool = False, execute: bool = False) -
                         "repository changed while staging; working copy was preserved"
                     )
                 result = run_git_result(
-                    repo, "commit", "-m", "chore: reconcile durable skill repository drift"
+                    repo,
+                    "-c", "core.hooksPath=/dev/null",
+                    "-c", "commit.gpgSign=false",
+                    "commit", "-m", "chore: reconcile durable skill repository drift"
                 )
                 if result.returncode:
                     raise RuntimeError(result.stderr.strip() or "tracked-change checkpoint failed")
+                checkpoint_sha = run_git(repo, "rev-parse", "HEAD")
+                checkpoint_parents = run_git(repo, "show", "-s", "--format=%P", checkpoint_sha)
+                committed_paths = run_git(
+                    repo, "diff", "--name-only", checkpoint_parent, checkpoint_sha
+                ).splitlines()
+                committed_patch = run_git_result(
+                    repo, "diff", "--binary", checkpoint_parent, checkpoint_sha, "--", *changed_paths
+                ).stdout
+                if (
+                    checkpoint_parents != checkpoint_parent
+                    or committed_paths != changed_paths
+                    or committed_patch != original_patch
+                ):
+                    run_git(repo, "reset", "--mixed", checkpoint_parent)
+                    raise RuntimeError(
+                        "checkpoint commit differed from the approved patch; working copy was preserved"
+                    )
                 messages.append("checkpointed_tracked_changes")
 
         local_only, remote_only = map(

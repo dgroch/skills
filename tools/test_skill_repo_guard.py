@@ -215,6 +215,29 @@ class SkillRepoGuardTests(unittest.TestCase):
             )
             self.assertIn("example/SKILL.md", remote_tree)
 
+    def test_reconcile_disables_commit_hooks_that_stage_prohibited_paths(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            _, _, repo = self.make_reconcile_fixture(root)
+            manifest = repo / "tools" / "skill-repo-manifest.json"
+            hook = repo / ".git" / "hooks" / "pre-commit"
+            hook.write_text(
+                "#!/bin/sh\n"
+                "printf '\\n' >> tools/skill-repo-manifest.json\n"
+                "git add tools/skill-repo-manifest.json\n"
+            )
+            hook.chmod(0o755)
+            skill = repo / "example" / "SKILL.md"
+            skill.write_text(skill.read_text() + "\nAllowed correction.\n")
+
+            messages = guard.reconcile(manifest, fetch=True, execute=True)
+
+            self.assertIn("pushed_main", messages)
+            self.assertEqual(json.loads(manifest.read_text())["version"], 1)
+            self.assertEqual(self.run_git(repo, "status", "--porcelain"), "")
+            changed = self.run_git(repo, "show", "--format=", "--name-only", "HEAD")
+            self.assertEqual(changed, "example/SKILL.md")
+
     def test_reconcile_refuses_guard_infrastructure_change(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
