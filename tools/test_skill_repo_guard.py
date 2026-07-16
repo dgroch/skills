@@ -270,6 +270,27 @@ class SkillRepoGuardTests(unittest.TestCase):
             )
             self.assertNotIn("malicious hook deletion", remote_log)
 
+    def test_reconcile_disables_worktree_post_checkout_hook(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            _, _, repo = self.make_reconcile_fixture(root)
+            marker = root / "post-checkout-ran"
+            hook = repo / ".git" / "hooks" / "post-checkout"
+            hook.write_text(f"#!/bin/sh\nprintf ran > '{marker}'\n")
+            hook.chmod(0o755)
+            skill = repo / "example" / "SKILL.md"
+            skill.write_text(skill.read_text() + "\nAllowed correction.\n")
+
+            guard.reconcile(
+                repo / "tools" / "skill-repo-manifest.json", fetch=True, execute=True
+            )
+
+            self.assertFalse(marker.exists())
+            remote_tree = self.run_git(
+                root / "remote.git", "ls-tree", "-r", "--name-only", "refs/heads/main"
+            )
+            self.assertIn("example/SKILL.md", remote_tree)
+
     def test_reconcile_refuses_guard_infrastructure_change(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)

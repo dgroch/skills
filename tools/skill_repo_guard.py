@@ -92,7 +92,7 @@ def divergence_alerts(counts_text: str) -> list[dict[str, str]]:
 
 def run_git(repo: Path, *args: str, check: bool = True) -> str:
     result = subprocess.run(
-        ["git", *args], cwd=repo, text=True, stdout=subprocess.PIPE,
+        ["git", "-c", "core.hooksPath=/dev/null", *args], cwd=repo, text=True, stdout=subprocess.PIPE,
         stderr=subprocess.PIPE, check=False,
     )
     if check and result.returncode:
@@ -102,7 +102,7 @@ def run_git(repo: Path, *args: str, check: bool = True) -> str:
 
 def run_git_result(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        ["git", *args], cwd=repo, text=True, stdout=subprocess.PIPE,
+        ["git", "-c", "core.hooksPath=/dev/null", *args], cwd=repo, text=True, stdout=subprocess.PIPE,
         stderr=subprocess.PIPE, check=False,
     )
 
@@ -197,7 +197,11 @@ def safe_tracked_modifications(repo: Path) -> list[str]:
 @contextmanager
 def candidate_worktree(repo: Path):
     path = Path(tempfile.mkdtemp(prefix="skill-reconcile-candidate-"))
-    result = run_git_result(repo, "worktree", "add", "--detach", str(path), "origin/main")
+    result = run_git_result(
+        repo,
+        "-c", "core.hooksPath=/dev/null",
+        "worktree", "add", "--detach", str(path), "origin/main",
+    )
     if result.returncode:
         shutil.rmtree(path, ignore_errors=True)
         raise RuntimeError(result.stderr.strip() or "candidate worktree creation failed")
