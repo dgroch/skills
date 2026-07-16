@@ -7,7 +7,7 @@ Usage:
   python3 send_pr_email.py --to "journalist@example.com" --subject "Subject" --body-file /path/to/body.txt
   python3 send_pr_email.py --to "journalist@example.com" --subject "Subject" --body "Inline body text"
 
-BCCs admin@figandbloom.com on every email automatically.
+Does not routinely CC or BCC Daniel. Include him only when specifically requested or when a genuine escalation requires it.
 """
 import smtplib, ssl, argparse, sys
 from email.message import EmailMessage
@@ -25,13 +25,11 @@ SMTP_HOST = env.get('EMAIL_SMTP_HOST', 'smtp.gmail.com')
 SMTP_PORT = int(env.get('EMAIL_SMTP_PORT', '587'))
 MEDIA_ADDR = env.get('EMAIL_ADDRESS', 'media@figandbloom.com')
 MEDIA_PASS = env.get('EMAIL_PASSWORD', '')
-BCC_ADDR = 'admin@figandbloom.com'
 
 def send_pr_email(to_addr, subject, body):
     msg = EmailMessage()
     msg['From'] = f"Dan Groch | Fig & Bloom <{MEDIA_ADDR}>"
     msg['To'] = to_addr
-    msg['Bcc'] = BCC_ADDR
     msg['Subject'] = subject
     msg.set_content(body)
     
@@ -41,7 +39,7 @@ def send_pr_email(to_addr, subject, body):
     server.starttls(context=context)
     server.ehlo()
     server.login(MEDIA_ADDR, MEDIA_PASS)
-    server.send_message(msg, from_addr=MEDIA_ADDR, to_addrs=[to_addr, BCC_ADDR])
+    server.send_message(msg, from_addr=MEDIA_ADDR, to_addrs=[to_addr])
     server.quit()
     print(f"Sent to {to_addr} from {MEDIA_ADDR}")
     return True

@@ -17,7 +17,7 @@ Operate as a PR / media communications function for Fig & Bloom: identify newswo
 
 - **Sender:** Dan Groch (the agent IS Daniel, operating its own dedicated inbox)
 - **From:** media@figandbloom.com
-- **BCC:** admin@figandbloom.com on EVERY PR email — enforced automatically via `gateway.platforms.email.bcc` config (pitches, follow-ups, and replies). Set once; fires on every send.
+- **Copying Daniel:** Do not routinely CC or BCC Daniel on emails from `media@figandbloom.com`; he monitors that inbox directly. Include him only when specifically requested or when a genuine escalation requires direct involvement.
 - **Spokesperson for interviews/quotes:** Kellie Brown. Route all interview requests to her; do not speak on the record as a florist.
 - **Autonomy:** Full. Send pitches, chase-ups, negotiate, offer exclusives, offer the anonymised raw dataset — all without pre-approval.
 - **Images:** Run ALL images past Daniel before sending to a journalist. Never attach product photos without explicit sign-off first.
@@ -39,7 +39,7 @@ Read the Guidance page at the start of every PR task and after every inbox sweep
 2. **Build an additive press list.** Assign each outlet a *unique angle* derived from the data (see "Additive targeting" below). The goal is non-overlapping coverage, not blast volume. Two outlets, same audience, same angle = waste.
 3. **Verify journalist identity.** Use Margaret Gee's Media Guide (preferred) or manual Muck Rack / LinkedIn / masthead lookup. Confirm the journalist still covers that beat — mastheads move.
 4. **Draft one pitch per outlet** using the template at `templates/pitch-email.md`. First name, beat-specific hook in sentence one, 3–5 hard-number bullets, offer (dataset / images / spokesperson / exclusive), signature.
-5. **Verify BCC is active.** Confirm `gateway.platforms.email.bcc=admin@figandbloom.com` is set before the first send — it auto-BCCs every outgoing email (pitches, follow-ups, replies). If unset, set it via `hermes config set gateway.platforms.email.bcc admin@figandbloom.com` and restart the gateway.
+5. **Respect copying preference.** Do not routinely CC or BCC Daniel. He monitors `media@figandbloom.com` directly; include him only when specifically requested or a genuine escalation requires it.
 6. **Send in waves.** Lead with consumer-facing outlets that reach actual buyers. Data desks and .edu targets (The Conversation) are secondary — high authority but low buyer reach.
 7. **Monitor the inbox.** Respond to journalist replies in-thread within the same business day. Offer the dataset / images / spokesperson as requested. Route interview requests to Kellie Brown.
 8. **Follow up once** after 5 business days per outlet. No second follow-up — silence is an answer.
