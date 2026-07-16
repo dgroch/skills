@@ -21,7 +21,16 @@ Use this procedure for recurring post-distribution pickup processing.
 
 Notion `Contacts & Coverage` is the relationship system of record; Trello is the campaign/action control plane.
 
-Upsert one record per exact journalist + outlet. Dedupe by coverage URL before changing counters.
+Upsert one record per exact journalist + outlet. **Do not use the raw coverage URL as the only idempotency key.** Before counting a URL as new, cluster it against prior coverage by:
+
+1. exact journalist + outlet;
+2. underlying Medianet release, source dataset/research, campaign or topic;
+3. headline/body semantic similarity, publication timing and reused imagery;
+4. canonical URL, redirects and alternate URL slugs.
+
+A second URL from the same journalist/outlet that substantially repeats the same source story is a **duplicate coverage variant**, not a new relationship event. Record the alternate URL in Notes, but do not increment `Coverage Count`, create another outreach opportunity, or send another thank-you. When uncertain, hold for Daniel rather than send.
+
+For a genuinely distinct article/story cluster, dedupe by coverage URL before changing counters.
 
 For each genuinely new article:
 
