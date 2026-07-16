@@ -18,7 +18,9 @@ class SkillRepoGuardTests(unittest.TestCase):
         )
         return result.stdout.strip()
 
-    def make_reconcile_fixture(self, root: Path) -> tuple[Path, Path, Path]:
+    def make_reconcile_fixture(
+        self, root: Path, profiles: list[dict[str, str]] | None = None
+    ) -> tuple[Path, Path, Path]:
         remote = root / "remote.git"
         seed = root / "seed"
         repo = root / "repo"
@@ -31,7 +33,7 @@ class SkillRepoGuardTests(unittest.TestCase):
             "version": 1,
             "mode": "external_dir",
             "repository": "..",
-            "profiles": [],
+            "profiles": profiles or [],
         }))
         self.make_skill(seed, "example", "example-skill")
         self.run_git(seed, "add", ".")
@@ -139,6 +141,33 @@ class SkillRepoGuardTests(unittest.TestCase):
                 self.run_git(repo, "rev-parse", "origin/main"),
             )
             self.assertEqual(self.run_git(repo, "status", "--porcelain"), "")
+
+    def test_reconcile_refuses_upstream_candidate_with_profile_shadow(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            profile_root = root / "profile-skills"
+            config = root / "profile-config.yaml"
+            profiles = [{
+                "name": "test-profile",
+                "skills_root": str(profile_root),
+                "config": str(config),
+            }]
+            _, seed, repo = self.make_reconcile_fixture(root, profiles=profiles)
+            config.write_text(f"skills:\n  external_dirs:\n    - {repo}\n")
+            self.make_skill(profile_root, "local-shadow", "upstream-shadow")
+            self.make_skill(seed, "upstream/new-skill", "upstream-shadow")
+            self.run_git(seed, "add", "upstream/new-skill/SKILL.md")
+            self.run_git(seed, "commit", "-m", "upstream shadow")
+            self.run_git(seed, "push", "origin", "main")
+            original_head = self.run_git(repo, "rev-parse", "HEAD")
+
+            with self.assertRaisesRegex(RuntimeError, "skill shadows require semantic reconciliation"):
+                guard.reconcile(
+                    repo / "tools" / "skill-repo-manifest.json", fetch=True, execute=True
+                )
+
+            self.assertEqual(self.run_git(repo, "rev-parse", "HEAD"), original_head)
+            self.assertFalse((repo / "upstream" / "new-skill" / "SKILL.md").exists())
 
     def test_reconcile_checkpoints_tracked_changes_rebases_and_pushes_main(self):
         with tempfile.TemporaryDirectory() as td:

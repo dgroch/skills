@@ -138,12 +138,10 @@ def validate_reconcile_candidate(repo: Path, manifest: dict, check_profiles: boo
         raise RuntimeError(f"generated repository clutter requires cleanup: {sample}")
     inventory_skills(repo)
     validate_python_syntax(repo)
-    if not check_profiles:
-        return
     for profile in manifest["profiles"]:
         profile_root = Path(profile["skills_root"]).resolve()
         config = Path(profile["config"]).resolve()
-        if not config_has_external_dir(config, repo):
+        if check_profiles and not config_has_external_dir(config, repo):
             raise RuntimeError(f"external skill directory missing for profile: {profile['name']}")
         shadows = find_shadows(repo, profile_root)
         if shadows:
