@@ -200,6 +200,34 @@ class SkillRepoGuardTests(unittest.TestCase):
 
             self.assertEqual(self.run_git(repo, "rev-parse", "HEAD"), original_head)
 
+    def test_reconcile_rejects_candidate_manifest_with_invalid_external_dir(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            profile_root = root / "new-profile-skills"
+            profile_root.mkdir()
+            config = root / "invalid-profile-config.yaml"
+            config.write_text(f"skills:\n  external_dirs:\n    - {root / 'wrong-repo'}\n")
+            _, seed, repo = self.make_reconcile_fixture(root)
+            manifest = seed / "tools" / "skill-repo-manifest.json"
+            data = json.loads(manifest.read_text())
+            data["profiles"] = [{
+                "name": "invalid-profile",
+                "skills_root": str(profile_root),
+                "config": str(config),
+            }]
+            manifest.write_text(json.dumps(data))
+            self.run_git(seed, "add", "tools/skill-repo-manifest.json")
+            self.run_git(seed, "commit", "-m", "add invalid profile mapping")
+            self.run_git(seed, "push", "origin", "main")
+            original_head = self.run_git(repo, "rev-parse", "HEAD")
+
+            with self.assertRaisesRegex(RuntimeError, "external skill directory missing"):
+                guard.reconcile(
+                    repo / "tools" / "skill-repo-manifest.json", fetch=True, execute=True
+                )
+
+            self.assertEqual(self.run_git(repo, "rev-parse", "HEAD"), original_head)
+
     def test_reconcile_checkpoints_tracked_changes_rebases_and_pushes_main(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)

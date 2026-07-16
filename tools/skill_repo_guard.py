@@ -131,17 +131,23 @@ def validate_python_syntax(repo: Path) -> None:
             raise RuntimeError(f"python syntax validation failed: {path.relative_to(repo)}: {exc}") from exc
 
 
-def validate_reconcile_candidate(repo: Path, manifest: dict, check_profiles: bool = True) -> None:
+def validate_reconcile_candidate(
+    repo: Path,
+    manifest: dict,
+    check_profiles: bool = True,
+    configured_external_repo: Path | None = None,
+) -> None:
     clutter = find_generated_clutter(repo)
     if clutter:
         sample = ", ".join(str(path.relative_to(repo)) for path in clutter[:5])
         raise RuntimeError(f"generated repository clutter requires cleanup: {sample}")
     inventory_skills(repo)
     validate_python_syntax(repo)
+    expected_external_repo = configured_external_repo or repo
     for profile in manifest["profiles"]:
         profile_root = Path(profile["skills_root"]).resolve()
         config = Path(profile["config"]).resolve()
-        if check_profiles and not config_has_external_dir(config, repo):
+        if check_profiles and not config_has_external_dir(config, expected_external_repo):
             raise RuntimeError(f"external skill directory missing for profile: {profile['name']}")
         shadows = find_shadows(repo, profile_root)
         if shadows:
@@ -336,7 +342,11 @@ def reconcile(manifest_path: Path, fetch: bool = False, execute: bool = False) -
                         "candidate integration conflicted; live checkpoint was preserved"
                     )
             candidate_manifest = load_manifest(candidate / manifest_relative_path)
-            validate_reconcile_candidate(candidate, candidate_manifest, check_profiles=False)
+            validate_reconcile_candidate(
+                candidate,
+                candidate_manifest,
+                configured_external_repo=repo,
+            )
             candidate_sha = run_git(candidate, "rev-parse", "HEAD")
             candidate_count = int(
                 run_git(candidate, "rev-list", "--count", f"{remote_sha}..HEAD")
