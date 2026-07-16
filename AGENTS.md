@@ -29,6 +29,9 @@ Do not begin editing until the command is silent and exits zero. Create a task b
 # Silent when healthy; non-zero with stable alert codes when unhealthy
 python3 tools/skill_repo_guard.py audit --fetch
 
+# Automatically resolve safe tracked drift; alert only on unsafe reconciliation
+python3 tools/skill_repo_guard.py reconcile --fetch --execute
+
 # Preview duplicate profile shadows
 python3 tools/skill_repo_guard.py remove-shadows
 
@@ -37,3 +40,9 @@ python3 tools/skill_repo_guard.py remove-shadows --execute
 ```
 
 The managed topology is declared in `tools/skill-repo-manifest.json`.
+
+The daily watchdog runs the executing reconciliation command, not audit-only mode. It checkpoints
+tracked changes, rebases or fast-forwards onto current `origin/main`, validates the repository,
+pushes a fast-forward `main` update, and verifies remote equality. It must refuse and alert on
+unknown untracked files, conflicts, invalid skills, shadows, generated clutter, failed validation,
+authentication failure, or a non-fast-forward push.

@@ -4,6 +4,9 @@
 from __future__ import annotations
 
 import argparse
+import ast
+from contextlib import contextmanager
+import fcntl
 import json
 import re
 import shutil
@@ -96,6 +99,132 @@ def run_git(repo: Path, *args: str, check: bool = True) -> str:
     return result.stdout.strip()
 
 
+def run_git_result(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["git", *args], cwd=repo, text=True, stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE, check=False,
+    )
+
+
+@contextmanager
+def repository_lock(repo: Path):
+    common_dir = Path(run_git(repo, "rev-parse", "--git-common-dir"))
+    if not common_dir.is_absolute():
+        common_dir = (repo / common_dir).resolve()
+    lock_path = common_dir / "skill-repository-reconcile.lock"
+    with lock_path.open("w") as handle:
+        try:
+            fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as exc:
+            raise RuntimeError("another skill repository reconciliation is active") from exc
+        yield
+
+
+def validate_python_syntax(repo: Path) -> None:
+    for path in sorted(repo.rglob("*.py")):
+        if ".git" in path.parts or any(part in CLUTTER_DIRS for part in path.parts):
+            continue
+        try:
+            ast.parse(path.read_text(errors="strict"), filename=str(path))
+        except (SyntaxError, UnicodeError) as exc:
+            raise RuntimeError(f"python syntax validation failed: {path.relative_to(repo)}: {exc}") from exc
+
+
+def validate_reconcile_candidate(repo: Path, manifest: dict) -> None:
+    clutter = find_generated_clutter(repo)
+    if clutter:
+        sample = ", ".join(str(path.relative_to(repo)) for path in clutter[:5])
+        raise RuntimeError(f"generated repository clutter requires cleanup: {sample}")
+    inventory_skills(repo)
+    validate_python_syntax(repo)
+    for profile in manifest["profiles"]:
+        profile_root = Path(profile["skills_root"]).resolve()
+        config = Path(profile["config"]).resolve()
+        if not config_has_external_dir(config, repo):
+            raise RuntimeError(f"external skill directory missing for profile: {profile['name']}")
+        shadows = find_shadows(repo, profile_root)
+        if shadows:
+            names = ", ".join(f"{profile['name']}:{item['name']}" for item in shadows[:5])
+            raise RuntimeError(f"skill shadows require semantic reconciliation: {names}")
+
+
+def reconcile(manifest_path: Path, fetch: bool = False, execute: bool = False) -> list[str]:
+    manifest_path = manifest_path.resolve()
+    manifest = load_manifest(manifest_path)
+    repo = (manifest_path.parent / manifest["repository"]).resolve()
+    messages: list[str] = []
+
+    with repository_lock(repo):
+        if fetch:
+            result = run_git_result(repo, "fetch", "origin", "--prune")
+            if result.returncode:
+                raise RuntimeError(result.stderr.strip() or "git fetch failed")
+
+        if not run_git(repo, "branch", "--show-current"):
+            raise RuntimeError("detached HEAD cannot be reconciled automatically")
+
+        validate_reconcile_candidate(repo, manifest)
+        status = run_git(repo, "status", "--porcelain=v1").splitlines()
+        untracked = [line[3:] for line in status if line.startswith("?? ")]
+        if untracked:
+            raise RuntimeError(f"untracked paths require classification: {', '.join(untracked[:5])}")
+
+        if status:
+            if run_git_result(repo, "diff", "--check").returncode:
+                raise RuntimeError("unstaged diff check failed")
+            if run_git_result(repo, "diff", "--cached", "--check").returncode:
+                raise RuntimeError("staged diff check failed")
+            if not execute:
+                messages.append("would_checkpoint_tracked_changes")
+            else:
+                run_git(repo, "add", "-u")
+                result = run_git_result(
+                    repo, "commit", "-m", "chore: reconcile durable skill repository drift"
+                )
+                if result.returncode:
+                    raise RuntimeError(result.stderr.strip() or "tracked-change checkpoint failed")
+                messages.append("checkpointed_tracked_changes")
+
+        local_only, remote_only = map(
+            int, run_git(repo, "rev-list", "--left-right", "--count", "HEAD...origin/main").split()
+        )
+        if remote_only:
+            if not execute:
+                messages.append("would_rebase_onto_origin_main" if local_only else "would_fast_forward")
+            elif local_only:
+                result = run_git_result(repo, "rebase", "origin/main")
+                if result.returncode:
+                    run_git_result(repo, "rebase", "--abort")
+                    raise RuntimeError("automatic rebase conflicted; repository restored to checkpoint")
+                messages.append("rebased_onto_origin_main")
+            else:
+                run_git(repo, "merge", "--ff-only", "origin/main")
+                messages.append("fast_forwarded")
+
+        if not execute:
+            if run_git(repo, "rev-parse", "HEAD") != run_git(repo, "rev-parse", "origin/main"):
+                messages.append("would_push_main")
+            return messages
+
+        if run_git(repo, "status", "--porcelain=v1"):
+            raise RuntimeError("repository remained dirty after checkpoint/rebase")
+        validate_reconcile_candidate(repo, manifest)
+        if run_git(repo, "rev-parse", "HEAD") != run_git(repo, "rev-parse", "origin/main"):
+            result = run_git_result(repo, "push", "origin", "HEAD:main")
+            if result.returncode:
+                raise RuntimeError(result.stderr.strip() or "fast-forward push to main failed")
+            messages.append("pushed_main")
+
+        result = run_git_result(repo, "fetch", "origin", "--prune")
+        if result.returncode:
+            raise RuntimeError(result.stderr.strip() or "post-push fetch failed")
+        if run_git(repo, "rev-parse", "HEAD") != run_git(repo, "rev-parse", "origin/main"):
+            raise RuntimeError("remote verification failed: HEAD does not equal origin/main")
+        if run_git(repo, "status", "--porcelain=v1"):
+            raise RuntimeError("remote verification failed: repository is dirty")
+        return messages
+
+
 def load_manifest(path: Path) -> dict:
     data = json.loads(path.read_text())
     if data.get("version") != 1 or data.get("mode") != "external_dir":
@@ -179,7 +308,7 @@ def default_manifest() -> Path:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["audit", "preflight", "remove-shadows"])
+    parser.add_argument("command", choices=["audit", "preflight", "reconcile", "remove-shadows"])
     parser.add_argument("--manifest", type=Path, default=default_manifest())
     parser.add_argument("--fetch", action="store_true")
     parser.add_argument("--execute", action="store_true")
@@ -190,6 +319,14 @@ def main() -> int:
             if text:
                 print(text)
                 return 1
+            return 0
+        if args.command == "reconcile":
+            actions = reconcile(args.manifest, fetch=args.fetch, execute=args.execute)
+            if actions:
+                prefix = "SKILL REPOSITORY RECONCILED" if args.execute else "SKILL REPOSITORY RECONCILIATION PLAN"
+                print(prefix)
+                for action in actions:
+                    print(f"- {action}")
             return 0
         removed = remove_shadows(args.manifest, args.execute)
         if not args.execute:

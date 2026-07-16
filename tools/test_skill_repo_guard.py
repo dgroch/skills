@@ -1,4 +1,6 @@
 import importlib.util
+import json
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -10,6 +12,38 @@ spec.loader.exec_module(guard)
 
 
 class SkillRepoGuardTests(unittest.TestCase):
+    def run_git(self, repo: Path, *args: str) -> str:
+        result = subprocess.run(
+            ["git", *args], cwd=repo, text=True, capture_output=True, check=True
+        )
+        return result.stdout.strip()
+
+    def make_reconcile_fixture(self, root: Path) -> tuple[Path, Path, Path]:
+        remote = root / "remote.git"
+        seed = root / "seed"
+        repo = root / "repo"
+        self.run_git(root, "init", "--bare", str(remote))
+        self.run_git(root, "init", "-b", "main", str(seed))
+        self.run_git(seed, "config", "user.name", "Test User")
+        self.run_git(seed, "config", "user.email", "test@example.com")
+        (seed / "tools").mkdir()
+        (seed / "tools" / "skill-repo-manifest.json").write_text(json.dumps({
+            "version": 1,
+            "mode": "external_dir",
+            "repository": "..",
+            "profiles": [],
+        }))
+        self.make_skill(seed, "example", "example-skill")
+        self.run_git(seed, "add", ".")
+        self.run_git(seed, "commit", "-m", "initial")
+        self.run_git(seed, "remote", "add", "origin", str(remote))
+        self.run_git(seed, "push", "-u", "origin", "main")
+        self.run_git(remote, "symbolic-ref", "HEAD", "refs/heads/main")
+        self.run_git(root, "clone", str(remote), str(repo))
+        self.run_git(repo, "config", "user.name", "Test User")
+        self.run_git(repo, "config", "user.email", "test@example.com")
+        return remote, seed, repo
+
     def make_skill(self, root: Path, rel: str, name: str, body: str = "body") -> Path:
         path = root / rel
         path.mkdir(parents=True, exist_ok=True)
@@ -85,6 +119,60 @@ class SkillRepoGuardTests(unittest.TestCase):
             (root / "skill" / "backup.bak").write_text("x")
             found = {p.relative_to(root).as_posix() for p in guard.find_generated_clutter(root)}
             self.assertEqual(found, {"skill/node_modules", "skill/backup.bak"})
+
+    def test_reconcile_fast_forwards_clean_repository_behind_main(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            remote, seed, repo = self.make_reconcile_fixture(root)
+            (seed / "remote.txt").write_text("new upstream\n")
+            self.run_git(seed, "add", "remote.txt")
+            self.run_git(seed, "commit", "-m", "remote update")
+            self.run_git(seed, "push", "origin", "main")
+
+            messages = guard.reconcile(
+                repo / "tools" / "skill-repo-manifest.json", fetch=True, execute=True
+            )
+
+            self.assertIn("fast_forwarded", messages)
+            self.assertEqual(
+                self.run_git(repo, "rev-parse", "HEAD"),
+                self.run_git(repo, "rev-parse", "origin/main"),
+            )
+            self.assertEqual(self.run_git(repo, "status", "--porcelain"), "")
+
+    def test_reconcile_checkpoints_tracked_changes_rebases_and_pushes_main(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            remote, seed, repo = self.make_reconcile_fixture(root)
+            (seed / "remote.txt").write_text("new upstream\n")
+            self.run_git(seed, "add", "remote.txt")
+            self.run_git(seed, "commit", "-m", "remote update")
+            self.run_git(seed, "push", "origin", "main")
+            skill = repo / "example" / "SKILL.md"
+            skill.write_text(skill.read_text() + "local durable correction\n")
+
+            messages = guard.reconcile(
+                repo / "tools" / "skill-repo-manifest.json", fetch=True, execute=True
+            )
+
+            self.assertIn("checkpointed_tracked_changes", messages)
+            self.assertIn("rebased_onto_origin_main", messages)
+            self.assertIn("pushed_main", messages)
+            remote_main = self.run_git(remote, "rev-parse", "refs/heads/main")
+            self.assertEqual(self.run_git(repo, "rev-parse", "HEAD"), remote_main)
+            self.assertIn("local durable correction", skill.read_text())
+            self.assertEqual(self.run_git(repo, "status", "--porcelain"), "")
+
+    def test_reconcile_refuses_unknown_untracked_files(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            _, _, repo = self.make_reconcile_fixture(root)
+            (repo / "unknown.txt").write_text("do not guess\n")
+
+            with self.assertRaisesRegex(RuntimeError, "untracked"):
+                guard.reconcile(
+                    repo / "tools" / "skill-repo-manifest.json", fetch=True, execute=True
+                )
 
 
 if __name__ == "__main__":
