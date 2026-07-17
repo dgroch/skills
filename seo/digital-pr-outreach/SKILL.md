@@ -41,7 +41,7 @@ Read the Guidance page at the start of every PR task and after every inbox sweep
 4. **Draft one pitch per outlet** using the template at `templates/pitch-email.md`. First name, beat-specific hook in sentence one, 3–5 hard-number bullets, offer (dataset / images / spokesperson / exclusive), signature.
 5. **Respect copying preference.** Do not routinely CC or BCC Daniel. He monitors `media@figandbloom.com` directly; include him only when specifically requested or a genuine escalation requires it.
 6. **Send in waves.** Lead with consumer-facing outlets that reach actual buyers. Data desks and .edu targets (The Conversation) are secondary — high authority but low buyer reach.
-7. **Monitor the inbox.** Respond to journalist replies in-thread within the same business day. Offer the dataset / images / spokesperson as requested. Route interview requests to Kellie Brown.
+7. **Monitor the inbox.** Respond to journalist replies in-thread within the same business day. Offer the dataset / images / spokesperson as requested. Route interview requests to Kellie Brown. When an editor confirms that requested content or a link was updated, verify the live change, check the complete thread for an existing acknowledgement, and send a concise in-thread thank-you if absent. This narrow courtesy reply contains no new ask, assets, quote, commitment, attachment, CC or BCC; it must use no em dash, pass atomic reply preflight, and be verified in Sent Mail. Never send a duplicate thank-you.
 8. **Follow up once** after 5 business days per outlet. No second follow-up — silence is an answer.
 9. **Track placements.** When coverage lands, verify the link target and anchor text match what was offered (e.g. "Flower delivery Sydney" → the Sydney collection page). Log it.
 
