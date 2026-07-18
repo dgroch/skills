@@ -106,6 +106,7 @@ hermes --profile director cron create 'every 120m' \
 
 ## Pitfalls
 
+- Freeze and persist the LIVE critic `run_id`, independent `critic_context_id`, provider, model and generated timestamp before launching the once-per-batch communications indexer. If refresh begins before run identity exists, fail closed rather than attaching the mailbox evidence to a retroactively created identity.
 - Do not advance phases automatically just because the script works; Daniel must explicitly approve Phase 2+.
 - Do not produce numbered digests without a digest ID; delayed feedback will become ambiguous.
 - Do not make the card link hard to tap on Telegram.
