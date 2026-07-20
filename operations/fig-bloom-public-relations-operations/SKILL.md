@@ -126,5 +126,20 @@ See `references/medianet-pickup-journalist-relationship.md` for qualification ru
 - Do not interpret `Wide Pitching` as direct email sent; for Medianet it means distributed/submitted via Medianet.
 - Do not use direct-email `Sent Status` for Medianet distribution. Track Medianet via Distribution Channel/Status.
 - Do not let unmatched journalist replies sit only in email; create Trello enquiry cards.
+- **Do not blanket-suppress Qwoted platform senders.** Split them into: (a) account/admin and multi-outlet digest emails, which remain non-actionable; (b) direct journalist messages, which are relationship events and route to PR triage; and (c) individual opportunity alerts, which require deadline parsing and a Kellie/Fig & Bloom expertise-fit screen. Only open, credible fits create approval-gated Trello cards. Qwoted submissions are never sent automatically.
+- Daniel's Gmail filters may mark Qwoted alerts with the `qwoted` label and skip the inbox. Treat that as an inbox-hygiene rule, not a suppression rule: Qwoted discovery and submission workflows must scan both INBOX and Gmail All Mail so labelled messages still reach the screener.
+- Qwoted submissions made through the persistent Browserbase context are communications events even when they do not produce email. After verified submission, record the journalist/outlet, opportunity, exact response summary, submission timestamp and Trello card link in the Media Communications SQLite relationship memory; Gmail remains delivery truth only where an email actually exists.
+- Treat florist and horticulturist as different expertise. Kellie may speak to floral design, cut-flower care, vase life, substitutions and customer/gifting behaviour, but cultivation topics such as disbudding dahlias are outside her expertise unless Daniel explicitly confirms otherwise.
+
+### Qwoted persistent Browserbase operation
+
+- Persistent Browserbase context helper: `/opt/data/profiles/director/scripts/browserbase_qwoted_context.py`.
+- Context state: `/opt/data/profiles/director/browser_auth/qwoted_browserbase_context.json`, mode `0600`. Never print Browserbase API credentials or CDP connect URLs.
+- Create a temporary session with `python3 .../browserbase_qwoted_context.py create`. The helper reuses the same context and passes `browserSettings.context.persist=true` plus `keepAlive=true`.
+- Daniel performs password and 2FA entry through Browserbase Session Live View. The agent never asks for or types the password or authentication code.
+- Qwoted can hang after login while synchronous third-party trackers load. When piloting through Playwright, block nonessential New Relic, analytics, advertising and tracking hosts before navigation, then reload. Do not block Qwoted first-party resources.
+- Verify authentication by reaching `https://app.qwoted.com/` and reading authenticated profile/navigation markers, not merely by checking cookies.
+- Release the login session, create a fresh session from the same context, and repeat the profile/navigation-marker check. Only then report persistent authentication verified.
+- Release idle sessions to avoid credit waste. Future approved submissions create a fresh temporary session from this context, submit the exact approved wording, and verify the resulting pitch/readback before updating Trello.
 - Do not auto-answer journalist enquiries just because a response draft exists.
 - Do not move to `Coverage Landed` or `Link Secured` without live URL verification.

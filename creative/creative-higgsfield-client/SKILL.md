@@ -329,6 +329,7 @@ Verify auth with: `HOME=/opt/data/home higgsfield account status`
 - **`soul_cinematic` is the best model for storyboard keyframes** — produces photorealistic editorial stills at ~2K natively (no `--resolution` flag needed; the param is rejected with "Unknown params: resolution"). Use for film storyboard frames, not `text2image_soul_v2` which is more portrait-focused. Accepted params: `aspect_ratio`, `quality`, `prompt`, `medias`, `custom_reference_id`.
 - **`gpt_image_2` for graphic design** — end cards, text-heavy layouts, UI mockups. Better than image models at rendering text.
 - **Model list `--json` output may have empty model IDs** — Use plain `higgsfield model list` (table format) for reliable model names, then `model get <id> --json` for schema details.
+- **`generate create --json` may return a bare UUID array** — Current async CLI builds can return `["<job-id>"]` rather than an object such as `{"id":"<job-id>"}`. Batch runners must accept all three safe shapes: a bare UUID string, an object with `id`, or a non-empty list whose first item is either shape. Persist the recovered job ID before calling `generate wait` so a restart never resubmits a billed job.
 - **`--wait` blocks the shell** — For batch generation of multiple frames, run jobs without `--wait`, collect job IDs, then poll with `higgsfield generate wait <id>` or `higgsfield generate get <id> --json`.
 - **"Cloning" means faithful reproduction of a specific real video, not generic on-theme generation** — When the user asks to clone a viral video, they expect: source video download → frame-by-frame deconstruction → keyframe matching the original's exact composition → animation. Skipping the source video and generating from a text prompt produces a generic scene the user will reject. Always start from a real reference video. See `references/viral-video-cloning.md`.
 
@@ -345,6 +346,18 @@ with beat sheet comparison.
 
 See `references/viral-video-cloning.md` for the complete end-to-end pipeline
 with commands, deconstruction methodology, and proven examples.
+
+## Topaz Image Restoration and Caption Removal
+
+- **Topaz image models require uploaded-media objects, not `--image` or a local string in `--input_image`** — Upload first, then pass `--input_image '{"id":"<upload-uuid>","type":"media_input"}'`. Topaz parameter names retain underscores (`--input_image`, `--output_width`, `--output_height`), not hyphens.
+  ```bash
+  ID=$(HOME=/opt/data/home higgsfield upload create ./input.jpg)
+  HOME=/opt/data/home higgsfield generate create topaz_image_generative \
+    --input_image "{\"id\":\"$ID\",\"type\":\"media_input\"}" \
+    --output_width 1536 --output_height 2048 --model "Recovery V2" \
+    --creativity 1 --texture 1 --prompt "Faithfully restore..." --wait
+  ```
+- **Topaz generative upscale does not reliably remove burned-in captions even when prompted** — Use Topaz first for restoration, then a precise `gpt_image_2` edit (`--image <topaz-output> --resolution 2k --quality high`) telling it to remove only the overlay and reconstruct the obscured area. Visually verify both overlay removal and preservation of authentic photographed logos.
 
 ## What This Skill Does NOT Cover
 
