@@ -107,6 +107,8 @@ hermes --profile director cron create 'every 120m' \
 ## Pitfalls
 
 - Freeze and persist the LIVE critic `run_id`, independent `critic_context_id`, provider, model and generated timestamp before launching the once-per-batch communications indexer. If refresh begins before run identity exists, fail closed rather than attaching the mailbox evidence to a retroactively created identity.
+- The atomic preflight module's `freshness(connection, max_age_minutes=...)` currently returns `(overall_fresh, rows)`, where `rows` is a list of SQLite rows with `mailbox`, `fresh`, `age_minutes`, and `last_error`. Sanitise this into role indexes before persisting/reporting it; do not assume the details value is a dict, and do not print mailbox identifiers or message bodies.
+- A publisher-owned page proving an exact address is insufficient when its own route label conflicts with the request. For example, an address labelled `general editorial enquiries (not submissions)` cannot safely receive copy that both offers contributed text and pitches a related piece. Fail closed as Revise, preserve the exact hash, and require the rewrite to choose one route before fresh criticism.
 - Do not advance phases automatically just because the script works; Daniel must explicitly approve Phase 2+.
 - Do not produce numbered digests without a digest ID; delayed feedback will become ambiguous.
 - Do not make the card link hard to tap on Telegram.
