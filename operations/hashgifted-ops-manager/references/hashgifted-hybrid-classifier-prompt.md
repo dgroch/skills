@@ -28,13 +28,15 @@ Return exactly one decision for every candidate. Preserve `run_id` exactly.
       "action": "one allowed value",
       "facts": {
         "delivery_eligible": true,
-        "reel_confirmed": true,
+        "deliverable_confirmed": true,
+        "reel_confirmed": null,
         "brief_confirmed": true,
         "deliverable_exception_approved": false
       },
       "fact_evidence": {
         "delivery_eligible": "exact quote from transcript",
-        "reel_confirmed": "exact quote from transcript",
+        "deliverable_confirmed": "exact quote agreeing to create and supply around five aesthetic high-resolution photographs",
+        "reel_confirmed": null,
         "brief_confirmed": "exact quote from transcript",
         "deliverable_exception_approved": null
       },
@@ -48,7 +50,7 @@ Return exactly one decision for every candidate. Preserve `run_id` exactly.
 }
 ```
 
-Boolean facts may be `true`, `false`, or `null`. Include exact transcript quotes for facts you assert. For `approved_reserve` and `select_accept`, delivery eligibility and brief alignment must be `true`, and the output gate must be proven by either `reel_confirmed = true` or `deliverable_exception_approved = true`. An exception is valid only when the live transcript contains an explicit Fig & Bloom/Daniel approval of the alternative format; quote that approval exactly.
+Boolean facts may be `true`, `false`, or `null`. Include exact transcript quotes for facts you assert. For new qualification threads, the default output gate is an explicit campaign-specific agreement to create and supply around five high-resolution aesthetic still photographs featuring the bouquet; set `deliverable_confirmed = true` and quote that agreement. For `approved_reserve` and `select_accept`, delivery eligibility and brief alignment must be `true`, and the output gate must be proven by one of: `deliverable_confirmed = true`; legacy `reel_confirmed = true` from an existing in-flight thread; or `deliverable_exception_approved = true`. An exception is valid only when the live transcript contains an explicit Fig & Bloom/Daniel approval of the alternative format; quote that approval exactly.
 
 ## Allowed classifications
 
@@ -80,11 +82,12 @@ Never infer a rejection. `reject_human` is allowed only when the candidate conta
 - Approved delivery regions: Melbourne metro, Sydney metro, Brisbane metro, Geelong, Bannockburn, Sunshine Coast and Gold Coast.
 - Global weekly platform acceptance cap: 3 across active Reflexed Rose campaigns.
 - A location must be sufficiently explicit to establish delivery eligibility.
-- A Reel commitment can be established across multiple conversational turns; it does not have to appear in the last bubble.
-- A Daniel/Fig & Bloom-approved alternative deliverable (for example Carousel + Stories) satisfies the output gate only when that approval is explicitly visible in the live transcript. Set `deliverable_exception_approved = true` and quote the brand approval; do not continue asking for a Reel.
-- Generic biography, application, portfolio or capability text saying a creator makes Reels is **not** a commitment to make a Reel for this campaign. The evidence must be a campaign-specific agreement or an answer to Fig & Bloom's campaign question.
+- For all new selection outreach, the default deliverable is around five high-resolution aesthetic still photographs featuring the bouquet. Approximately 4–6 strong final images is acceptable. No Instagram Reel is required.
+- A new photo-deliverable commitment can be established across multiple conversational turns; it does not have to appear in the last bubble. The evidence must be a campaign-specific agreement, not generic portfolio text saying the creator takes photos.
+- Preserve in-flight agreements: a clear Reel commitment made before this policy change remains valid legacy output evidence and must not be replaced or re-asked.
+- A Daniel/Fig & Bloom-approved alternative deliverable satisfies the output gate only when that approval is explicitly visible in the live transcript. Set `deliverable_exception_approved = true` and quote the brand approval; do not continue asking for the default photo set.
 - Brief alignment means the creator understands and accepts the campaign's creative direction, not merely that they said something positive.
-- `select_accept`: use only when delivery eligibility, brief alignment and an approved output format (Reel or explicit brand-approved exception) are established, the Monday Australia/Melbourne release window is open, and that campaign has one of its three weekly slots available.
+- `select_accept`: use only when delivery eligibility, brief alignment and approved output evidence are established: the new photo deliverable, a preserved legacy Reel agreement, or an explicit brand-approved alternative. The Monday Australia/Melbourne release window must be open and that campaign must have one of its weekly slots available.
 - `approved_reserve`: use when delivery eligibility, brief alignment and an approved output format are explicitly established but the release window is closed or that campaign's weekly slots are full, or a clearly qualified creator should remain available. If the transcript does not already contain a transparent reserve/queue notification, include a concise `reply_text` explaining that the creator is approved in the queue, no gifting date is confirmed yet, and Fig & Bloom will message them when a slot opens. Never send this notification twice.
 - `send_message`: use for safe routine qualification, clarification or support messages. Write a concise, natural Fig & Bloom reply in `reply_text`.
 - `manual_review`: use only for a genuine commercial, delivery, product, deliverable or brand-judgment exception. `manual_question` must state the exact decision Daniel needs to make and `recommendation` must give a concrete recommended handling.

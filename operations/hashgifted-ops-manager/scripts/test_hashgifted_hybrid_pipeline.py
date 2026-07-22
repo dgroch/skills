@@ -146,6 +146,14 @@ class HybridDecisionTests(unittest.TestCase):
         result=h.validate_decision_bundle(collection,decisions)
         self.assertTrue(result['ok'],result['errors'])
 
+    def test_confirmed_photo_deliverable_satisfies_output_gate(self):
+        h=load_module()
+        transcript='Creator: I am in Melbourne, the brief feels natural, and I am happy to provide around five aesthetic high-resolution photographs.'
+        collection={'run_id':'r-photo','candidates':[{'gift_id':'g-photo','wave_uid':'w-photo','candidate_type':'shortlisted_qualification','transcript':transcript,'thread_sha256':h.sha256_text(transcript),'pending_human_commands':[]}]}
+        decisions={'run_id':'r-photo','decisions':[{'gift_id':'g-photo','wave_uid':'w-photo','classification':'qualified_reserve','confidence':'high','reason':'The creator confirmed delivery, the brief and the new photo deliverable.','action':'approved_reserve','facts':{'delivery_eligible':True,'deliverable_confirmed':True,'brief_confirmed':True},'fact_evidence':{'delivery_eligible':'I am in Melbourne','deliverable_confirmed':'happy to provide around five aesthetic high-resolution photographs','brief_confirmed':'the brief feels natural'},'reply_text':'You are approved in our queue. We will message you when a gifting slot opens.'}]}
+        result=h.validate_decision_bundle(collection,decisions)
+        self.assertTrue(result['ok'],result['errors'])
+
     def test_new_reserve_requires_transparent_queue_notification(self):
         h=load_module()
         transcript='Creator: I am in Sydney, accept the brief, and will create a Reel.'

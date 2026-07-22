@@ -1,69 +1,73 @@
 # Brief Template
 
-Based on the seeded briefs `You Weren't Expecting Flowers` and `Guess I Really Am Loved`.
+Use this photo-first structure for every newly created #gifted creator brief unless Daniel explicitly approves another deliverable. Existing creator agreements are not retroactively changed.
 
 ## Page Shape
 
-Use this structure for every new creator-facing brief.
-
 ```markdown
-*A brief for Fig & Bloom creators. Read it on your phone - it's meant to be quick.*
+*A brief for Fig & Bloom creators. Read it on your phone — it's meant to be quick.*
 
 ## The feeling we're after
 
-[Name the emotional shift in one line.]
+[Name the emotional or visual feeling in one line.]
 
-[Explain the emotional premise in plain language.]
+[Explain the creative premise in plain language and leave room for the creator's own eye.]
 
-## The story arc
+## The photographs we'd love
 
-1. **[Scene name]** - [visual action]. *On-screen text:* "[text]"
-2. **[Scene name]** - [visual action]. *On-screen text:* "[text]"
-3. **[Scene name]** - [visual action]. *On-screen text:* "[text]"
-4. **[Scene name]** - [visual action]
-5. **[Brand moment]** - [bouquet/card/packaging/home detail]. *End text:* "[text]"
+Please create and supply around **five high-resolution aesthetic still photographs** featuring the bouquet. No Instagram Reel is required.
 
-## Talking points (use your own words)
+Aim for a natural mix rather than five near-identical frames:
 
-- "[Creator-voice line]"
-- "[Creator-voice line]"
+1. **Bouquet hero** — [setting or mood].
+2. **Floral detail** — [texture, stem, petal or colour detail].
+3. **Lifestyle/context** — [creator, recipient or lived-in home moment].
+4. **Styled scene** — [room, table, bedside, doorway or other natural placement].
+5. **Alternate composition** — [different angle, crop, distance or orientation].
 
-## Visuals to capture
+Treat five as an approximate target; 4–6 strong final images is ideal. Please supply original clean files without watermarks or baked-in text. Light colour correction is fine.
 
-- [visual]
-- [visual]
-- [visual]
-- [visual]
+## Visual direction
 
-## Hook options (pick one for the first 1-2 seconds)
+- [light and mood]
+- [setting or palette]
+- [styling cue]
+- [one thing to avoid]
 
-1. [hook]
-2. [hook]
-3. [hook]
-4. [hook]
-5. [hook]
+Keep the work true to your style. These are ways into the idea, not a rigid shot list.
 
-## Caption options
+## Supply or posting requirement
 
-- [caption]
-- [caption]
-- [caption]
+- **Required mode:** [Supply original files to Fig & Bloom / Post as a static or carousel post / Both]
+- **Delivery method:** [Hashgifted upload / approved Drive upload / campaign-specific method]
+- **Due:** [clear deadline]
+- **Instagram requirement:** [No post required / static or carousel post required]
+- **Tagging/collaborator requirement:** [state explicitly or write “not required”]
 
-## Format
+## Caption direction
 
-- 20-35 seconds
-- Vertical (TikTok / Reels / Shorts)
-- [tone guidance]
+[Only include if posting is required. Give 2–3 light caption options or talking points in the creator's own voice.]
 
-[One final plain-language note about what to avoid or what makes the idea work.]
+## Final note
+
+[One warm sentence reinforcing the creative feeling and inviting questions.]
 ```
+
+## Default Deliverable Policy
+
+- Around five high-resolution aesthetic still photographs; approximately 4–6 strong final images is acceptable.
+- No Instagram Reel is required for newly selected creators unless Daniel explicitly overrides that campaign.
+- Prefer a varied set: bouquet hero, close floral detail, lifestyle/context, styled scene and alternate composition.
+- Request original clean files without watermarks or baked-in text.
+- Do not assume Instagram posting. State whether the photographs are supplied to Fig & Bloom, posted, or both.
+- If posting is required, state static/carousel format, deadline and collaborator/tag requirements explicitly.
+- Do not change deliverables already agreed in an existing creator thread.
 
 ## Writing Rules
 
-- Lead with the feeling, not the deliverables.
-- Include on-screen text per key scene.
-- Talking points should sound like a creator speaking naturally.
-- Do not over-prescribe exact wording.
-- Do not use internal language, campaign mechanics, or strategic labels.
-- Keep it lean enough to read on a phone.
-- Make the flowers the proof, not the pitch.
+- Lead with the feeling, not the asset count.
+- Keep the brief lean enough to read on a phone.
+- Use the shot list as inspiration, not homework.
+- Do not over-prescribe poses, exact wording or identical compositions.
+- Avoid internal language, campaign mechanics and strategic labels.
+- Make the flowers the visual proof, not a sales pitch.

@@ -34,10 +34,11 @@ Collect these before creating records. Use AskUserQuestion when available. Do no
 - Campaign name.
 - Objective: exactly one of `audience awareness`, `content library`, or `both`.
 - Hard gates: location, follower minimums, platform, and category exclusions. Default Fig & Bloom delivery gate: Melbourne, Sydney, and Brisbane metro areas only.
-- Deliverables as free text.
+- Deliverables as free text. Default for every newly selected #gifted creator: around five high-resolution aesthetic still photographs featuring the bouquet; approximately 4–6 strong finals is acceptable; no Reel required. Only change this default when Daniel explicitly overrides the campaign.
+- Asset mode: exactly one of `supply to Fig & Bloom`, `static/carousel post`, or `both`. Do not assume Instagram posting.
 - Target selected count.
-- Posting deadline window (relative). Default to `7 days from receipt of gift` unless the marketer overrides. Stored in `Deadline Window`.
-- Absolute posting deadline date, if the campaign has a fixed cutoff (e.g. tied to Mother's Day or a campaign-end date). Optional. Stored in `Posting Deadline`.
+- Delivery/posting deadline window (relative). Default to `7 days from receipt of gift` unless the marketer overrides. Stored in `Deadline Window`.
+- Absolute delivery/posting deadline date, if the campaign has a fixed cutoff (e.g. tied to Mother's Day or a campaign-end date). Optional. Stored in `Posting Deadline`.
 - Concept descriptions. Accept one or two concepts by default.
 - One-off calibration, such as "prioritise mums with kids 0-5".
 
@@ -54,7 +55,8 @@ If concept text is vague, push back before writing. Ask for:
 - More than two concepts: confirm explicitly. Programme convention is two max so creators can choose without being overwhelmed.
 - One-line concepts: do not pad with generic filler. Ask for better raw material.
 - Internal jargon: remove it from creator-facing pages.
-- Deliverables: keep them in the Campaign record. Brief pages can include format guidance, but should not feel like homework.
+- Deliverables: keep the exact photo count guidance and asset mode in the Campaign record. Default to around five high-resolution aesthetic still photographs and no Reel. Brief pages should give light visual guidance without feeling like homework.
+- Posting: never infer a public post from the photo deliverable. Record whether the creator supplies files, posts a static/carousel, or does both.
 
 ## Notion Write Sequence
 
@@ -86,11 +88,13 @@ Mirror the seeded examples:
 
 - Start with a short italic note that the brief is for Fig & Bloom creators and is meant to be quick on a phone.
 - Lead with feeling, not requirements.
-- Use a story arc with on-screen text per scene.
-- Keep talking points in the creator's voice, not brand voice.
-- Give visuals to capture.
-- Offer hook and caption options.
-- End with format guidance.
+- Ask for around five high-resolution aesthetic still photographs; approximately 4–6 strong finals is acceptable.
+- Suggest a varied mix of bouquet hero, floral detail, lifestyle/context, styled scene and alternate composition without making it a rigid shot list.
+- Ask for original clean files without watermarks or baked-in text.
+- State explicitly whether the photographs are supplied to Fig & Bloom, posted as a static/carousel post, or both.
+- State that no Instagram Reel is required unless Daniel explicitly overrides the campaign.
+- Include caption direction only when posting is required.
+- End with a warm invitation for questions.
 
 Lean wins. The brief is read inside Hashgifted's in-platform link preview.
 

@@ -151,9 +151,10 @@ def validate_decision_bundle(collection, decisions):
                 for fact in REQUIRED_FACTS:
                     if facts.get(fact) is not True: derr.append(f'qualification_fact_not_true:{fact}')
                     if not str(evidence.get(fact) or '').strip(): derr.append(f'qualification_evidence_missing:{fact}')
+                deliverable_ok=facts.get('deliverable_confirmed') is True and bool(str(evidence.get('deliverable_confirmed') or '').strip())
                 reel_ok=facts.get('reel_confirmed') is True and bool(str(evidence.get('reel_confirmed') or '').strip())
                 exception_ok=facts.get('deliverable_exception_approved') is True and bool(str(evidence.get('deliverable_exception_approved') or '').strip())
-                if not (reel_ok or exception_ok):
+                if not (deliverable_ok or reel_ok or exception_ok):
                     derr.append('approved_deliverable_evidence_missing')
                 if action=='approved_reserve':
                     already_notified=any(marker in transcript for marker in RESERVE_NOTIFICATION_MARKERS)
@@ -217,6 +218,9 @@ def collect_live(output_path=None):
                 'selection_window_open':selection_window_open,
                 'policy':{
                     'approved_delivery_regions':['Melbourne metro','Sydney metro','Brisbane metro','Geelong','Bannockburn','Sunshine Coast','Gold Coast'],
+                    'default_deliverable':'Around five high-resolution aesthetic still photographs featuring the bouquet; approximately 4–6 strong final images is acceptable; no Instagram Reel required.',
+                    'posting_requirement':'Use the campaign brief to determine supply-only, static/carousel posting, or both; never infer posting.',
+                    'legacy_deliverable_evidence_allowed':True,
                     'per_campaign_weekly_platform_accept_cap':PER_CAMPAIGN_WEEKLY_CAP,
                     'selection_window':'Monday in Australia/Melbourne',
                     'auto_reject_allowed':False,

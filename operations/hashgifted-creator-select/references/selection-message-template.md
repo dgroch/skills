@@ -9,7 +9,7 @@ Structure:
 1. Greeting with first name.
 2. One personalised hook (1 sentence).
 3. Share the approved Notion brief link(s), using public links only, framed as creative inspiration/ways in — not a dry menu of choices.
-4. The ask: confirm metro delivery eligibility, IG Reel acceptance, brief preference/understanding, and interest.
+4. The ask: confirm delivery eligibility, willingness to create and supply around five high-resolution aesthetic still photographs featuring the bouquet, brief preference/understanding, and interest. State that no Reel is required.
 5. Light close inviting a yes.
 
 Skeleton:
@@ -21,7 +21,7 @@ Skeleton:
 > [brief_1_url]
 > [brief_2_url]
 >
-> If you're keen, could you please confirm you're in one of our current delivery areas, happy to create an IG Reel, and which direction feels most natural for you? If both spark ideas, just let us know which one you'd be excited to bring to life.
+> If you're keen, could you please confirm you're in one of our current delivery areas, happy to create and supply around five high-resolution aesthetic photographs featuring the bouquet, and which direction feels most natural for you? No Reel is required for this campaign. If both spark ideas, just let us know which one you'd be excited to bring to life.
 
 Single-brief variant:
 
@@ -29,7 +29,7 @@ Single-brief variant:
 >
 > We'd love to send you a Fig & Bloom gift for our [campaign_name] campaign. We think there’s a lovely story here for your audience, and this is the creative direction we’re inviting creators to make their own: [brief_1_url].
 >
-> If you're keen, could you please confirm you're in one of our current delivery areas, happy to create an IG Reel, and that this direction feels natural for you?
+> If you're keen, could you please confirm you're in one of our current delivery areas, happy to create and supply around five high-resolution aesthetic photographs featuring the bouquet, and that this direction feels natural for you? No Reel is required for this campaign.
 
 ## Hook Guidance
 
@@ -96,7 +96,7 @@ Single-option skeleton:
 
 ## Approved / Reserve Expectation-Setting Message
 
-Use when a Shortlisted creator has confirmed the required gates — current delivery-region eligibility, IG Reel deliverable, and brief preference/understanding — but the current campaign/week cadence is already full. Cadence should delay only the final selection/booking action, not normal qualification conversation. Do not ask for address or delivery details.
+Use when a Shortlisted creator has confirmed the required gates — current delivery-region eligibility, the agreed photo deliverable, and brief preference/understanding — but the current campaign/week cadence is already full. For existing in-flight threads, previously agreed Reel or explicitly approved alternative deliverables remain valid. Cadence should delay only the final selection/booking action, not normal qualification conversation. Do not ask for address or delivery details.
 
 Skeleton:
 
@@ -108,13 +108,26 @@ Skeleton:
 
 - Australian English throughout.
 - Lowercase "you" not "You" mid-sentence.
-- One qualification ask can contain the required gates: current delivery-region eligibility, Reel acceptance, and brief comfort/preference. Do not also stack delivery address, timing flexibility, or extra production requirements into the same message.
+- One qualification ask can contain the required gates: current delivery-region eligibility, agreement to create and supply around five high-resolution aesthetic photographs, and brief comfort/preference. State that no Reel is required. Do not also stack delivery address, timing flexibility, posting requirements, or extra production requirements into the same message.
 - Selection cadence affects only the final select/booking action. It should not stop us from replying to Shortlisted creators, answering approved questions, confirming gates, or telling fully qualified creators they are approved/reserve for the next available slot.
 - Do not ask creators to send detailed delivery address information in the Hashgifted chat. This appears to trigger a Hashgifted system/safety message. Only ask for broad delivery-region eligibility; detailed delivery details should be handled by Hashgifted's post-selection/order flow.
 - Do not promise payment, exclusivity, or repeat campaign opportunities.
 - After order booking, acknowledge the booking and proactively invite condition issues/questions. Make clear that if flowers arrive below standard, Fig & Bloom would rather organise re-delivery than have the creator fulfil with substandard florals.
 - Do not include legal terms or disclosure language inside the selection thread; that lives in the brief page.
 - Do not send private Notion workspace URLs. Use the public/share-to-web brief link stored on the Brief record.
+
+## Default Photo Deliverable for New Selections
+
+Unless Daniel explicitly overrides a campaign, ask newly selected #gifted creators to create and supply **around five high-resolution aesthetic still photographs** featuring the bouquet. Treat approximately 4–6 strong final images as the intended range rather than rejecting a good set over an exact count.
+
+Keep the creative guidance light:
+
+- Aim for a natural mix of bouquet hero, floral detail and lifestyle/context images.
+- Prefer flattering natural light, clean composition and an uncluttered setting.
+- Ask for original clean files without watermarks or baked-in text.
+- Do not require an Instagram Reel.
+- Do not assume the creator must post the photos. The Campaign record and public brief must explicitly state whether the photographs are supplied to Fig & Bloom, posted as a static/carousel post, or both.
+- Do not retroactively replace a Reel or alternative format already agreed in an existing creator thread.
 
 ## Current Fig & Bloom Bouquet Round Config
 
@@ -137,11 +150,11 @@ Use these only when the inbound question is clearly covered. In `assist`, draft 
 
 ### Deliverables
 
-> The deliverables are in the brief for this campaign — usually static images or an Instagram reel, depending on the campaign. Happy to clarify anything in the brief if a part is unclear.
+> For new selections, we're asking for around five high-resolution aesthetic photographs featuring the bouquet — ideally a natural mix of hero, close-detail and lifestyle/context images. No Reel is required. The campaign brief will say clearly whether the photos are supplied to Fig & Bloom, posted, or both.
 
-### Posting timing and collaborator tag
+### Posting or asset-supply timing
 
-> We ask creators to post within 7 days of placing their order, and to tag Fig & Bloom as a collaborator in the post.
+> The campaign brief will say whether the photographs need to be supplied to Fig & Bloom, posted as a static/carousel post, or both. If posting is requested, we normally ask for it within 7 days of placing the order and for Fig & Bloom to be tagged as a collaborator. If the brief asks only for supplied assets, no Instagram post is required.
 
 ### Delivery area eligibility
 
@@ -151,17 +164,17 @@ Use these only when the inbound question is clearly covered. In `assist`, draft 
 
 Use when a creator asks about Geelong, Bannockburn, Sunshine Coast or Gold Coast.
 
-> Yes, we can make that work for this campaign — we'll ship by overnight courier in a large box. If you're still happy with the brief and the IG Reel deliverable, we'd love to go ahead.
+> Yes, we can make that work for this campaign — we'll ship by overnight courier in a large box. If you're still happy with the brief and creating around five high-resolution aesthetic photographs featuring the bouquet, we'd love to go ahead. No Reel is required.
 
-### Creative format: voiceover / text on screen
+### Creative format: photo composition and edits
 
-> Voiceover is optional — text on screen and/or caption is fine, as long as the story is clear and aligned with the brief.
+> Keep the photos natural and true to your style. A mix of bouquet hero, close-detail and lifestyle/context images works beautifully. Please supply the original high-resolution files without watermarks or baked-in text; light colour correction is fine.
 
 ### One-off product exception approved
 
 Use only when Daniel has explicitly approved the specific exception for this creator/campaign, e.g. in `/opt/data/tmp/hashgifted-manual-overrides.json`.
 
-> Yes, we can make that work for this campaign. If you're still happy with the brief and the IG Reel deliverable, we'd love to go ahead.
+> Yes, we can make that work for this campaign. If you're still happy with the brief and creating around five high-resolution aesthetic photographs featuring the bouquet, we'd love to go ahead. No Reel is required.
 
 ### Creator asks where/how to provide address
 
